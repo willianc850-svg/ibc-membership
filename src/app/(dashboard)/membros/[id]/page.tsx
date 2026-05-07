@@ -8,6 +8,7 @@ import {
   ChevronLeft, Pencil, Trash2, User, Phone, Heart,
   Church, Shield, Calendar, MapPin, Mail, Smartphone,
 } from 'lucide-react'
+import { usePermissao } from '@/lib/hooks/usePermissao'
 
 type Membro = {
   id: string
@@ -23,6 +24,7 @@ type Membro = {
   email: string | null
   rua: string | null
   numero: string | null
+  complemento: string | null
   bairro: string | null
   cidade: string | null
   cep: string | null
@@ -109,6 +111,8 @@ export default function PerfilMembroPage() {
   const [carregando, setCarregando] = useState(true)
   const [deletando, setDeletando] = useState(false)
   const supabase = createClient()
+  const { isSuperAdmin, userId } = usePermissao()
+  const podeEditar = isSuperAdmin || membro?.user_id === userId
 
   useEffect(() => {
     async function carregar() {
@@ -152,8 +156,8 @@ export default function PerfilMembroPage() {
     )
   }
 
-  const endereco = [membro.rua, membro.numero, membro.bairro, membro.cidade, membro.cep]
-    .filter(Boolean).join(', ')
+  const endereco = [membro.rua, membro.numero, membro.complemento, membro.bairro, membro.cidade, membro.cep]
+  .filter(Boolean).join(', ')
 
   return (
     <div className="max-w-3xl mx-auto space-y-4">
@@ -167,20 +171,24 @@ export default function PerfilMembroPage() {
           <h1 className="text-xl font-bold text-gray-900">Perfil do Membro</h1>
         </div>
         <div className="flex items-center gap-2">
-          <Link
-            href={`/membros/${id}/editar`}
-            className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-          >
-            <Pencil size={14} /> Editar
-          </Link>
-          <button
-            onClick={handleDeletar}
-            disabled={deletando}
-            className="flex items-center gap-2 px-3 py-2 border border-red-200 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
-          >
-            <Trash2 size={14} /> {deletando ? 'Excluindo...' : 'Excluir'}
-          </button>
-        </div>
+  {podeEditar && (
+    <Link
+      href={`/membros/${id}/editar`}
+      className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+    >
+      <Pencil size={14} /> Editar
+    </Link>
+  )}
+  {isSuperAdmin && (
+    <button
+      onClick={handleDeletar}
+      disabled={deletando}
+      className="flex items-center gap-2 px-3 py-2 border border-red-200 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+    >
+      <Trash2 size={14} /> {deletando ? 'Excluindo...' : 'Excluir'}
+    </button>
+  )}
+</div>
       </div>
 
       {/* Card de identidade */}

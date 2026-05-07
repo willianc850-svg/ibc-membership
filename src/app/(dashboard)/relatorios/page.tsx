@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { BarChart3, Download, Filter } from 'lucide-react'
+import * as XLSX from 'xlsx'
 
 type Membro = {
   id: string
@@ -105,48 +106,80 @@ export default function RelatoriosPage() {
     setFiltros(filtrosIniciais)
   }
 
-  function exportarCSV() {
-    const cabecalho = [
-      'Nome', 'Status', 'Gênero', 'Idade', 'Data Nascimento', 'Estado Civil',
-      'Profissão', 'Escolaridade', 'Cidade', 'Bairro', 'Telefone', 'E-mail',
-      'Data Admissão', 'Batismo Águas', 'Integração', 'Autorização Imagem',
-      'Tem Filhos', 'Tipo Sanguíneo', 'Camiseta',
-    ]
+  function exportarExcel() {
+  const dados = membrosFiltrados.map(m => ({
+    'Nome':                  m.nome_completo,
+    'Status':                m.status_membresia,
+    'Gênero':                m.genero ?? '',
+    'Idade':                 m.data_nascimento ? calcularIdade(m.data_nascimento) : '',
+    'Data de Nascimento':    formatarData(m.data_nascimento),
+    'Profissão':             m.profissao ?? '',
+    'Escolaridade':          m.escolaridade ?? '',
+    'Cidade':                m.cidade ?? '',
+    'Bairro':                m.bairro ?? '',
+    'Telefone':              m.telefone ?? '',
+    'E-mail':                m.email ?? '',
+    'Data de Admissão':      formatarData(m.data_admissao),
+    'Batismo nas Águas':     formatarData(m.data_batismo_aguas),
+    'Integração Concluída':  m.concluiu_integracao ? 'Sim' : 'Não',
+    'Autorização de Imagem': m.autorizacao_imagem ? 'Sim' : 'Não',
+    'Tem Filhos':            m.tem_filhos ? 'Sim' : 'Não',
+    'Tipo Sanguíneo':        m.tipo_sanguineo ?? '',
+    'Tamanho Camiseta':      m.tamanho_camiseta ?? '',
+  }))
 
-    const linhas = membrosFiltrados.map(m => [
-      m.nome_completo,
-      m.status_membresia,
-      m.genero ?? '',
-      m.data_nascimento ? calcularIdade(m.data_nascimento) : '',
-      formatarData(m.data_nascimento),
-      '',
-      m.profissao ?? '',
-      m.escolaridade ?? '',
-      m.cidade ?? '',
-      m.bairro ?? '',
-      m.telefone ?? '',
-      m.email ?? '',
-      formatarData(m.data_admissao),
-      formatarData(m.data_batismo_aguas),
-      m.concluiu_integracao ? 'Sim' : 'Não',
-      m.autorizacao_imagem ? 'Sim' : 'Não',
-      m.tem_filhos ? 'Sim' : 'Não',
-      m.tipo_sanguineo ?? '',
-      m.tamanho_camiseta ?? '',
-    ])
+  const planilha = XLSX.utils.json_to_sheet(dados)
 
-    const csv = [cabecalho, ...linhas]
-      .map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
-      .join('\n')
+  // Largura das colunas
+  planilha['!cols'] = [
+    { wch: 35 }, // Nome
+    { wch: 15 }, // Status
+    { wch: 12 }, // Gênero
+    { wch: 8  }, // Idade
+    { wch: 18 }, // Data Nascimento
+    { wch: 20 }, // Profissão
+    { wch: 30 }, // Escolaridade
+    { wch: 18 }, // Cidade
+    { wch: 18 }, // Bairro
+    { wch: 18 }, // Telefone
+    { wch: 28 }, // E-mail
+    { wch: 18 }, // Data Admissão
+    { wch: 18 }, // Batismo
+    { wch: 18 }, // Integração
+    { wch: 20 }, // Autorização
+    { wch: 12 }, // Filhos
+    { wch: 14 }, // Tipo Sanguíneo
+    { wch: 16 }, // Camiseta
+  ]
 
-    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `relatorio-membros-${new Date().toISOString().slice(0, 10)}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, planilha, 'Membros')
+
+  // Aba de resumo
+  const hoje = new Date().toLocaleDateString('pt-BR')
+  const resumo = [
+    ['Relatório IBC Membership'],
+    ['Gerado em:', hoje],
+    [''],
+    ['Total de membros:', membrosFiltrados.length],
+    ['Membros ativos:', membrosFiltrados.filter(m => m.status_membresia === 'Membro Ativo').length],
+    ['Visitantes:', membrosFiltrados.filter(m => m.status_membresia === 'Visitante').length],
+    ['Congregados:', membrosFiltrados.filter(m => m.status_membresia === 'Congregado').length],
+    ['Afastados:', membrosFiltrados.filter(m => m.status_membresia === 'Afastado').length],
+    [''],
+    ['Filtros aplicados:'],
+    ['Status:', filtros.status || 'Todos'],
+    ['Gênero:', filtros.genero || 'Todos'],
+    ['Cidade:', filtros.cidade || 'Todas'],
+    ['Escolaridade:', filtros.escolaridade || 'Todas'],
+  ]
+  const planilhaResumo = XLSX.utils.aoa_to_sheet(resumo)
+  planilhaResumo['!cols'] = [{ wch: 25 }, { wch: 30 }]
+  XLSX.utils.book_append_sheet(workbook, planilhaResumo, 'Resumo')
+
+  const nomeArquivo = `relatorio-membros-${new Date().toISOString().slice(0, 10)}.xlsx`
+  XLSX.writeFile(workbook, nomeArquivo)
+}
 
   const filtersAtivos = Object.values(filtros).filter(Boolean).length
 
@@ -179,12 +212,12 @@ export default function RelatoriosPage() {
             Filtros {filtersAtivos > 0 && `(${filtersAtivos})`}
           </button>
           <button
-            onClick={exportarCSV}
-            disabled={membrosFiltrados.length === 0}
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors"
-          >
-            <Download size={16} /> Exportar CSV
-          </button>
+  onClick={exportarExcel}
+  disabled={membrosFiltrados.length === 0}
+  className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors"
+>
+  <Download size={16} /> Exportar Excel
+</button>
         </div>
       </div>
 

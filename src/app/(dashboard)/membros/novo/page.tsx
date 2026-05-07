@@ -124,6 +124,21 @@ export default function NovoMembroPage() {
   const indiceAtual = abaAtiva
   const total = abas.length
 
+  async function buscarCep(cep: string) {
+  const cepLimpo = cep.replace(/\D/g, '')
+  if (cepLimpo.length !== 8) return
+
+  try {
+    const res = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`)
+    const data = await res.json()
+    if (data.erro) return
+
+    set('rua', data.logradouro ?? '')
+    set('bairro', data.bairro ?? '')
+    set('cidade', data.localidade ?? '')
+  } catch {}
+}
+
   return (
     <div className="max-w-3xl mx-auto">
       {/* Cabeçalho */}
@@ -248,9 +263,31 @@ export default function NovoMembroPage() {
                 value={form.cidade} onChange={e => set('cidade', e.target.value)} />
             </Campo>
             <Campo label="CEP">
-              <input className={inputClass} placeholder="00000-000"
-                value={form.cep} onChange={e => set('cep', e.target.value)} />
-            </Campo>
+  <div className="relative">
+    <input
+      className={inputClass}
+      placeholder="00000-000"
+      value={form.cep}
+      maxLength={9}
+      onChange={e => {
+        const valor = e.target.value
+          .replace(/\D/g, '')
+          .replace(/(\d{5})(\d)/, '$1-$2')
+          .slice(0, 9)
+        set('cep', valor)
+        if (valor.replace(/\D/g, '').length === 8) buscarCep(valor)
+      }}
+    />
+    {form.cep.replace(/\D/g, '').length === 8 && (
+      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-green-600 font-medium">
+        ✓
+      </span>
+    )}
+  </div>
+  <p className="text-xs text-gray-400 mt-1">
+    Preencha o CEP para completar o endereço automaticamente.
+  </p>
+</Campo>
           </div>
         )}
 

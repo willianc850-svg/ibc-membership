@@ -6,6 +6,15 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronLeft, Save, User, Phone, Heart, Church, Shield } from 'lucide-react'
 
+// Função de máscara movida para fora para melhor performance (não é recriada a cada render)
+function mascaraTelefone(valor: string) {
+  return valor
+    .replace(/\D/g, '')
+    .replace(/(\d{2})(\d)/, '($1) $2')
+    .replace(/(\d{5})(\d)/, '$1-$2')
+    .slice(0, 15)
+}
+
 const abas = [
   { id: 'pessoal',  label: 'Pessoal',       icone: User   },
   { id: 'contato',  label: 'Contato',       icone: Phone  },
@@ -26,6 +35,7 @@ type Formulario = {
   email: string
   rua: string
   numero: string
+  complemento: string
   bairro: string
   cidade: string
   cep: string
@@ -52,7 +62,7 @@ type Formulario = {
 const vazio: Formulario = {
   nome_completo: '', data_nascimento: '', genero: '', estado_civil: '',
   naturalidade: '', escolaridade: '', profissao: '',
-  telefone: '', email: '', rua: '', numero: '', bairro: '', cidade: '', cep: '',
+  telefone: '', email: '', rua: '', numero: '', complemento: '', bairro: '', cidade: '', cep: '',
   data_casamento: '', tem_filhos: false, filhos_info: '',
   status_membresia: 'Visitante', data_admissao: '', forma_admissao: '',
   data_batismo_aguas: '', data_batismo_espirito: '', igreja_procedencia: '',
@@ -95,47 +105,35 @@ export default function EditarMembroPage() {
 
       if (data) {
         setForm({
-          nome_completo:               data.nome_completo ?? '',
-          data_nascimento:             data.data_nascimento ?? '',
-          genero:                      data.genero ?? '',
-          estado_civil:                data.estado_civil ?? '',
-          naturalidade:                data.naturalidade ?? '',
-          escolaridade:                data.escolaridade ?? '',
-          profissao:                   data.profissao ?? '',
-          telefone:                    data.telefone ?? '',
-          email:                       data.email ?? '',
-          rua:                         data.rua ?? '',
-          numero:                      data.numero ?? '',
-          bairro:                      data.bairro ?? '',
-          cidade:                      data.cidade ?? '',
-          cep:                         data.cep ?? '',
-          data_casamento:              data.data_casamento ?? '',
-          tem_filhos:                  data.tem_filhos ?? false,
-          filhos_info:                 data.filhos_info ?? '',
-          status_membresia:            data.status_membresia ?? 'Visitante',
-          data_admissao:               data.data_admissao ?? '',
-          forma_admissao:              data.forma_admissao ?? '',
-          data_batismo_aguas:          data.data_batismo_aguas ?? '',
-          data_batismo_espirito:       data.data_batismo_espirito ?? '',
-          igreja_procedencia:          data.igreja_procedencia ?? '',
-          cursos_teologicos:           data.cursos_teologicos ?? '',
-          concluiu_integracao:         data.concluiu_integracao ?? false,
-          alergias_restricoes:         data.alergias_restricoes ?? '',
-          tipo_sanguineo:              data.tipo_sanguineo ?? '',
-          contato_emergencia_nome:     data.contato_emergencia_nome ?? '',
-          contato_emergencia_telefone: data.contato_emergencia_telefone ?? '',
-          habilidades:                 data.habilidades ?? '',
-          tamanho_camiseta:            data.tamanho_camiseta ?? '',
-          autorizacao_imagem:          data.autorizacao_imagem ?? false,
+          ...data, // Simplifica o carregamento de todos os campos
+          status_membresia: data.status_membresia ?? 'Visitante',
+          tem_filhos: data.tem_filhos ?? false,
+          concluiu_integracao: data.concluiu_integracao ?? false,
+          autorizacao_imagem: data.autorizacao_imagem ?? false,
         })
       }
       setCarregando(false)
     }
     carregar()
-  }, [id])
+  }, [id, supabase])
 
   function set(campo: keyof Formulario, valor: string | boolean) {
     setForm(prev => ({ ...prev, [campo]: valor }))
+  }
+
+  async function buscarCep(cep: string) {
+    const cepLimpo = cep.replace(/\D/g, '')
+    if (cepLimpo.length !== 8) return
+
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`)
+      const data = await res.json()
+      if (data.erro) return
+
+      set('rua', data.logradouro ?? '')
+      set('bairro', data.bairro ?? '')
+      set('cidade', data.localidade ?? '')
+    } catch {}
   }
 
   async function salvar() {
@@ -183,7 +181,6 @@ export default function EditarMembroPage() {
         </div>
       </div>
 
-      {/* Abas */}
       <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-6 overflow-x-auto">
         {abas.map((aba, i) => {
           const Icone = aba.icone
@@ -198,7 +195,6 @@ export default function EditarMembroPage() {
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-200 p-6">
-
         {/* ABA 1 — Pessoal */}
         {abaAtiva === 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -255,8 +251,12 @@ export default function EditarMembroPage() {
         {abaAtiva === 1 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Campo label="Telefone / WhatsApp">
-              <input className={inputClass} value={form.telefone}
-                onChange={e => set('telefone', e.target.value)} />
+              <input
+                className={inputClass}
+                placeholder="(00) 00000-0000"
+                value={form.telefone}
+                onChange={e => set('telefone', mascaraTelefone(e.target.value))}
+              />
             </Campo>
             <Campo label="E-mail">
               <input type="email" className={inputClass} value={form.email}
@@ -264,25 +264,48 @@ export default function EditarMembroPage() {
             </Campo>
             <div className="sm:col-span-2">
               <Campo label="Rua">
-                <input className={inputClass} value={form.rua}
-                  onChange={e => set('rua', e.target.value)} />
+                <input className={inputClass} placeholder="Nome da rua"
+                  value={form.rua} onChange={e => set('rua', e.target.value)} />
               </Campo>
             </div>
             <Campo label="Número">
-              <input className={inputClass} value={form.numero}
-                onChange={e => set('numero', e.target.value)} />
+              <input className={inputClass} placeholder="Ex: 123"
+                value={form.numero} onChange={e => set('numero', e.target.value)} />
+            </Campo>
+            <Campo label="Complemento">
+              <input className={inputClass} placeholder="Apto, Bloco, Casa..."
+                value={form.complemento} onChange={e => set('complemento', e.target.value)} />
             </Campo>
             <Campo label="Bairro">
-              <input className={inputClass} value={form.bairro}
-                onChange={e => set('bairro', e.target.value)} />
+              <input className={inputClass}
+                value={form.bairro} onChange={e => set('bairro', e.target.value)} />
             </Campo>
             <Campo label="Cidade">
-              <input className={inputClass} value={form.cidade}
-                onChange={e => set('cidade', e.target.value)} />
+              <input className={inputClass}
+                value={form.cidade} onChange={e => set('cidade', e.target.value)} />
             </Campo>
             <Campo label="CEP">
-              <input className={inputClass} value={form.cep}
-                onChange={e => set('cep', e.target.value)} />
+              <div className="relative">
+                <input
+                  className={inputClass}
+                  placeholder="00000-000"
+                  value={form.cep}
+                  maxLength={9}
+                  onChange={e => {
+                    const valor = e.target.value
+                      .replace(/\D/g, '')
+                      .replace(/(\d{5})(\d)/, '$1-$2')
+                      .slice(0, 9)
+                    set('cep', valor)
+                    if (valor.replace(/\D/g, '').length === 8) buscarCep(valor)
+                  }}
+                />
+                {form.cep.replace(/\D/g, '').length === 8 && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-green-600 font-medium">
+                    ✓
+                  </span>
+                )}
+              </div>
             </Campo>
           </div>
         )}
@@ -401,8 +424,10 @@ export default function EditarMembroPage() {
                 onChange={e => set('contato_emergencia_nome', e.target.value)} />
             </Campo>
             <Campo label="Contato de emergência — telefone">
-              <input className={inputClass} value={form.contato_emergencia_telefone}
-                onChange={e => set('contato_emergencia_telefone', e.target.value)} />
+              <input className={inputClass} 
+                placeholder="(00) 00000-0000"
+                value={form.contato_emergencia_telefone}
+                onChange={e => set('contato_emergencia_telefone', mascaraTelefone(e.target.value))} />
             </Campo>
             <div className="sm:col-span-2">
               <Campo label="Habilidades e talentos">

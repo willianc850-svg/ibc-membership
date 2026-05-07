@@ -25,26 +25,37 @@ export default function MinisteriosPage() {
   useEffect(() => { carregar() }, [])
 
   async function carregar() {
-    setCarregando(true)
-    const { data: mins } = await supabase
-      .from('ministerios')
-      .select('id, nome, descricao')
-      .order('nome')
+  setCarregando(true)
+  const { data: mins } = await supabase
+    .from('ministerios')
+    .select('id, nome, descricao, lider_id')
+    .order('nome')
 
-    if (!mins) { setCarregando(false); return }
+  if (!mins) { setCarregando(false); return }
 
-    const { data: vinculos } = await supabase
-      .from('membros_ministerios')
-      .select('ministerio_id')
+  const { data: vinculos } = await supabase
+    .from('membros_ministerios')
+    .select('ministerio_id')
 
-    const contagem: Record<string, number> = {}
-    vinculos?.forEach(v => {
-      contagem[v.ministerio_id] = (contagem[v.ministerio_id] ?? 0) + 1
-    })
+  const { data: lideres } = await supabase
+    .from('membros')
+    .select('id, nome_completo')
 
-    setMinisterios(mins.map(m => ({ ...m, total_membros: contagem[m.id] ?? 0 })))
-    setCarregando(false)
-  }
+  const contagem: Record<string, number> = {}
+  vinculos?.forEach(v => {
+    contagem[v.ministerio_id] = (contagem[v.ministerio_id] ?? 0) + 1
+  })
+
+  const liderMap: Record<string, string> = {}
+  lideres?.forEach(l => { liderMap[l.id] = l.nome_completo })
+
+  setMinisterios(mins.map(m => ({
+    ...m,
+    total_membros: contagem[m.id] ?? 0,
+    lider_nome: m.lider_id ? liderMap[m.lider_id] : undefined,
+  })))
+  setCarregando(false)
+}
 
   async function salvar() {
     if (!novoNome.trim()) return
@@ -168,11 +179,17 @@ export default function MinisteriosPage() {
             <div key={m.id} className="bg-white border border-gray-200 rounded-2xl p-5 flex flex-col gap-3">
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="font-semibold text-gray-900">{m.nome}</h3>
-                  {m.descricao && (
-                    <p className="text-sm text-gray-500 mt-0.5">{m.descricao}</p>
-                  )}
-                </div>
+  <h3 className="font-semibold text-gray-900">{m.nome}</h3>
+  {m.descricao && (
+    <p className="text-sm text-gray-500 mt-0.5">{m.descricao}</p>
+  )}
+  {m.lider_nome && (
+    <p className="text-sm text-gray-500 mt-1 flex items-center gap-1">
+      <span className="text-yellow-500 text-xs">★</span>
+      {m.lider_nome}
+    </p>
+  )}
+</div>
                 <div className="flex items-center gap-1 ml-2 flex-shrink-0">
                   <button
                     onClick={() => abrirEdicao(m)}
