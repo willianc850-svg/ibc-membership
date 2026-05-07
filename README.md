@@ -1,36 +1,148 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# IBC Membership
 
-## Getting Started
+Sistema de gerenciamento de membresia para igrejas, desenvolvido para centralizar informações de membros, visitantes, ministérios e dados estratégicos que auxiliam na organização pastoral, administrativa e ministerial.
 
-First, run the development server:
+## Objetivo
+
+O IBC Membership foi criado para facilitar o acompanhamento da membresia da igreja de forma integrada, permitindo acesso rápido a informações importantes para:
+
+- organização de eventos;
+- acompanhamento pastoral;
+- gestão ministerial;
+- análise demográfica;
+- integração entre departamentos;
+- controle de membros e visitantes;
+- apoio em emergências durante eventos;
+- planejamento baseado em faixa etária e perfil dos membros.
+
+---
+
+## Funcionalidades
+
+### Gestão de membros
+- Cadastro de membros e visitantes
+- Edição de informações pessoais
+- Controle de status da pessoa
+- Histórico de participação
+
+### Ministérios
+- Associação de membros aos ministérios
+- Controle de equipes e departamentos
+- Visualização de atuação ministerial
+
+### Informações estratégicas
+- Região demográfica
+- Faixa etária
+- Tipo sanguíneo
+- Situação de membresia
+- Participação ministerial
+- Controle financeiro básico
+
+### Relatórios
+- Relatórios administrativos
+- Informações para eventos
+- Dados demográficos
+- Apoio à liderança da igreja
+
+---
+
+## Tecnologias utilizadas
+
+- Next.js
+- React
+- TypeScript
+- App Router
+- CSS Global
+- Node.js
+
+---
+
+## Estrutura do projeto
+
+```text
+src/
+ ├── app/
+ │   ├── (auth)/
+ │   ├── (dashboard)/
+ │   │   ├── configuracoes/
+ │   │   ├── dashboard/
+ │   │   ├── membros/
+ │   │   ├── ministerios/
+ │   │   ├── pgm/
+ │   │   └── relatorios/
+ │   ├── globals.css
+ │   ├── layout.tsx
+ │   └── page.tsx
+ ├── lib/
+ └── proxy.ts
+```
+
+---
+
+## Como executar o projeto
+
+### Clone o repositório
+
+```bash
+git clone https://github.com/willianc850-svg/ibc-membership.git
+```
+
+### Acesse a pasta
+
+```bash
+cd ibc-membership
+```
+
+### Instale as dependências
+
+```bash
+npm install
+```
+
+### Execute o projeto
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+O sistema ficará disponível em:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```text
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## Roadmap
 
-To learn more about Next.js, take a look at the following resources:
+- [ ] Controle completo de visitantes
+- [ ] Dashboard analítico
+- [ ] Integração financeira
+- [ ] Gestão de eventos
+- [ ] Controle de PGM
+- [ ] Sistema de permissões
+- [ ] Integração com WhatsApp
+- [ ] Aplicativo mobile
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Público-alvo
 
-## Deploy on Vercel
+- Igrejas locais
+- Secretarias eclesiásticas
+- Pastores
+- Líderes ministeriais
+- Administração de eventos
+- Coordenação de pequenos grupos
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Contribuição
+
+Contribuições são bem-vindas para melhorias no sistema, novas funcionalidades e correções.
+
+---
+
+## Licença
+
+Este projeto está sob a licença MIT.
