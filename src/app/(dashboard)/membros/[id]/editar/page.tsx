@@ -10,7 +10,7 @@ import { ChevronLeft, Save, User, Phone, Heart, Church, Shield } from 'lucide-re
 function mascaraTelefone(valor: string) {
   return valor
     .replace(/\D/g, '')
-    .replace(/(\d{2})(\d)/, '($1) $2')
+    .replace(/^(\d{2})(\d)/g, '($1) $2')
     .replace(/(\d{5})(\d)/, '$1-$2')
     .slice(0, 15)
 }
@@ -57,6 +57,8 @@ type Formulario = {
   habilidades: string
   tamanho_camiseta: string
   autorizacao_imagem: boolean
+  ano_admissao: string
+  so_ano_admissao: boolean 
 }
 
 const vazio: Formulario = {
@@ -69,7 +71,7 @@ const vazio: Formulario = {
   cursos_teologicos: '', concluiu_integracao: false,
   alergias_restricoes: '', tipo_sanguineo: '', contato_emergencia_nome: '',
   contato_emergencia_telefone: '', habilidades: '', tamanho_camiseta: '',
-  autorizacao_imagem: false,
+  autorizacao_imagem: false, ano_admissao: '', so_ano_admissao: false,
 }
 
 const inputClass = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -348,10 +350,33 @@ export default function EditarMembroPage() {
                 <option>Membro Ativo</option><option>Afastado</option><option>Transferido</option>
               </select>
             </Campo>
-            <Campo label="Data de admissão">
-              <input type="date" className={inputClass} value={form.data_admissao}
-                onChange={e => set('data_admissao', e.target.value)} />
-            </Campo>
+            <div className="sm:col-span-2">
+              <Campo label="Data de admissão">
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.so_ano_admissao}
+                      onChange={e => set('so_ano_admissao', e.target.checked)}
+                      className="w-4 h-4 accent-indigo-600"
+                    />
+                    <span className="text-xs text-gray-500">Não lembro o dia e mês, somente o ano</span>
+                  </label>
+                  {form.so_ano_admissao ? (
+                    <select className={selectClass} value={form.ano_admissao}
+                      onChange={e => set('ano_admissao', e.target.value)}>
+                      <option value="">Selecione o ano</option>
+                      {Array.from({ length: 50 }, (_, i) => new Date().getFullYear() - i).map(ano => (
+                        <option key={ano} value={String(ano)}>{ano}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input type="date" className={inputClass} value={form.data_admissao}
+                      onChange={e => set('data_admissao', e.target.value)} />
+                  )}
+                </div>
+              </Campo>
+            </div>
             <Campo label="Forma de admissão">
               <select className={selectClass} value={form.forma_admissao}
                 onChange={e => set('forma_admissao', e.target.value)}>
@@ -367,10 +392,6 @@ export default function EditarMembroPage() {
             <Campo label="Batismo nas águas">
               <input type="date" className={inputClass} value={form.data_batismo_aguas}
                 onChange={e => set('data_batismo_aguas', e.target.value)} />
-            </Campo>
-            <Campo label="Batismo no Espírito Santo">
-              <input type="date" className={inputClass} value={form.data_batismo_espirito}
-                onChange={e => set('data_batismo_espirito', e.target.value)} />
             </Campo>
             <div className="sm:col-span-2">
               <Campo label="Cursos teológicos">
@@ -465,7 +486,7 @@ export default function EditarMembroPage() {
         <span className="text-xs text-gray-400">{abaAtiva + 1} de {abas.length}</span>
         {abaAtiva < abas.length - 1 ? (
           <button onClick={() => setAbaAtiva(i => Math.min(abas.length - 1, i + 1))}
-            className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium transition-colors">
+            className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium transition-colors cursor-pointer">
             Próximo →
           </button>
         ) : (

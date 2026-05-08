@@ -28,6 +28,7 @@ type Formulario = {
   email: string
   rua: string
   numero: string
+  complemento: string
   bairro: string
   cidade: string
   cep: string
@@ -52,19 +53,29 @@ type Formulario = {
   habilidades: string
   tamanho_camiseta: string
   autorizacao_imagem: boolean
+  ano_admissao: string
+  so_ano_admissao: boolean
 }
 
 const inicial: Formulario = {
   nome_completo: '', data_nascimento: '', genero: '', estado_civil: '',
   naturalidade: '', escolaridade: '', profissao: '',
-  telefone: '', email: '', rua: '', numero: '', bairro: '', cidade: '', cep: '',
+  telefone: '', email: '', rua: '', numero: '', complemento: '', bairro: '', cidade: '', cep: '',
   data_casamento: '', tem_filhos: false, filhos_info: '',
   status_membresia: 'Visitante', data_admissao: '', forma_admissao: '',
   data_batismo_aguas: '', data_batismo_espirito: '', igreja_procedencia: '',
   cursos_teologicos: '', concluiu_integracao: false,
   alergias_restricoes: '', tipo_sanguineo: '', contato_emergencia_nome: '',
   contato_emergencia_telefone: '', habilidades: '', tamanho_camiseta: '',
-  autorizacao_imagem: false,
+  autorizacao_imagem: false, ano_admissao: '', so_ano_admissao: false,
+}
+
+function mascaraTelefone(valor: string) {
+  return valor
+    .replace(/\D/g, '')
+    .replace(/^(\d{2})(\d)/g, '($1) $2')
+    .replace(/(\d{5})(\d)/, '$1-$2')
+    .slice(0, 15)
 }
 
 function Campo({ label, obrigatorio, children }: {
@@ -237,8 +248,12 @@ export default function NovoMembroPage() {
         {abaAtiva === 1 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Campo label="Telefone / WhatsApp">
-              <input className={inputClass} placeholder="(00) 00000-0000"
-                value={form.telefone} onChange={e => set('telefone', e.target.value)} />
+              <input
+                className={inputClass}
+                placeholder="(00) 00000-0000"
+                value={form.telefone}
+                onChange={e => set('telefone', mascaraTelefone(e.target.value))}
+              />
             </Campo>
             <Campo label="E-mail">
               <input type="email" className={inputClass} placeholder="email@exemplo.com"
@@ -254,6 +269,10 @@ export default function NovoMembroPage() {
               <input className={inputClass} placeholder="Ex: 123"
                 value={form.numero} onChange={e => set('numero', e.target.value)} />
             </Campo>
+            <Campo label="Complemento">
+              <input className={inputClass} placeholder="Apto, Bloco, Casa..."
+                value={form.complemento} onChange={e => set('complemento', e.target.value)} />
+            </Campo>
             <Campo label="Bairro">
               <input className={inputClass}
                 value={form.bairro} onChange={e => set('bairro', e.target.value)} />
@@ -263,31 +282,31 @@ export default function NovoMembroPage() {
                 value={form.cidade} onChange={e => set('cidade', e.target.value)} />
             </Campo>
             <Campo label="CEP">
-  <div className="relative">
-    <input
-      className={inputClass}
-      placeholder="00000-000"
-      value={form.cep}
-      maxLength={9}
-      onChange={e => {
-        const valor = e.target.value
-          .replace(/\D/g, '')
-          .replace(/(\d{5})(\d)/, '$1-$2')
-          .slice(0, 9)
-        set('cep', valor)
-        if (valor.replace(/\D/g, '').length === 8) buscarCep(valor)
-      }}
-    />
-    {form.cep.replace(/\D/g, '').length === 8 && (
-      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-green-600 font-medium">
-        ✓
-      </span>
-    )}
-  </div>
-  <p className="text-xs text-gray-400 mt-1">
-    Preencha o CEP para completar o endereço automaticamente.
-  </p>
-</Campo>
+              <div className="relative">
+                <input
+                  className={inputClass}
+                  placeholder="00000-000"
+                  value={form.cep}
+                  maxLength={9}
+                  onChange={e => {
+                    const valor = e.target.value
+                      .replace(/\D/g, '')
+                      .replace(/(\d{5})(\d)/, '$1-$2')
+                      .slice(0, 9)
+                    set('cep', valor)
+                    if (valor.replace(/\D/g, '').length === 8) buscarCep(valor)
+                  }}
+                />
+                {form.cep.replace(/\D/g, '').length === 8 && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-green-600 font-medium">
+                    ✓
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-gray-400 mt-1">
+                Preencha o CEP para completar o endereço automaticamente.
+              </p>
+            </Campo>
           </div>
         )}
 
@@ -337,15 +356,33 @@ export default function NovoMembroPage() {
               <input type="date" className={inputClass} value={form.data_admissao}
                 onChange={e => set('data_admissao', e.target.value)} />
             </Campo>
-            <Campo label="Forma de admissão">
-              <select className={selectClass} value={form.forma_admissao}
-                onChange={e => set('forma_admissao', e.target.value)}>
-                <option value="">Selecione</option>
-                <option>Batismo</option>
-                <option>Aclamação</option>
-                <option>Carta de Transferência</option>
-              </select>
-            </Campo>
+            <div className="sm:col-span-2">
+              <Campo label="Data de admissão">
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.so_ano_admissao}
+                      onChange={e => set('so_ano_admissao', e.target.checked)}
+                      className="w-4 h-4 accent-indigo-600"
+                    />
+                    <span className="text-xs text-gray-500">Não lembro o dia e mês, somente o ano</span>
+                  </label>
+                  {form.so_ano_admissao ? (
+                    <select className={selectClass} value={form.ano_admissao}
+                      onChange={e => set('ano_admissao', e.target.value)}>
+                      <option value="">Selecione o ano</option>
+                      {Array.from({ length: 50 }, (_, i) => new Date().getFullYear() - i).map(ano => (
+                        <option key={ano} value={String(ano)}>{ano}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input type="date" className={inputClass} value={form.data_admissao}
+                      onChange={e => set('data_admissao', e.target.value)} />
+                  )}
+                </div>
+              </Campo>
+            </div>
             <Campo label="Igreja de procedência">
               <input className={inputClass} placeholder="Se veio de outra igreja"
                 value={form.igreja_procedencia}
@@ -354,10 +391,6 @@ export default function NovoMembroPage() {
             <Campo label="Data de batismo nas águas">
               <input type="date" className={inputClass} value={form.data_batismo_aguas}
                 onChange={e => set('data_batismo_aguas', e.target.value)} />
-            </Campo>
-            <Campo label="Data de batismo no Espírito Santo">
-              <input type="date" className={inputClass} value={form.data_batismo_espirito}
-                onChange={e => set('data_batismo_espirito', e.target.value)} />
             </Campo>
             <div className="sm:col-span-2">
               <Campo label="Cursos teológicos ou de liderança">
@@ -464,7 +497,7 @@ export default function NovoMembroPage() {
         {indiceAtual < total - 1 ? (
           <button
             onClick={() => setAbaAtiva(i => Math.min(total - 1, i + 1))}
-            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium transition-colors cursor-pointer"
           >
             Próximo <ChevronRight size={16} />
           </button>

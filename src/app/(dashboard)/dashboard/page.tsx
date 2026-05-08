@@ -15,7 +15,7 @@ type Membro = {
   data_nascimento: string | null
   genero: string | null
   escolaridade: string | null
-  cidade: string | null
+  bairro: string | null
   status_membresia: string
   data_admissao: string | null
 }
@@ -77,7 +77,7 @@ export default function DashboardPage() {
   async function carregar() {
     const [{ data: mems }, { count: cells }, { count: mins }] = await Promise.all([
       supabase.from('membros').select(
-        'data_nascimento, genero, escolaridade, cidade, status_membresia, data_admissao'
+        'data_nascimento, genero, escolaridade, bairro, status_membresia, data_admissao'
       ),
       supabase.from('celulas').select('*', { count: 'exact', head: true }),
       supabase.from('ministerios').select('*', { count: 'exact', head: true }),
@@ -128,12 +128,12 @@ export default function DashboardPage() {
     .sort((a, b) => b.value - a.value)
 
   // Cidades
-  const cidades: Record<string, number> = {}
+  const bairros: Record<string, number> = {}
   membros.forEach(m => {
-    if (!m.cidade) return
-    cidades[m.cidade] = (cidades[m.cidade] ?? 0) + 1
+    if (!m.bairro) return
+    bairros[m.bairro] = (bairros[m.bairro] ?? 0) + 1
   })
-  const dadosCidades = Object.entries(cidades)
+  const dadosBairros = Object.entries(bairros)
     .map(([name, value]) => ({ name, value }))
     .sort((a, b) => b.value - a.value)
     .slice(0, 6)
@@ -310,12 +310,12 @@ export default function DashboardPage() {
           )}
         </Grafico>
 
-        <Grafico titulo="Principais cidades">
-          {dadosCidades.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-8">Sem dados de cidade</p>
+        <Grafico titulo="Principais bairros">
+          {dadosBairros.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-8">Sem dados de bairro</p>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={dadosCidades} layout="vertical"
+              <BarChart data={dadosBairros} layout="vertical"
                 margin={{ top: 0, right: 20, left: 10, bottom: 0 }}>
                 <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
                 <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={90} />

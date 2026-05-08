@@ -276,7 +276,6 @@ export default function PerfilMembroPage() {
         <Item label="Data de admissão" valor={formatarData(membro.data_admissao)} />
         <Item label="Igreja de procedência" valor={membro.igreja_procedencia} />
         <Item label="Batismo nas águas" valor={formatarData(membro.data_batismo_aguas)} />
-        <Item label="Batismo no Espírito Santo" valor={formatarData(membro.data_batismo_espirito)} />
         <Item label="Cursos teológicos" valor={membro.cursos_teologicos} fullWidth />
         <ItemBool label="Concluiu integração" valor={membro.concluiu_integracao} />
       </Secao>

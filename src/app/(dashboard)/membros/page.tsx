@@ -20,7 +20,7 @@ type Membro = {
   telefone: string | null
   email: string | null
   status_membresia: string
-  cidade: string | null
+  bairro: string | null
   foto_url: string | null
   created_at: string
 }
@@ -48,8 +48,7 @@ export default function MembrosPage() {
     setCarregando(true)
     const { data, error } = await supabase
       .from('membros')
-      .select('id, nome_completo, telefone, email, status_membresia, cidade, foto_url, created_at')
-      .order('nome_completo')
+      .select('id, nome_completo, telefone, email, status_membresia, bairro, foto_url, created_at')      .order('nome_completo')
 
     if (!error && data) setMembros(data)
     setCarregando(false)
@@ -139,8 +138,7 @@ export default function MembrosPage() {
                 <tr className="border-b border-gray-100 bg-gray-50">
                   <th className="text-left text-xs font-medium text-gray-500 px-4 py-3">Membro</th>
                   <th className="text-left text-xs font-medium text-gray-500 px-4 py-3 hidden sm:table-cell">Contato</th>
-                  <th className="text-left text-xs font-medium text-gray-500 px-4 py-3 hidden md:table-cell">Cidade</th>
-                  <th className="text-left text-xs font-medium text-gray-500 px-4 py-3">Status</th>
+                  <th className="text-left text-xs font-medium text-gray-500 px-4 py-3 hidden md:table-cell">Bairro</th>                  <th className="text-left text-xs font-medium text-gray-500 px-4 py-3">Status</th>
                   <th className="text-right text-xs font-medium text-gray-500 px-4 py-3">Ações</th>
                 </tr>
               </thead>
@@ -170,7 +168,7 @@ export default function MembrosPage() {
                         <p className="text-xs text-gray-400">{membro.email ?? '—'}</p>
                       </td>
                       <td className="px-4 py-3 hidden md:table-cell text-sm text-gray-600">
-                        {membro.cidade ?? '—'}
+                        {membro.bairro ?? '—'}
                       </td>
                       <td className="px-4 py-3">
                         <span className={`inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full ${status.cor}`}>

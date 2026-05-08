@@ -198,21 +198,21 @@ export default function DashboardLayout({
 
         {/* Header mobile */}
         <header
-          style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #e5e7eb', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+          style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #e5e7eb', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}
           className="lg:hidden"
         >
+          <button
+            onClick={() => setMenuAberto(!menuAberto)}
+            style={{ padding: '8px', borderRadius: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', flexShrink: 0 }}
+          >
+            <Menu size={20} />
+          </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{ backgroundColor: '#4f46e5', borderRadius: '8px', padding: '6px' }}>
               <Church size={16} color="white" />
             </div>
             <span style={{ fontWeight: 700, fontSize: '14px', color: '#111827' }}>IBC Membership</span>
           </div>
-          <button
-            onClick={() => setMenuAberto(!menuAberto)}
-            style={{ padding: '8px', borderRadius: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563' }}
-          >
-            <Menu size={20} />
-          </button>
         </header>
 
         <main style={{ flex: 1, padding: '24px' }}>
