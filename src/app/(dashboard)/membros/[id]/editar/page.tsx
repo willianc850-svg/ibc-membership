@@ -346,8 +346,13 @@ export default function EditarMembroPage() {
             <Campo label="Status de membresia">
               <select className={selectClass} value={form.status_membresia}
                 onChange={e => set('status_membresia', e.target.value)}>
-                <option>Visitante</option><option>Congregado</option>
-                <option>Membro Ativo</option><option>Afastado</option><option>Transferido</option>
+                <option>Pastor</option>
+                <option>Diretoria</option>
+                <option>Líder de Ministério</option>
+                <option>Membro Ativo</option>
+                <option>Congregado</option>
+                <option>Afastado</option>
+                <option>Transferido</option>
               </select>
             </Campo>
             <div className="sm:col-span-2">

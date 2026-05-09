@@ -9,9 +9,12 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 
+import { CalendarDays } from 'lucide-react'
+
 const menuItems = [
   { href: '/dashboard',    label: 'Dashboard',    icon: LayoutDashboard },
   { href: '/membros',      label: 'Membros',      icon: Users           },
+  { href: '/reunioes',     label: 'Reuniões',     icon: CalendarDays    }, // ← adicionar
   { href: '/pgm',          label: 'PGMs',         icon: UsersRound      },
   { href: '/ministerios',  label: 'Ministérios',  icon: HandHeart       },
   { href: '/relatorios',   label: 'Relatórios',   icon: BarChart3       },

@@ -26,11 +26,13 @@ type Membro = {
 }
 
 const statusConfig: Record<string, { label: string; cor: string; icone: React.ReactNode }> = {
-  'Membro Ativo':  { label: 'Membro Ativo',  cor: 'bg-green-100 text-green-700',  icone: <UserCheck size={12} /> },
-  'Visitante':     { label: 'Visitante',      cor: 'bg-blue-100 text-blue-700',    icone: <Eye size={12} /> },
-  'Congregado':    { label: 'Congregado',     cor: 'bg-purple-100 text-purple-700', icone: <Users size={12} /> },
-  'Afastado':      { label: 'Afastado',       cor: 'bg-yellow-100 text-yellow-700', icone: <UserMinus size={12} /> },
-  'Transferido':   { label: 'Transferido',    cor: 'bg-gray-100 text-gray-700',    icone: <UserX size={12} /> },
+  'Pastor':              { label: 'Pastor',              cor: 'bg-red-100 text-red-700',     icone: <UserCheck size={12} /> },
+  'Diretoria':           { label: 'Diretoria',           cor: 'bg-indigo-100 text-indigo-700', icone: <UserCheck size={12} /> },
+  'Líder de Ministério': { label: 'Líder de Ministério', cor: 'bg-purple-100 text-purple-700', icone: <UserCheck size={12} /> },
+  'Membro Ativo':        { label: 'Membro Ativo',        cor: 'bg-green-100 text-green-700',  icone: <UserCheck size={12} /> },
+  'Congregado':          { label: 'Congregado',          cor: 'bg-blue-100 text-blue-700',    icone: <Users size={12} /> },
+  'Afastado':            { label: 'Afastado',            cor: 'bg-yellow-100 text-yellow-700', icone: <UserMinus size={12} /> },
+  'Transferido':         { label: 'Transferido',         cor: 'bg-gray-100 text-gray-700',    icone: <UserX size={12} /> },
 }
 
 export default function MembrosPage() {
@@ -100,14 +102,13 @@ export default function MembrosPage() {
         </div>
         <div className="relative">
           <Filter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <select
-            value={filtroStatus}
-            onChange={(e) => setFiltroStatus(e.target.value)}
-            className="pl-9 pr-8 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-gray-900 appearance-none"
-          >
+          <select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)}
+            className="pl-9 pr-8 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-gray-900 appearance-none">
             <option value="todos">Todos os status</option>
+            <option value="Pastor">Pastor</option>
+            <option value="Diretoria">Diretoria</option>
+            <option value="Líder de Ministério">Líder de Ministério</option>
             <option value="Membro Ativo">Membro Ativo</option>
-            <option value="Visitante">Visitante</option>
             <option value="Congregado">Congregado</option>
             <option value="Afastado">Afastado</option>
             <option value="Transferido">Transferido</option>
@@ -138,7 +139,8 @@ export default function MembrosPage() {
                 <tr className="border-b border-gray-100 bg-gray-50">
                   <th className="text-left text-xs font-medium text-gray-500 px-4 py-3">Membro</th>
                   <th className="text-left text-xs font-medium text-gray-500 px-4 py-3 hidden sm:table-cell">Contato</th>
-                  <th className="text-left text-xs font-medium text-gray-500 px-4 py-3 hidden md:table-cell">Bairro</th>                  <th className="text-left text-xs font-medium text-gray-500 px-4 py-3">Status</th>
+                  <th className="text-left text-xs font-medium text-gray-500 px-4 py-3 hidden md:table-cell">Bairro</th>
+                  <th className="text-left text-xs font-medium text-gray-500 px-4 py-3">Status</th>
                   <th className="text-right text-xs font-medium text-gray-500 px-4 py-3">Ações</th>
                 </tr>
               </thead>
@@ -153,10 +155,10 @@ export default function MembrosPage() {
                             <img
                               src={membro.foto_url}
                               alt={membro.nome_completo}
-                              className="w-9 h-9 rounded-full object-cover flex-shrink-0"
+                              className="w-9 h-9 rounded-full object-cover shrink-0"
                             />
                           ) : (
-                            <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                            <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold shrink-0">
                               {iniciais(membro.nome_completo)}
                             </div>
                           )}

@@ -12,6 +12,7 @@ import { usePermissao } from '@/lib/hooks/usePermissao'
 
 type Membro = {
   id: string
+  user_id: string | null
   nome_completo: string
   foto_url: string | null
   data_nascimento: string | null
@@ -50,11 +51,13 @@ type Membro = {
 }
 
 const statusCor: Record<string, string> = {
-  'Membro Ativo': 'bg-green-100 text-green-700',
-  'Visitante':    'bg-blue-100 text-blue-700',
-  'Congregado':   'bg-purple-100 text-purple-700',
-  'Afastado':     'bg-yellow-100 text-yellow-700',
-  'Transferido':  'bg-gray-100 text-gray-700',
+  'Pastor':              'bg-red-100 text-red-700',
+  'Diretoria':           'bg-indigo-100 text-indigo-700',
+  'Líder de Ministério': 'bg-purple-100 text-purple-700',
+  'Membro Ativo':        'bg-green-100 text-green-700',
+  'Congregado':          'bg-blue-100 text-blue-700',
+  'Afastado':            'bg-yellow-100 text-yellow-700',
+  'Transferido':         'bg-gray-100 text-gray-700',
 }
 
 function formatarData(data: string | null) {
@@ -126,7 +129,7 @@ export default function PerfilMembroPage() {
       setCarregando(false)
     }
     carregar()
-  }, [id])
+  }, [id, supabase])
 
   async function handleDeletar() {
     if (!confirm('Tem certeza que deseja excluir este membro? Esta ação não pode ser desfeita.')) return
@@ -195,10 +198,11 @@ export default function PerfilMembroPage() {
       <div className="bg-white rounded-2xl border border-gray-200 p-6">
         <div className="flex items-center gap-5">
           {membro.foto_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
             <img src={membro.foto_url} alt={membro.nome_completo}
-              className="w-20 h-20 rounded-full object-cover flex-shrink-0" />
+              className="w-20 h-20 rounded-full object-cover shrink-0" />
           ) : (
-            <div className="w-20 h-20 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-2xl font-bold flex-shrink-0">
+            <div className="w-20 h-20 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-2xl font-bold shrink-0">
               {iniciais(membro.nome_completo)}
             </div>
           )}

@@ -140,14 +140,22 @@ export default function MinisterioDetalhesPage() {
   }
 
   async function salvarFuncao(membroId: string) {
-    await supabase
+    const { error } = await supabase
       .from('membros_ministerios')
-      .update({ funcao: funcaoEditada.trim() || null })
-      .eq('membro_id', membroId)
-      .eq('ministerio_id', id)
-    setEditandoFuncao(null)
-    setFuncaoEditada('')
-    carregar()
+      .upsert(
+        {
+          membro_id: membroId,
+          ministerio_id: id,
+          funcao: funcaoEditada.trim() || null,
+        },
+        { onConflict: 'membro_id,ministerio_id' }
+      )
+
+    if (!error) {
+      setEditandoFuncao(null)
+      setFuncaoEditada('')
+      carregar()
+    }
   }
 
   function iniciais(nome: string) {

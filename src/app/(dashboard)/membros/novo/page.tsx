@@ -345,9 +345,11 @@ export default function NovoMembroPage() {
             <Campo label="Status de membresia">
               <select className={selectClass} value={form.status_membresia}
                 onChange={e => set('status_membresia', e.target.value)}>
-                <option>Visitante</option>
-                <option>Congregado</option>
+                <option>Pastor</option>
+                <option>Diretoria</option>
+                <option>Líder de Ministério</option>
                 <option>Membro Ativo</option>
+                <option>Congregado</option>
                 <option>Afastado</option>
                 <option>Transferido</option>
               </select>
