@@ -115,8 +115,7 @@ export default function PerfilMembroPage() {
   const [deletando, setDeletando] = useState(false)
   const supabase = createClient()
   const { isSuperAdmin, userId } = usePermissao()
-  const podeEditar = isSuperAdmin || membro?.user_id === userId
-
+  const podeEditar = isAdmin || membro?.user_id === userId
   useEffect(() => {
     async function carregar() {
       const { data, error } = await supabase

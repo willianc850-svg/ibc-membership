@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-type Role = 'SUPER_ADMIN' | 'USER' | null
+type Role = 'SUPER_ADMIN' | 'ADMIN' | 'USER' | null
 
 export function usePermissao() {
   const [role, setRole] = useState<Role>(null)
@@ -35,6 +35,7 @@ export function usePermissao() {
     userId,
     carregando,
     isSuperAdmin: role === 'SUPER_ADMIN',
+    isAdmin: role === 'ADMIN' || role === 'SUPER_ADMIN',
     isUser: role === 'USER',
   }
 }

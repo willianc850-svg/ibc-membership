@@ -204,6 +204,7 @@ export default function ConfiguracoesPage() {
                   <select className={inputClass} value={novoUser.role}
                     onChange={e => setNovoUser(p => ({ ...p, role: e.target.value }))}>
                     <option value="USER">Usuário</option>
+                    <option value="ADMIN">Admin</option>
                     <option value="SUPER_ADMIN">Super Admin</option>
                   </select>
                 </div>
@@ -239,10 +240,11 @@ export default function ConfiguracoesPage() {
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <select
                       value={u.role}
-                      onChange={e => alterarRole(u.id, e.target.value as 'SUPER_ADMIN' | 'USER')}
+                      onChange={e => alterarRole(u.id, e.target.value as 'SUPER_ADMIN' | 'ADMIN' | 'USER')}
                       className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
                       <option value="USER">Usuário</option>
+                      <option value="ADMIN">Admin</option>
                       <option value="SUPER_ADMIN">Super Admin</option>
                     </select>
                     <button
@@ -261,18 +263,25 @@ export default function ConfiguracoesPage() {
 
       {/* Badge de nível de acesso */}
       <div className="bg-white border border-gray-200 rounded-2xl p-5 flex items-center gap-3">
-        {isSuperAdmin
+        {role === 'SUPER_ADMIN'
           ? <ShieldCheck size={20} className="text-indigo-600" />
+          : role === 'ADMIN'
+          ? <ShieldCheck size={20} className="text-purple-500" />
           : <Shield size={20} className="text-gray-400" />
         }
         <div>
           <p className="text-sm font-medium text-gray-900">
-            Seu nível de acesso: {isSuperAdmin ? 'Super Admin' : 'Usuário'}
+            Seu nível de acesso: {
+              role === 'SUPER_ADMIN' ? 'Super Admin' :
+              role === 'ADMIN' ? 'Admin' : 'Usuário'
+            }
           </p>
           <p className="text-xs text-gray-500 mt-0.5">
-            {isSuperAdmin
-              ? 'Você tem acesso total ao sistema.'
-              : 'Você pode visualizar tudo, mas editar apenas o seu próprio registro.'
+            {role === 'SUPER_ADMIN'
+              ? 'Você tem acesso total ao sistema e pode criar usuários.'
+              : role === 'ADMIN'
+              ? 'Você pode editar qualquer registro de membro.'
+              : 'Você pode visualizar tudo e editar apenas o seu próprio registro.'
             }
           </p>
         </div>
