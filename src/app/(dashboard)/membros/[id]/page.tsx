@@ -114,7 +114,7 @@ export default function PerfilMembroPage() {
   const [carregando, setCarregando] = useState(true)
   const [deletando, setDeletando] = useState(false)
   const supabase = createClient()
-  const { isSuperAdmin, userId } = usePermissao()
+  const { isAdmin, isSuperAdmin, userId } = usePermissao()
   const podeEditar = isAdmin || membro?.user_id === userId
   useEffect(() => {
     async function carregar() {

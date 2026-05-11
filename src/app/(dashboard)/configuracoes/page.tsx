@@ -32,8 +32,7 @@ function Mensagem({ msg }: { msg: { tipo: 'sucesso' | 'erro'; texto: string } })
 }
 
 export default function ConfiguracoesPage() {
-  const { isSuperAdmin, carregando: carregandoRole } = usePermissao()
-
+  const { role, isSuperAdmin, carregando: carregandoRole } = usePermissao()
   // Conta
   const [email, setEmail] = useState('')
   const [novaSenha, setNovaSenha] = useState('')
