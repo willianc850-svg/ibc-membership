@@ -142,8 +142,8 @@ export default function ConfiguracoesPage() {
     }
   }
 
-  async function alterarRole(userId: string, novoRole: 'SUPER_ADMIN' | 'USER') {
-    await supabase.from('perfis').update({ role: novoRole }).eq('id', userId)
+    async function alterarRole(userId: string, novoRole: 'SUPER_ADMIN' | 'ADMIN' | 'USER') {
+      await supabase.from('perfis').update({ role: novoRole }).eq('id', userId)
     carregarUsuarios()
   }
 
