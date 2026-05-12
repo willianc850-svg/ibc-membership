@@ -12,7 +12,7 @@ type UsuarioSistema = {
   id: string
   email: string
   nome: string
-  role: 'SUPER_ADMIN' | 'USER'
+  role: 'SUPER_ADMIN' | 'ADMIN' | 'USER'
   created_at: string
 }
 
