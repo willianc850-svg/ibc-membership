@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import UploadFoto from '@/components/UploadFoto'
 import { ChevronLeft, Save, User, Phone, Heart, Church, Shield } from 'lucide-react'
 
 // Função de máscara movida para fora para melhor performance (não é recriada a cada render)
@@ -59,7 +60,9 @@ type Formulario = {
   autorizacao_imagem: boolean
   ano_admissao: string
   so_ano_admissao: boolean 
-  ministerios_interesse: string  // ← adicionar esta linha
+  ministerios_interesse: string
+  foto_url: string
+
 
 }
 
@@ -73,7 +76,7 @@ const vazio: Formulario = {
   cursos_teologicos: '', concluiu_integracao: false,
   alergias_restricoes: '', tipo_sanguineo: '', contato_emergencia_nome: '',
   contato_emergencia_telefone: '', habilidades: '', tamanho_camiseta: '',
-  autorizacao_imagem: false, ano_admissao: '', so_ano_admissao: false, ministerios_interesse: '',
+  autorizacao_imagem: false, ano_admissao: '', foto_url: '', so_ano_admissao: false, ministerios_interesse: '',
 }
 
 const inputClass = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -118,6 +121,7 @@ export default function EditarMembroPage() {
           cidade:                      data.cidade ?? '',
           cep:                         data.cep ?? '',
           telefone:                    data.telefone ?? '',
+          foto_url:                    data.foto_url ?? '',
           email:                       data.email ?? '',
           naturalidade:                data.naturalidade ?? '',
           escolaridade:                data.escolaridade ?? '',
@@ -262,56 +266,68 @@ export default function EditarMembroPage() {
 
       <div className="bg-white rounded-2xl border border-gray-200 p-6">
         {/* ABA 1 — Pessoal */}
-        {abaAtiva === 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="sm:col-span-2">
-              <Campo label="Nome completo *">
-                <input className={inputClass} value={form.nome_completo}
-                  onChange={e => set('nome_completo', e.target.value)} />
-              </Campo>
-            </div>
-            <Campo label="Data de nascimento">
-              <input type="date" className={inputClass} value={form.data_nascimento}
-                onChange={e => set('data_nascimento', e.target.value)} />
-            </Campo>
-            <Campo label="Gênero">
-              <select className={selectClass} value={form.genero}
-                onChange={e => set('genero', e.target.value)}>
-                <option value="">Selecione</option>
-                <option>Masculino</option><option>Feminino</option><option>Outro</option>
-              </select>
-            </Campo>
-            <Campo label="Estado civil">
-              <select className={selectClass} value={form.estado_civil}
-                onChange={e => set('estado_civil', e.target.value)}>
-                <option value="">Selecione</option>
-                <option>Solteiro</option><option>Casado</option>
-                <option>Divorciado</option><option>Viúvo</option><option>União Estável</option>
-              </select>
-            </Campo>
-            <Campo label="Naturalidade">
-              <input className={inputClass} value={form.naturalidade}
-                onChange={e => set('naturalidade', e.target.value)} />
-            </Campo>
-            <Campo label="Escolaridade">
-              <select className={selectClass} value={form.escolaridade}
-                onChange={e => set('escolaridade', e.target.value)}>
-                <option value="">Selecione</option>
-                <option>Ensino Fundamental Incompleto</option>
-                <option>Ensino Fundamental Completo</option>
-                <option>Ensino Médio Incompleto</option>
-                <option>Ensino Médio Completo</option>
-                <option>Ensino Superior Incompleto</option>
-                <option>Ensino Superior Completo</option>
-                <option>Pós-graduação</option>
-              </select>
-            </Campo>
-            <Campo label="Profissão">
-              <input className={inputClass} value={form.profissao}
-                onChange={e => set('profissao', e.target.value)} />
-            </Campo>
-          </div>
-        )}
+{abaAtiva === 0 && (
+  <div className="space-y-6">
+    {/* Upload de foto */}
+    <div className="flex justify-center py-2">
+      <UploadFoto
+        fotoAtual={form.foto_url || null}
+        nome={form.nome_completo}
+        onUpload={(url) => set('foto_url', url)}
+      />
+    </div>
+
+    {/* Campos pessoais */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="sm:col-span-2">
+        <Campo label="Nome completo *">
+          <input className={inputClass} value={form.nome_completo}
+            onChange={e => set('nome_completo', e.target.value)} />
+        </Campo>
+      </div>
+      <Campo label="Data de nascimento">
+        <input type="date" className={inputClass} value={form.data_nascimento}
+          onChange={e => set('data_nascimento', e.target.value)} />
+      </Campo>
+      <Campo label="Gênero">
+        <select className={selectClass} value={form.genero}
+          onChange={e => set('genero', e.target.value)}>
+          <option value="">Selecione</option>
+          <option>Masculino</option><option>Feminino</option><option>Outro</option>
+        </select>
+      </Campo>
+      <Campo label="Estado civil">
+        <select className={selectClass} value={form.estado_civil}
+          onChange={e => set('estado_civil', e.target.value)}>
+          <option value="">Selecione</option>
+          <option>Solteiro</option><option>Casado</option>
+          <option>Divorciado</option><option>Viúvo</option><option>União Estável</option>
+        </select>
+      </Campo>
+      <Campo label="Naturalidade">
+        <input className={inputClass} value={form.naturalidade}
+          onChange={e => set('naturalidade', e.target.value)} />
+      </Campo>
+      <Campo label="Escolaridade">
+        <select className={selectClass} value={form.escolaridade}
+          onChange={e => set('escolaridade', e.target.value)}>
+          <option value="">Selecione</option>
+          <option>Ensino Fundamental Incompleto</option>
+          <option>Ensino Fundamental Completo</option>
+          <option>Ensino Médio Incompleto</option>
+          <option>Ensino Médio Completo</option>
+          <option>Ensino Superior Incompleto</option>
+          <option>Ensino Superior Completo</option>
+          <option>Pós-graduação</option>
+        </select>
+      </Campo>
+      <Campo label="Profissão">
+        <input className={inputClass} value={form.profissao}
+          onChange={e => set('profissao', e.target.value)} />
+      </Campo>
+    </div>
+  </div>
+)}
 
         {/* ABA 2 — Contato */}
         {abaAtiva === 1 && (
