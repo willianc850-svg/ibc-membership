@@ -59,6 +59,8 @@ type Formulario = {
   autorizacao_imagem: boolean
   ano_admissao: string
   so_ano_admissao: boolean 
+  ministerios_interesse: string  // ← adicionar esta linha
+
 }
 
 const vazio: Formulario = {
@@ -71,7 +73,7 @@ const vazio: Formulario = {
   cursos_teologicos: '', concluiu_integracao: false,
   alergias_restricoes: '', tipo_sanguineo: '', contato_emergencia_nome: '',
   contato_emergencia_telefone: '', habilidades: '', tamanho_camiseta: '',
-  autorizacao_imagem: false, ano_admissao: '', so_ano_admissao: false,
+  autorizacao_imagem: false, ano_admissao: '', so_ano_admissao: false, ministerios_interesse: '',
 }
 
 const inputClass = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"

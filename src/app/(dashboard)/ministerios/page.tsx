@@ -9,6 +9,8 @@ type Ministerio = {
   id: string
   nome: string
   descricao: string | null
+  lider_id: string | null
+  lider_nome?: string
   total_membros?: number
 }
 

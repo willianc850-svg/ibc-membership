@@ -217,9 +217,11 @@ export default function DashboardPage() {
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
                 <Pie data={dadosStatus} cx="50%" cy="50%" outerRadius={80}
-                  dataKey="value" nameKey="name" label={({ name, percent }) =>
-                    `${name} ${(percent * 100).toFixed(0)}%`
-                  } labelLine={false} fontSize={11}>
+                  dataKey="value" nameKey="name" 
+                  label={({ name, percent }) =>
+                    `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
+                  } 
+                  labelLine={false} fontSize={11}>
                   {dadosStatus.map((_, i) => (
                     <Cell key={i} fill={CORES[i % CORES.length]} />
                   ))}
