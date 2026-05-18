@@ -24,7 +24,8 @@ export default function UploadFoto({ fotoAtual, nome, onUpload }: Props) {
     const arquivo = e.target.files?.[0]
     if (!arquivo) return
 
-    // Validações
+    console.log('Arquivo selecionado:', arquivo.name, arquivo.type, arquivo.size)
+
     if (!arquivo.type.startsWith('image/')) {
       alert('Selecione apenas arquivos de imagem.')
       return
@@ -36,31 +37,34 @@ export default function UploadFoto({ fotoAtual, nome, onUpload }: Props) {
 
     setUploading(true)
 
-    // Preview local enquanto faz upload
     const reader = new FileReader()
     reader.onload = (ev) => setPreview(ev.target?.result as string)
     reader.readAsDataURL(arquivo)
 
-    // Nome único para o arquivo
     const ext = arquivo.name.split('.').pop()
     const nomeArquivo = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
 
-    const { error } = await supabase.storage
+    console.log('Iniciando upload:', nomeArquivo)
+
+    const { data: uploadData, error } = await supabase.storage
       .from('fotos-membros')
       .upload(nomeArquivo, arquivo, { upsert: true })
 
+    console.log('Resultado:', { uploadData, error })
+
     if (error) {
-      alert('Erro ao fazer upload. Tente novamente.')
+      console.error('Erro:', error)
+      alert(`Erro ao fazer upload: ${error.message}`)
       setPreview(fotoAtual)
       setUploading(false)
       return
     }
 
-    // Pegar URL pública
     const { data } = supabase.storage
       .from('fotos-membros')
       .getPublicUrl(nomeArquivo)
 
+    console.log('URL:', data.publicUrl)
     onUpload(data.publicUrl)
     setUploading(false)
   }
@@ -73,7 +77,6 @@ export default function UploadFoto({ fotoAtual, nome, onUpload }: Props) {
 
   return (
     <div className="flex flex-col items-center gap-3">
-      {/* Avatar / Preview */}
       <div className="relative">
         {preview ? (
           <img
@@ -87,7 +90,6 @@ export default function UploadFoto({ fotoAtual, nome, onUpload }: Props) {
           </div>
         )}
 
-        {/* Botão de remover foto */}
         {preview && !uploading && (
           <button
             type="button"
@@ -98,7 +100,6 @@ export default function UploadFoto({ fotoAtual, nome, onUpload }: Props) {
           </button>
         )}
 
-        {/* Overlay de loading */}
         {uploading && (
           <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center">
             <Loader2 size={24} className="text-white animate-spin" />
@@ -106,7 +107,7 @@ export default function UploadFoto({ fotoAtual, nome, onUpload }: Props) {
         )}
       </div>
 
-      {/* Botão de upload */}
+      {/* Botão usando ref diretamente — sem id */}
       <div>
         <input
           ref={inputRef}
@@ -114,16 +115,17 @@ export default function UploadFoto({ fotoAtual, nome, onUpload }: Props) {
           accept="image/jpeg,image/png,image/webp"
           onChange={handleArquivo}
           className="hidden"
-          id="upload-foto"
           disabled={uploading}
         />
-        <label
-          htmlFor="upload-foto"
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
           className={`flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 cursor-pointer hover:bg-gray-50 transition-colors ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           <Camera size={14} />
           {uploading ? 'Enviando...' : preview ? 'Trocar foto' : 'Adicionar foto'}
-        </label>
+        </button>
         <p className="text-xs text-gray-400 text-center mt-1">JPG, PNG ou WebP · Máx. 5MB</p>
       </div>
     </div>

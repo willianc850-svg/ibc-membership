@@ -1,0 +1,175 @@
+## 5. Testes de API com cURL e Postman
+
+### Configuração do Postman
+
+1. Crie uma **Collection** chamada "IBC Membership API"
+2. Crie as variáveis de ambiente:
+   - `BASE_URL` = `http://localhost:3000`
+   - `COOKIE` = (copie o cookie de sessão do DevTools após login)
+
+Para pegar o cookie de sessão:
+```
+DevTools (F12) → Application → Cookies → localhost:3000
+Copie o valor do cookie "sb-xxx-auth-token"
+```
+
+---
+
+### 5.1 API de Administração
+
+#### Listar usuários
+
+```bash
+# cURL
+curl -X GET http://localhost:3000/api/admin/listar-usuarios \
+  -H "Cookie: sb-SEU-PROJETO-auth-token=SEU_COOKIE_AQUI"
+```
+
+**Postman:**
+```
+Method: GET
+URL: {{BASE_URL}}/api/admin/listar-usuarios
+Headers: Cookie: {{COOKIE}}
+```
+
+Resultado esperado (200 OK):
+```json
+[
+  {
+    "id": "uuid",
+    "email": "admin@igreja.com",
+    "nome": "Willian Admin",
+    "role": "SUPER_ADMIN",
+    "created_at": "2025-01-01T00:00:00Z"
+  }
+]
+```
+
+Resultado sem autenticação (401):
+```json
+{ "error": "Não autorizado" }
+```
+
+Resultado com USER ou ADMIN (403):
+```json
+{ "error": "Sem permissão" }
+```
+
+---
+
+#### Criar usuário
+
+```bash
+# cURL
+curl -X POST http://localhost:3000/api/admin/criar-usuario \
+  -H "Content-Type: application/json" \
+  -H "Cookie: sb-SEU-PROJETO-auth-token=SEU_COOKIE_AQUI" \
+  -d '{
+    "nome": "Maria Silva",
+    "email": "maria@igreja.com",
+    "senha": "senha123",
+    "role": "USER"
+  }'
+```
+
+**Postman:**
+```
+Method: POST
+URL: {{BASE_URL}}/api/admin/criar-usuario
+Headers:
+  Content-Type: application/json
+  Cookie: {{COOKIE}}
+Body (raw JSON):
+{
+  "nome": "Maria Silva",
+  "email": "maria@igreja.com",
+  "senha": "senha123",
+  "role": "USER"
+}
+```
+
+Resultado esperado (200 OK):
+```json
+{ "ok": true, "id": "uuid-do-novo-usuario" }
+```
+
+Teste de dados incompletos (400):
+```bash
+-d '{ "email": "sem-nome@teste.com" }'
+# Resultado: { "error": "Dados incompletos" }
+```
+
+---
+
+#### Deletar usuário
+
+```bash
+# cURL
+curl -X DELETE http://localhost:3000/api/admin/deletar-usuario \
+  -H "Content-Type: application/json" \
+  -H "Cookie: sb-SEU-PROJETO-auth-token=SEU_COOKIE_AQUI" \
+  -d '{ "userId": "uuid-do-usuario" }'
+```
+
+Resultado esperado (200 OK):
+```json
+{ "ok": true }
+```
+
+Tentativa de deletar própria conta (400):
+```json
+{ "error": "Não é possível excluir sua própria conta" }
+```
+
+---
+
+### 5.2 API de Geração de ATA
+
+```bash
+# cURL — teste básico
+curl -X POST http://localhost:3000/api/gerar-ata \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Gere uma ATA formal de teste para uma reunião de diretoria da Igreja Batista Central, realizada em 15 de maio de 2025, com os membros João Pastor, Maria Diretora e Pedro Tesoureiro. Pauta: aprovação do orçamento anual e planejamento do retiro."
+  }'
+```
+
+Resultado esperado (200 OK):
+```json
+{
+  "texto": "ATA DA REUNIÃO DE DIRETORIA\n\nAos quinze dias do mês de maio..."
+}
+```
+
+**Postman — coleção de testes:**
+
+Crie um teste automático no Postman para verificar a resposta:
+```javascript
+// Na aba "Tests" do Postman:
+pm.test("Status 200", () => pm.response.to.have.status(200))
+pm.test("Retorna texto", () => {
+  const body = pm.response.json()
+  pm.expect(body.texto).to.be.a('string')
+  pm.expect(body.texto.length).to.be.greaterThan(100)
+})
+pm.test("Contém palavra ATA", () => {
+  pm.expect(pm.response.json().texto.toUpperCase()).to.include('ATA')
+})
+```
+
+---
+
+### 5.3 Supabase REST API (direto)
+
+O Supabase expõe uma API REST automática. Útil para testar as políticas RLS:
+
+```bash
+# Listar membros (com anon key — deve respeitar RLS)
+curl -X GET "https://SEU-PROJETO.supabase.co/rest/v1/membros?select=id,nome_completo" \
+  -H "apikey: SUA-ANON-KEY" \
+  -H "Authorization: Bearer SEU-JWT-TOKEN"
+
+# Testar sem token (deve retornar 0 registros por RLS)
+curl -X GET "https://SEU-PROJETO.supabase.co/rest/v1/membros?select=*" \
+  -H "apikey: SUA-ANON-KEY"
+```

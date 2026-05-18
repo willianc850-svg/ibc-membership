@@ -111,6 +111,7 @@ export default function NovoMembroPage() {
   }
 
   async function salvar() {
+    console.log('foto_url no momento de salvar:', form.foto_url)
     if (!form.nome_completo.trim()) {
       setErro('O nome completo é obrigatório.')
       setAbaAtiva(0)

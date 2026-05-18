@@ -1,0 +1,342 @@
+## 6. Testes Automatizados com Cypress
+
+### 6.1 Instalação
+
+```bash
+# Instalar Cypress como dependência de desenvolvimento
+npm install --save-dev cypress
+
+# Abrir a interface do Cypress pela primeira vez
+npx cypress open
+```
+
+Isso criará a pasta `cypress/` na raiz do projeto.
+
+### 6.2 Configuração
+
+Crie o arquivo `cypress.config.ts` na raiz:
+
+```typescript
+import { defineConfig } from 'cypress'
+
+export default defineConfig({
+  e2e: {
+    baseUrl: 'http://localhost:3000',
+    viewportWidth: 1280,
+    viewportHeight: 720,
+    video: false,
+    screenshotOnRunFailure: true,
+  },
+  env: {
+    // Credenciais de teste — nunca use as de produção
+    TEST_EMAIL: 'teste@ibc.com',
+    TEST_PASSWORD: 'senha-de-teste-123',
+    ADMIN_EMAIL: 'admin@ibc.com',
+    ADMIN_PASSWORD: 'senha-admin-123',
+  }
+})
+```
+
+Crie o arquivo de comandos customizados `cypress/support/commands.ts`:
+
+```typescript
+// Comando de login reutilizável
+Cypress.Commands.add('login', (email?: string, password?: string) => {
+  cy.visit('/login')
+  cy.get('input[type="email"]').type(email ?? Cypress.env('TEST_EMAIL'))
+  cy.get('input[type="password"]').type(password ?? Cypress.env('TEST_PASSWORD'))
+  cy.get('button[type="submit"]').click()
+  cy.url().should('include', '/dashboard')
+})
+
+// Declaração de tipos
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      login(email?: string, password?: string): Chainable<void>
+    }
+  }
+}
+```
+
+---
+
+### 6.3 Teste de Autenticação
+
+Crie `cypress/e2e/auth.cy.ts`:
+
+```typescript
+describe('Autenticação', () => {
+
+  it('redireciona para login quando não autenticado', () => {
+    cy.visit('/dashboard')
+    cy.url().should('include', '/login')
+  })
+
+  it('mostra erro com credenciais inválidas', () => {
+    cy.visit('/login')
+    cy.get('input[type="email"]').type('errado@email.com')
+    cy.get('input[type="password"]').type('senha-errada')
+    cy.get('button[type="submit"]').click()
+    cy.contains('E-mail ou senha incorretos').should('be.visible')
+  })
+
+  it('faz login com credenciais válidas', () => {
+    cy.login()
+    cy.url().should('include', '/dashboard')
+    cy.contains('Dashboard').should('be.visible')
+  })
+
+  it('faz logout corretamente', () => {
+    cy.login()
+    cy.contains('Sair').click()
+    cy.url().should('include', '/login')
+  })
+
+  it('não acessa dashboard após logout', () => {
+    cy.login()
+    cy.contains('Sair').click()
+    cy.visit('/dashboard')
+    cy.url().should('include', '/login')
+  })
+
+})
+```
+
+---
+
+### 6.4 Teste de Membros
+
+Crie `cypress/e2e/membros.cy.ts`:
+
+```typescript
+describe('Gestão de Membros', () => {
+
+  beforeEach(() => {
+    cy.login(Cypress.env('ADMIN_EMAIL'), Cypress.env('ADMIN_PASSWORD'))
+    cy.visit('/membros')
+  })
+
+  it('exibe a lista de membros', () => {
+    cy.contains('Membros').should('be.visible')
+    cy.get('table').should('exist')
+  })
+
+  it('botão Novo Membro está visível para ADMIN', () => {
+    cy.contains('Novo membro').should('be.visible')
+  })
+
+  it('navega para o formulário de cadastro', () => {
+    cy.contains('Novo membro').click()
+    cy.url().should('include', '/membros/novo')
+    cy.contains('Novo Membro').should('be.visible')
+  })
+
+  it('valida campo obrigatório nome', () => {
+    cy.visit('/membros/novo')
+    // Vai direto para a aba 5 e tenta salvar
+    cy.contains('Saúde').click()
+    cy.contains('Salvar membro').click()
+    cy.contains('nome completo é obrigatório').should('be.visible')
+    cy.url().should('include', '/membros/novo') // não saiu da página
+  })
+
+  it('cadastra um membro com dados básicos', () => {
+    const nome = `Membro Teste ${Date.now()}`
+    cy.visit('/membros/novo')
+    cy.get('input').first().type(nome) // campo nome_completo
+    // Navegar até a última aba e salvar
+    cy.contains('Próximo').click()
+    cy.contains('Próximo').click()
+    cy.contains('Próximo').click()
+    cy.contains('Próximo').click()
+    cy.contains('Salvar membro').click()
+    cy.url().should('include', '/membros')
+    cy.contains(nome).should('be.visible')
+  })
+
+  it('busca membro por nome', () => {
+    cy.get('input[placeholder*="Buscar"]').type('João')
+    cy.get('table tbody tr').each(($row) => {
+      cy.wrap($row).contains('João')
+    })
+  })
+
+  it('filtra por status', () => {
+    cy.get('select').first().select('Pastor')
+    cy.get('table tbody tr').each(($row) => {
+      cy.wrap($row).contains('Pastor')
+    })
+  })
+
+  it('abre perfil completo do membro', () => {
+    cy.get('table tbody tr').first().contains('Ver').click()
+    cy.contains('Informações pessoais').should('be.visible')
+    cy.contains('Contato e endereço').should('be.visible')
+    cy.contains('Dados eclesiásticos').should('be.visible')
+  })
+
+})
+```
+
+---
+
+### 6.5 Teste de CEP
+
+Crie `cypress/e2e/cep.cy.ts`:
+
+```typescript
+describe('Busca automática de CEP', () => {
+
+  beforeEach(() => {
+    cy.login(Cypress.env('ADMIN_EMAIL'), Cypress.env('ADMIN_PASSWORD'))
+    cy.visit('/membros/novo')
+    cy.contains('Contato').click() // vai para aba 2
+  })
+
+  it('preenche endereço com CEP válido', () => {
+    cy.get('input[placeholder="00000-000"]').type('01310100')
+    // Aguarda a busca assíncrona
+    cy.get('input[placeholder="Nome da rua"]', { timeout: 5000 })
+      .should('not.have.value', '')
+  })
+
+  it('aplica máscara no CEP', () => {
+    cy.get('input[placeholder="00000-000"]').type('01310100')
+    cy.get('input[placeholder="00000-000"]').should('have.value', '01310-100')
+  })
+
+  it('exibe ✓ após CEP válido preenchido', () => {
+    cy.get('input[placeholder="00000-000"]').type('01310100')
+    cy.contains('✓').should('be.visible')
+  })
+
+})
+```
+
+---
+
+### 6.6 Teste de Reuniões
+
+Crie `cypress/e2e/reunioes.cy.ts`:
+
+```typescript
+describe('Módulo de Reuniões', () => {
+
+  beforeEach(() => {
+    cy.login()
+    cy.visit('/reunioes')
+  })
+
+  it('exibe a lista de reuniões', () => {
+    cy.contains('Reuniões').should('be.visible')
+    cy.contains('Nova reunião').should('be.visible')
+  })
+
+  it('filtra por tipo de reunião', () => {
+    cy.contains('Diretoria').click()
+    // Verifica que todos os cards visíveis são do tipo Diretoria
+    cy.get('[class*="reuniao-card"]').each(($card) => {
+      cy.wrap($card).contains('Diretoria')
+    })
+  })
+
+  it('cria uma nova reunião', () => {
+    const titulo = `Reunião Teste ${Date.now()}`
+    cy.contains('Nova reunião').click()
+    cy.url().should('include', '/reunioes/nova')
+
+    cy.get('input[placeholder*="Título"]').type(titulo)
+    cy.get('input[type="date"]').type('2025-06-15')
+    cy.contains('Criar reunião').click()
+
+    cy.url().should('match', /\/reunioes\/[a-z0-9-]+$/)
+    cy.contains(titulo).should('be.visible')
+  })
+
+  it('finaliza uma reunião', () => {
+    // Assume que existe pelo menos uma reunião em rascunho
+    cy.visit('/reunioes')
+    cy.contains('Rascunho').first().click()
+    cy.contains('Finalizar reunião').click()
+    cy.contains('Finalizada').should('be.visible')
+  })
+
+})
+```
+
+---
+
+### 6.7 Teste de Permissões
+
+Crie `cypress/e2e/permissoes.cy.ts`:
+
+```typescript
+describe('Controle de Permissões', () => {
+
+  it('USER não vê botão Novo membro', () => {
+    cy.login(Cypress.env('TEST_EMAIL'), Cypress.env('TEST_PASSWORD'))
+    cy.visit('/membros')
+    cy.contains('Novo membro').should('not.exist')
+  })
+
+  it('USER não vê botão Excluir no perfil', () => {
+    cy.login(Cypress.env('TEST_EMAIL'), Cypress.env('TEST_PASSWORD'))
+    cy.visit('/membros')
+    cy.get('table tbody tr').first().contains('Ver').click()
+    cy.contains('Excluir').should('not.exist')
+  })
+
+  it('USER não vê seção de usuários em Configurações', () => {
+    cy.login(Cypress.env('TEST_EMAIL'), Cypress.env('TEST_PASSWORD'))
+    cy.visit('/configuracoes')
+    cy.contains('Usuários do sistema').should('not.exist')
+  })
+
+  it('SUPER_ADMIN vê seção de usuários', () => {
+    cy.login(Cypress.env('ADMIN_EMAIL'), Cypress.env('ADMIN_PASSWORD'))
+    cy.visit('/configuracoes')
+    cy.contains('Usuários do sistema').should('be.visible')
+  })
+
+  it('badge de nível de acesso exibe role correto', () => {
+    cy.login(Cypress.env('TEST_EMAIL'), Cypress.env('TEST_PASSWORD'))
+    cy.visit('/configuracoes')
+    cy.contains('Seu nível de acesso: Usuário').should('be.visible')
+  })
+
+})
+```
+
+---
+
+### 6.8 Executar os testes
+
+```bash
+# Abrir interface visual do Cypress (modo interativo)
+npx cypress open
+
+# Executar todos os testes em modo headless (CI/CD)
+npx cypress run
+
+# Executar apenas um arquivo específico
+npx cypress run --spec "cypress/e2e/membros.cy.ts"
+
+# Executar com navegador específico
+npx cypress run --browser chrome
+```
+
+Adicione os scripts no `package.json`:
+
+```json
+{
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "test:e2e": "cypress run",
+    "test:e2e:open": "cypress open"
+  }
+}
+```
+
+---
