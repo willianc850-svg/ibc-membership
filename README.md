@@ -261,7 +261,7 @@ WHERE id = (SELECT id FROM auth.users WHERE email = 'seu@email.com');
 
 ## Testes
 
-Consulte o arquivo [TESTING.md](./TESTING.md) para o plano completo de testes, incluindo:
+Consulte o arquivo [TESTING.md](TESTING\plano-de-testes\TESTING.md) para o plano completo de testes, incluindo:
 
 - Regras de qualidade do projeto
 - Smoke tests (verificação básica)
