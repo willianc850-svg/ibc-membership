@@ -241,21 +241,37 @@ Pré-requisitos
 - O menu lateral é exibido com o nome do sistema
 - Nenhuma mensagem de erro é exibida
 
+**Resultado Obtido**
+- Todos os itens esperados deste caso de teste foram atendidos. Melhorias levantadas no Jira.
+
+**Status**
+Passou
+
 ### CT-002 - Login com e-mail inválido
-Objetivo
+**Objetivo**
+Verificar que o sistema rejeita tentativas de login com e-mail não cadastrado e exibe mensagem de erro adequada.
 
-Pré-condição
+**Pré-condição**
+- Sistema acessível
+- Usuário não está logado
 
-Passos
-1. 
-2. 
-3. 
+**Passos**
+1. Acessar a tela de login /login
+2. Preencher o campo e-mail com um endereço não cadastrado (ex: naoexiste@teste.com)
+3. Preencher o campo senha com qualquer valor
+4. Clicar no botão "Entrar"
 
-Resultado esperado
+**Resultado esperado**
+- O sistema não autentica o usuário
+- A mensagem "E-mail ou senha incorretos" é exibida na tela
+- O usuário permanece na tela de login
+- Nenhum redirecionamento ocorre
 
-Resultado obtido
+**Resultado obtido**
+Todos os resultados esperados aconteceram.
 
-Status
+**Status**
+Passou
 
 ### CT-003 - Login com senha incorreta
 Objetivo
