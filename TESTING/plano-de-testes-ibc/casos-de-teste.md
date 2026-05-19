@@ -1,3 +1,342 @@
+# Plano de Testes — IBC Membership
+
+## Objetivo
+
+Garantir o funcionamento correto das funcionalidades principais do sistema de gestão de membros IBC Membership, assegurando que os fluxos críticos operem conforme esperado, que as regras de negócio sejam respeitadas e que o controle de acesso por níveis de permissão funcione corretamente.
+
+---
+
+## Escopo dos Testes
+
+### Funcionalidades testadas
+
+- Autenticação (login e logout)
+- Gestão de membros (cadastro, visualização, edição e exclusão)
+- Busca automática de CEP
+- Gestão de PGMs (Pequenos Grupos Multiplicadores)
+- Gestão de ministérios e funções
+- Registro de reuniões e geração de ATA
+- Dashboard e gráficos demográficos
+- Relatórios e exportação para Excel
+- Controle de acesso por níveis de permissão (SUPER_ADMIN, ADMIN, USER)
+- Configurações de conta (alteração de e-mail e senha)
+- Gestão de usuários do sistema
+
+### Funcionalidades não testadas
+
+- Infraestrutura e servidores (Supabase, Vercel)
+- Integração com WhatsApp (link externo)
+- Segurança avançada (pentest, análise de vulnerabilidades)
+- Performance sob alta carga
+
+---
+
+## Tipos de Testes
+
+- **Funcional** — validação dos fluxos e comportamentos esperados
+- **Exploratório** — navegação livre para identificar comportamentos inesperados
+- **Regressão** — verificação de que novas alterações não quebram funcionalidades existentes
+- **Controle de acesso** — validação das permissões por nível de usuário
+- **Responsividade** — comportamento em desktop e mobile
+- **Validação de formulários** — campos obrigatórios, máscaras e integrações
+
+---
+
+## Critérios de Sucesso
+
+- Todos os fluxos críticos funcionando (login, cadastro, edição)
+- Nenhum bug crítico em aberto
+- Controle de acesso respeitado para todos os níveis
+- Exportação de relatório gerando arquivo válido
+- Dashboard exibindo dados corretos
+- Geração de ATA retornando texto coerente com os dados da reunião
+
+---
+
+## Ambiente
+
+- **Sistema:** Windows 11 64-bit
+- **Browser:** Opera GX — Chromium 146
+- **URL de produção:** [ibc-membership.vercel.app](https://ibc-membership.vercel.app)
+- **URL local:** http://localhost:3000
+- **Banco de dados:** Supabase (PostgreSQL)
+- **Framework:** Next.js 16
+
+---
+
+## Sumário de Casos de Teste
+
+### Autenticação
+- [CT-001 - Login com credenciais válidas](#ct-001---login-com-credenciais-válidas)
+- Login com e-mail inválido
+- Login com senha incorreta
+- Login com campos vazios
+- Redirecionamento para login ao acessar rota protegida sem sessão
+- Logout e invalidação da sessão
+- Tentativa de acesso ao dashboard após logout
+
+### Gestão de Membros
+**Cadastro**
+- Cadastro com apenas nome (campo mínimo obrigatório)
+- Tentativa de salvar sem preencher o nome
+- Cadastro com todos os campos preenchidos (5 abas)
+- Navegação entre abas sem perder dados preenchidos
+- Busca automática de endereço ao digitar CEP válido
+- Comportamento com CEP inválido ou inexistente
+- Aplicação de máscara no campo de telefone
+- Opção "não lembro o dia e mês" na data de admissão
+- Upload de foto de perfil
+- Cadastro com foto — verificar se aparece na lista e no perfil
+
+**Listagem**
+- Exibição de todos os membros cadastrados
+- Busca por nome
+- Busca por telefone
+- Filtro por status de membresia
+- Exibição do bairro na coluna da tabela
+
+**Visualização**
+- Perfil completo com todas as seções visíveis
+- Link de WhatsApp abre com número correto
+- Link de e-mail abre cliente de e-mail
+- Foto de perfil exibida corretamente
+
+**Edição**
+- Campos carregam com dados atuais do membro
+- Atualização de dados reflete imediatamente no perfil
+- Campos vazios salvos como "—" no perfil
+- Troca de foto de perfil
+
+**Exclusão**
+- Modal de confirmação antes de excluir
+- Membro removido da lista após confirmação
+- Cancelamento não exclui o membro
+
+### PGMs — Pequenos Grupos Multiplicadores
+- Criar PGM com nome, líder, bairro, dia e horário
+- Editar informações de um PGM existente
+- Excluir PGM com confirmação
+- Adicionar membro a um PGM via busca por nome
+- Remover membro do PGM sem excluir o membro do sistema
+- Contador de membros atualiza após adição e remoção
+- Líder aparece corretamente no card do PGM
+
+### Ministérios
+- Criar ministério com nome e descrição
+- Editar ministério existente
+- Excluir ministério com confirmação
+- Adicionar membro ao ministério com função (ex: cantor, baterista)
+- Tag colorida de função exibida corretamente
+- Editar função de membro diretamente na lista (inline)
+- Definir líder do ministério clicando em ★
+- Trocar líder — anterior perde destaque, novo recebe coroa
+- Líder exibido com destaque no card da listagem
+- Remover membro do ministério sem excluir do sistema
+
+### Reuniões
+- Criar reunião com título e data (campos obrigatórios)
+- Criar reunião de ministério vinculando um ministério
+- Adicionar participantes via busca por nome
+- Remover participante da lista antes de salvar
+- Filtro por tipo de reunião (Ministério, Diretoria, Assembleia, Outra)
+- Filtro por intervalo de datas
+- Gerar ATA com IA a partir da pauta preenchida
+- Editar texto da ATA gerada
+- Salvar ATA — texto persiste ao recarregar a página
+- Download do PDF da ATA
+- Finalizar reunião — status muda para "Finalizada"
+- Confirmação de presença disponível para Pastor, Diretoria e Líder
+- Confirmação registra data e hora
+- Usuário sem status permitido não vê botão de confirmação
+- Excluir reunião com confirmação
+
+### Dashboard
+- Cards de resumo exibem números corretos (total, ativos, visitantes, afastados)
+- Gráfico de status de membresia renderiza
+- Gráfico de gênero renderiza
+- Gráfico de faixa etária renderiza
+- Gráfico de escolaridade renderiza
+- Gráfico de principais bairros renderiza
+- Gráfico de crescimento mensal renderiza
+- Com banco vazio, gráficos exibem "Sem dados" sem erro
+
+### Relatórios
+- Tabela carrega todos os membros
+- Filtro por status
+- Filtro por gênero
+- Filtro por escolaridade
+- Filtro por cidade
+- Filtro por "tem filhos"
+- Filtro por integração concluída
+- Filtro por autorização de imagem
+- Filtro por batismo nas águas
+- Múltiplos filtros combinados
+- Limpar filtros restaura lista completa
+- Exportar Excel sem filtros — todos os membros incluídos
+- Exportar Excel com filtros — apenas membros filtrados incluídos
+- Arquivo gerado contém duas abas: "Membros" e "Resumo"
+
+### Controle de Acesso
+**SUPER_ADMIN**
+- Acesso a todas as funcionalidades
+- Vê seção "Usuários do sistema" em Configurações
+- Pode criar, alterar role e excluir usuários
+- Pode excluir membros
+- Pode cadastrar novos membros
+
+**ADMIN**
+- Pode editar qualquer membro
+- Pode cadastrar novos membros
+- Não vê seção de usuários em Configurações
+- Não consegue excluir membros
+
+**USER**
+- Visualiza todas as telas
+- Botão "Novo membro" não aparece
+- Botão "Excluir" não aparece no perfil
+- Botão "Editar" não aparece em membros de outros usuários
+- Botão "Editar" aparece apenas no próprio registro
+- Não vê seção de usuários em Configurações
+
+### Configurações
+- Alterar e-mail da conta
+- Alterar senha com confirmação correta
+- Erro ao confirmar senhas diferentes
+- Erro ao digitar senha com menos de 6 caracteres
+- Badge exibe corretamente o nível de acesso do usuário logado
+- SUPER_ADMIN cria usuário com role USER
+- SUPER_ADMIN cria usuário com role ADMIN
+- SUPER_ADMIN altera role de um usuário existente
+- SUPER_ADMIN exclui usuário — confirmação exigida
+- Impedir exclusão da própria conta
+
+### Responsividade
+- Menu lateral oculto em telas menores que 1024px
+- Botão hamburguer abre o menu lateral em mobile
+- Clique fora do menu lateral fecha o menu
+- Formulários de cadastro adaptados para telas menores
+- Tabelas com scroll horizontal em mobile
+- Dashboard com cards empilhados em mobile
+
+## 3. Casos de Teste
+
+### CT-001 — Login com credenciais válidas
+**Objetivo**
+Verificar que um usuário com e-mail e senha corretos consegue autenticar-se e ser redirecionado para o dashboard do sistema.
+
+Pré-requisitos
+- Usuário cadastrado e ativo no Supabase Auth
+- Sistema acessível em http://localhost:3000 ou https://ibc-membership.vercel.app
+- Usuário não está logado (sessão encerrada)
+
+**Passos**
+1. Acessar a tela de login ```/login```
+2. Preencher o campo e-mail com um e-mail válido cadastrado
+3. Preencher o campo senha com a senha correta
+4. Clicar no botão "Entrar"
+
+**Resultado esperado**
+- O sistema autentica o usuário com sucesso
+- O usuário é redirecionado para /dashboard
+- O menu lateral é exibido com o nome do sistema
+- Nenhuma mensagem de erro é exibida
+
+### CT-002 - Login com e-mail inválido
+Objetivo
+
+Pré-condição
+
+Passos
+1. 
+2. 
+3. 
+
+Resultado esperado
+
+Resultado obtido
+
+Status
+
+### CT-003 - Login com senha incorreta
+Objetivo
+
+Pré-condição
+
+Passos
+1. 
+2. 
+3. 
+
+Resultado esperado
+
+Resultado obtido
+
+Status
+
+### CT-004 - Login com campos vazios
+Objetivo
+
+Pré-condição
+
+Passos
+1. 
+2. 
+3. 
+
+Resultado esperado
+
+Resultado obtido
+
+Status
+
+### CT-005 - Redirecionamento para login ao acessar rota protegida sem sessão
+Objetivo
+
+Pré-condição
+
+Passos
+1. 
+2. 
+3. 
+
+Resultado esperado
+
+Resultado obtido
+
+Status
+
+### CT-006 - Logout e invalidação da sessão
+Objetivo
+
+Pré-condição
+
+Passos
+1. 
+2. 
+3. 
+
+Resultado esperado
+
+Resultado obtido
+
+Status
+
+### Tentativa de acesso ao dashboard após logout
+Objetivo
+
+Pré-condição
+
+Passos
+1. 
+2. 
+3. 
+
+Resultado esperado
+
+Resultado obtido
+
+Status
+
 ## 3. Testes de CRUD por Módulo
 
 ### 3.1 Membros

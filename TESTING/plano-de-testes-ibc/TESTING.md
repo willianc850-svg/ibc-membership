@@ -1,4 +1,4 @@
-# Plano de Testes — IBC Membership
+# TESTING — IBC Membership
 
 > Este documento descreve todas as estratégias e casos de teste do sistema IBC Membership, desde verificações manuais básicas até testes automatizados com Cypress e testes de API com Postman/cURL.
 
@@ -8,12 +8,8 @@
 
 1. [Regras de Qualidade do Projeto](#1-regras-de-qualidade-do-projeto)
 2. [Smoke Tests — Verificação Básica](#2-smoke-tests--verificação-básica)
-3. [Testes de CRUD por Módulo](#3-testes-de-crud-por-módulo)
-4. [Testes de Permissão por Role](#4-testes-de-permissão-por-role)
-5. [Testes de API com cURL e Postman](#5-testes-de-api-com-curl-e-postman)
-6. [Testes Automatizados com Cypress](#6-testes-automatizados-com-cypress)
-7. [Checklist de Regressão](#7-checklist-de-regressão)
-8. [Como Incluir Resultados de Testes no Fluxo de Trabalho](#8-como-incluir-resultados-de-testes-no-fluxo-de-trabalho)
+3. [Testes de Permissão por Role](#3-testes-de-permissão-por-role)
+4. [Checklist de Regressão](#4-checklist-de-regressão)
 
 ---
 
@@ -95,7 +91,7 @@ Execute estes testes **toda vez que subir uma nova versão** para garantir que o
 
 ---
 
-## 4. Testes de Permissão por Role
+## 3. Testes de Permissão por Role
 
 ### Matriz de permissões
 
@@ -115,7 +111,7 @@ Execute estes testes **toda vez que subir uma nova versão** para garantir que o
 
 ---
 
-## 7. Checklist de Regressão
+## 4. Checklist de Regressão
 
 Execute este checklist **antes de cada deploy em produção**:
 
@@ -169,13 +165,3 @@ Execute este checklist **antes de cada deploy em produção**:
 - [ ] Com banco vazio, gráficos mostram "Sem dados" sem erros
 
 ---
-
-## 8. Como Incluir Resultados de Testes no Fluxo de Trabalho
-
-### Adicionar no README principal
-
-No arquivo `README.md`, a seção de Testes já aponta para este arquivo:
-```markdown
-## Testes
-Consulte o arquivo [TESTING.md](./TESTING.md) para o plano completo.
-```
