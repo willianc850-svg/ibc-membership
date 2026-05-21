@@ -274,52 +274,77 @@ Todos os resultados esperados aconteceram.
 Passou
 
 ### CT-003 - Login com senha incorreta
-Objetivo
+**Objetivo**
+Verificar que o sistema rejeita tentativas de login com senha não cadastrada e exibe mensagem de erro adequada.
 
-Pré-condição
+**Pré-condição**
+- Sistema acessível
+- Usuário não está logado
 
-Passos
-1. 
-2. 
-3. 
+**Passos**
+1. Acessar a tela de login /login
+2. Preencher o campo e-mail com um endereço cadastrado 
+3. Preencher o campo senha com qualquer valor (ex.: 123)
+4. Clicar no botão "Entrar"
 
-Resultado esperado
+**Resultado esperado**
+- O sistema não autentica o usuário
+- A mensagem "E-mail ou senha incorretos" é exibida na tela
+- O usuário permanece na tela de login
+- Nenhum redirecionamento ocorre
 
-Resultado obtido
+**Resultado obtido**
+Todos os resultados esperados aconteceram.
 
-Status
+**Status**
+Passou
 
 ### CT-004 - Login com campos vazios
-Objetivo
+**Objetivo**
+Verificar que o sistema rejeita tentativas de login com campos de e-mail e senha em branco e exibe mensagem de erro adequada.
 
-Pré-condição
+**Pré-condição**
+- Sistema acessível
+- Usuário não está logado
 
-Passos
-1. 
-2. 
-3. 
+**Passos**
+1. Acessar a tela de login /login
+2. Deixar o campo de e-mail em branco
+3. Deixar o campo de senha em branco
+4. Clicar no botão "Entrar"
 
-Resultado esperado
+**Resultado esperado**
+- O sistema não autentica o usuário
+- A mensagem "Preencha este campo" é exibida na tela no campo de e-mail e no campo de senha
+- O usuário permanece na tela de login
+- Nenhum redirecionamento ocorre
 
-Resultado obtido
+**Resultado obtido**
+Todos os resultados esperados aconteceram.
 
-Status
+**Status**
+Passou
 
 ### CT-005 - Redirecionamento para login ao acessar rota protegida sem sessão
-Objetivo
+**Objetivo**
+Garantir que um usuário sem sessão não possa acessar as funionalidades do sistema somente através da URL
 
-Pré-condição
+**Pré-condição**
+- Estar deslogado do sistema
 
-Passos
-1. 
-2. 
-3. 
+**Passos**
+1. Na tela de login, para garantir que o usuário está sem sessão, colocar a URL de alguma funcionalidade do sistema.
+2. Utilizar a URL base "https://ibc-membership.vercel.app" e adicionar algum dos seguintes paths: /dashboard, /membros, /reunioes, /pgm, /ministerios, /relatorios e /configuracoes
+3. Garantir que a URL volta para /login
 
-Resultado esperado
+**Resultado esperado**
+É esperado que o usuário seja redirecionado para a tela de login após tentar acessar os paths internos do sistema.
 
-Resultado obtido
+**Resultado obtido**
+Resultado obtido foi o resultado esperado.
 
-Status
+**Status**
+Passou
 
 ### CT-006 - Logout e invalidação da sessão
 Objetivo
