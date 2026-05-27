@@ -68,17 +68,16 @@ Garantir o funcionamento correto das funcionalidades principais do sistema de ge
 
 ### Autenticação
 - [CT-001 - Login com credenciais válidas](#ct-001---login-com-credenciais-válidas)
-- Login com e-mail inválido
-- Login com senha incorreta
-- Login com campos vazios
-- Redirecionamento para login ao acessar rota protegida sem sessão
-- Logout e invalidação da sessão
-- Tentativa de acesso ao dashboard após logout
+- [Login com e-mail inválido](#ct-002---login-com-e-mail-inválido)
+- [Login com senha incorreta](#ct-003---login-com-senha-incorreta)
+- [Login com campos vazios](#ct-004---login-com-campos-vazios)
+- [Redirecionamento para login ao acessar rota protegida sem sessão](#ct-005---redirecionamento-para-login-ao-acessar-rota-protegida-sem-sessão)
+- [Logout e invalidação da sessão](#ct-006---logout-e-invalidação-da-sessão)
 
 ### Gestão de Membros
 **Cadastro**
-- Cadastro com apenas nome (campo mínimo obrigatório)
-- Tentativa de salvar sem preencher o nome
+- [Cadastro com apenas nome (campo mínimo obrigatório)](#ct-007---cadastro-com-apenas-nome-campo-mínimo-obrigatório)
+- [Tentativa de salvar sem preencher o nome](#ct-008---tentativa-de-salvar-sem-preencher-o-nome)
 - Cadastro com todos os campos preenchidos (5 abas)
 - Navegação entre abas sem perder dados preenchidos
 - Busca automática de endereço ao digitar CEP válido
@@ -220,7 +219,9 @@ Garantir o funcionamento correto das funcionalidades principais do sistema de ge
 
 ## 3. Casos de Teste
 
-### CT-001 — Login com credenciais válidas
+### Autenticação
+
+#### CT-001 — Login com credenciais válidas
 **Objetivo**
 Verificar que um usuário com e-mail e senha corretos consegue autenticar-se e ser redirecionado para o dashboard do sistema.
 
@@ -247,7 +248,7 @@ Pré-requisitos
 **Status**
 Passou
 
-### CT-002 - Login com e-mail inválido
+#### CT-002 - Login com e-mail inválido
 **Objetivo**
 Verificar que o sistema rejeita tentativas de login com e-mail não cadastrado e exibe mensagem de erro adequada.
 
@@ -273,7 +274,7 @@ Todos os resultados esperados aconteceram.
 **Status**
 Passou
 
-### CT-003 - Login com senha incorreta
+#### CT-003 - Login com senha incorreta
 **Objetivo**
 Verificar que o sistema rejeita tentativas de login com senha não cadastrada e exibe mensagem de erro adequada.
 
@@ -299,7 +300,7 @@ Todos os resultados esperados aconteceram.
 **Status**
 Passou
 
-### CT-004 - Login com campos vazios
+#### CT-004 - Login com campos vazios
 **Objetivo**
 Verificar que o sistema rejeita tentativas de login com campos de e-mail e senha em branco e exibe mensagem de erro adequada.
 
@@ -325,7 +326,7 @@ Todos os resultados esperados aconteceram.
 **Status**
 Passou
 
-### CT-005 - Redirecionamento para login ao acessar rota protegida sem sessão
+#### CT-005 - Redirecionamento para login ao acessar rota protegida sem sessão
 **Objetivo**
 Garantir que um usuário sem sessão não possa acessar as funionalidades do sistema somente através da URL
 
@@ -346,37 +347,238 @@ Resultado obtido foi o resultado esperado.
 **Status**
 Passou
 
-### CT-006 - Logout e invalidação da sessão
-Objetivo
+#### CT-006 - Logout e invalidação da sessão
+**Objetivo**
+Garantir que o usuário consiga encerrar sua sessão no sistema com sucesso e que, após o logout, as credenciais e os tokens de acesso sejam completamente invalidados, impedindo o acesso a páginas autenticadas através do botão de voltar do navegador ou de requisições diretas.
 
-Pré-condição
+**Pré-condição**
+- O usuário deve estar devidamente autenticado no sistema ibc-membership.
+- O usuário deve estar em uma página que contenha a opção de "Sair" ou "Logout" (ex: Dashboard ou menu de perfil).
 
-Passos
+**Passos**
+1. Clicar no botão/link de "Sair".
+2. Tentar acessar diretamente a URL de uma página restrita do sistema ([ex: a URL do Dashboard](https://ibc-membership.vercel.app/dashboard)) inserindo-a na barra de endereço do navegador.
+3. Clicar no botão "Voltar" (Back) do navegador.
+
+**Resultado esperado**
+O usuário deve ser redirecionado para a tela de login ou página inicial pública, cookies de sessão e tokens de autenticação devem ser destruídos ou invalidados no cliente e no servidor.
+O sistema não deve permitir o acesso e deve redirecionar o usuário automaticamente para a tela de login ou retornar um erro de não autorizado (401/403).
+
+**Resultado obtido**
+Resultado obtido foi o resultado esperado.
+
+**Status**
+Passou
+
+### Gestão de Membros
+
+#### CT-007 - Cadastro com apenas nome (campo mínimo obrigatório)
+**Objetivo**
+Validar a criação do registro de um membro com sucesso preenchendo apenas o campo obrigatório (Nome).
+
+**Pré-condição**
+- O usuário deve estar na página de cadastro (https://ibc-membership.vercel.app/membros/novo).
+
+**Passos**
+1. Preencher apenas o primeiro campo, que é obrigatório (Nome Completo).
+2. Deixar todos os demais campos opcionais em branco.
+3. Clicar em "Salvar Membro".
+
+**Resultado esperado**
+- O sistema deve processar o cadastro com sucesso, direcionar o usuário para a tela de registros, e exibir uma mensagem de sucesso (ex: "Cadastro realizado com sucesso!").
+
+**Resultado obtido**
+Foi apresentado um erro na UI e status code 400 (Bad Request) no console, não foi possível criar o usuário apenas com o campo obrigatório preenchido. (Jira-KAN-7)
+
+**Status**
+Falhou
+
+#### CT-008 - Tentativa de salvar sem preencher o nome
+**Objetivo**
+Validar que o sistema não registre um membro com os dados em branco.
+
+**Pré-condição**
+- O usuário deve estar na página de cadastro (https://ibc-membership.vercel.app/membros/novo).
+
+**Passos**
+1. Na tela de cadastros não preencher nenhum dado
+2. Clicar no botão "Salvar Membro" 
+
+**Resultado esperado**
+É esperado que o sistema informe ao usuário que é necessário preencher pelo menos os itens obrigatórios para criação de um registro de membro e não crie o usuário.
+
+**Resultado obtido**
+O sistema retornou com a seguinte mensagem ao usuário "O nome completo é obrigatório." e não criou o usuário. 
+
+**Status**
+Passou
+
+#### CT-009 - Cadastro com todos os campos preenchidos (5 abas)
+**Objetivo**
+Validar a criação de um membro com sucesso preenchendo a totalidade dos dados disponíveis (campos obrigatórios e opcionais) ao longo de todas as 5 abas do formulário de cadastro.
+
+**Pré-condição**
+O usuário deve estar autenticado no sistema, possuir permissão para cadastrar membros e estar na primeira aba do formulário de cadastro (https://ibc-membership.vercel.app/membros/novo).
+
+**Passos**
+1. Preencher todos os campos (obrigatórios e opcionais) da primeira aba e clicar em "Próximo".
+2. Repetir o preenchimento de todos os campos disponíveis nas abas 2, 3 e 4, clicando em "Próximo" após a conclusão de cada uma.
+3. Na quinta e última aba, preencher todos os campos restantes e clicar no botão "Salvar Membro".
+
+**Resultado esperado**
+O sistema deve processar a requisição sem erros, persistir todos os dados informados no banco de dados, fechar o formulário de cadastro e exibir uma mensagem de sucesso (ex: "Membro cadastrado com sucesso!").
+
+**Resultado obtido**
+O registro do membro foi criado, mas não apareceu a mensagem "Membro cadastrado com sucesso!". (Jira-KAN-8)
+
+**Status**
+Falhou
+
+### PGMs — Pequenos Grupos Multiplicadores
+
+#### CT-XXX - SCRIPT
+**Objetivo**
+
+**Pré-condição**
+
+**Passos**
 1. 
 2. 
 3. 
 
-Resultado esperado
+**Resultado esperado**
 
-Resultado obtido
+**Resultado obtido**
 
-Status
+**Status**
 
-### Tentativa de acesso ao dashboard após logout
-Objetivo
+### Ministérios
 
-Pré-condição
+#### CT-XXX - SCRIPT
+**Objetivo**
 
-Passos
+**Pré-condição**
+
+**Passos**
 1. 
 2. 
 3. 
 
-Resultado esperado
+**Resultado esperado**
 
-Resultado obtido
+**Resultado obtido**
 
-Status
+**Status**
+
+### Reuniões
+
+#### CT-XXX - SCRIPT
+**Objetivo**
+
+**Pré-condição**
+
+**Passos**
+1. 
+2. 
+3. 
+
+**Resultado esperado**
+
+**Resultado obtido**
+
+**Status**
+
+### Dashboard
+
+#### CT-XXX - SCRIPT
+**Objetivo**
+
+**Pré-condição**
+
+**Passos**
+1. 
+2. 
+3. 
+
+**Resultado esperado**
+
+**Resultado obtido**
+
+**Status**
+
+### Relatórios
+
+#### CT-XXX - SCRIPT
+**Objetivo**
+
+**Pré-condição**
+
+**Passos**
+1. 
+2. 
+3. 
+
+**Resultado esperado**
+
+**Resultado obtido**
+
+**Status**
+
+### Controle de Acessos
+
+#### CT-XXX - SCRIPT
+**Objetivo**
+
+**Pré-condição**
+
+**Passos**
+1. 
+2. 
+3. 
+
+**Resultado esperado**
+
+**Resultado obtido**
+
+**Status**
+
+### Configurações
+
+#### CT-XXX - SCRIPT
+**Objetivo**
+
+**Pré-condição**
+
+**Passos**
+1. 
+2. 
+3. 
+
+**Resultado esperado**
+
+**Resultado obtido**
+
+**Status**
+
+### Responsividade
+
+#### CT-XXX - SCRIPT
+**Objetivo**
+
+**Pré-condição**
+
+**Passos**
+1. 
+2. 
+3. 
+
+**Resultado esperado**
+
+**Resultado obtido**
+
+**Status**
+
+---
 
 ## 3. Testes de CRUD por Módulo
 
