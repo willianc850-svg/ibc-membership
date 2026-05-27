@@ -43,19 +43,31 @@ export default function MembrosPage() {
   const [filtroStatus, setFiltroStatus] = useState('todos')
   const supabase = createClient()
 
-  useEffect(() => {
-    buscarMembros()
-  }, [])
-
   async function buscarMembros() {
     setCarregando(true)
     const { data, error } = await supabase
       .from('membros')
-      .select('id, nome_completo, telefone, email, status_membresia, bairro, foto_url, created_at')      .order('nome_completo')
+      .select('id, nome_completo, telefone, email, status_membresia, bairro, foto_url, created_at')
+      .order('nome_completo')
 
     if (!error && data) setMembros(data)
     setCarregando(false)
   }
+
+useEffect(() => {
+    let ativo = true
+
+    async function inicializar() {
+      if (!ativo) return
+      await buscarMembros()
+    }
+
+    inicializar()
+
+    return () => {
+      ativo = false
+    }
+  }, [])
 
   const membrosFiltrados = membros.filter((m) => {
     const buscaOk = m.nome_completo.toLowerCase().includes(busca.toLowerCase()) ||
@@ -147,7 +159,7 @@ export default function MembrosPage() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {membrosFiltrados.map((membro) => {
-                  const status = statusConfig[membro.status_membresia] ?? statusConfig['Visitante']
+                  const status = statusConfig[membro.status_membresia] ?? statusConfig['']
                   return (
                     <tr key={membro.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3">
