@@ -33,6 +33,7 @@ const statusConfig: Record<string, { label: string; cor: string; icone: React.Re
   'Congregado':          { label: 'Congregado',          cor: 'bg-blue-100 text-blue-700',    icone: <Users size={12} /> },
   'Afastado':            { label: 'Afastado',            cor: 'bg-yellow-100 text-yellow-700', icone: <UserMinus size={12} /> },
   'Transferido':         { label: 'Transferido',         cor: 'bg-gray-100 text-gray-700',    icone: <UserX size={12} /> },
+  '':                    { label: 'Sem status',          cor: 'bg-gray-50 text-gray-500',    icone: <Users size={12} /> },
 }
 
 export default function MembrosPage() {
