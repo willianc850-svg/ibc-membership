@@ -64,7 +64,7 @@ const inicial: Formulario = {
   naturalidade: '', escolaridade: '', profissao: '',
   telefone: '', email: '', rua: '', numero: '', complemento: '', bairro: '', cidade: '', cep: '',
   data_casamento: '', tem_filhos: false, filhos_info: '',
-  status_membresia: 'Visitante', data_admissao: '', forma_admissao: '',
+  status_membresia: '', data_admissao: '', forma_admissao: '',
   data_batismo_aguas: '', data_batismo_espirito: '', igreja_procedencia: '',
   cursos_teologicos: '', concluiu_integracao: false,
   alergias_restricoes: '', tipo_sanguineo: '', contato_emergencia_nome: '',
@@ -123,6 +123,9 @@ export default function NovoMembroPage() {
     const payload = Object.fromEntries(
       Object.entries(form).map(([k, v]) => [k, v === '' ? null : v])
     )
+
+    console.log('status_membresia:', form.status_membresia)
+    console.log('payload:', payload) 
 
     const { error } = await supabase.from('membros').insert(payload)
 
@@ -360,13 +363,14 @@ export default function NovoMembroPage() {
             <Campo label="Status de membresia">
               <select className={selectClass} value={form.status_membresia}
                 onChange={e => set('status_membresia', e.target.value)}>
-                <option>Pastor</option>
-                <option>Diretoria</option>
-                <option>Líder de Ministério</option>
-                <option>Membro Ativo</option>
-                <option>Congregado</option>
-                <option>Afastado</option>
-                <option>Transferido</option>
+                <option value="">Selecione</option>
+                <option value="Pastor">Pastor</option>
+                <option value="Diretoria">Diretoria</option>
+                <option value="Líder de Ministério">Líder de Ministério</option>
+                <option value="Membro Ativo">Membro Ativo</option>
+                <option value="Congregado">Congregado</option>
+                <option value="Afastado">Afastado</option>
+                <option value="Transferido">Transferido</option>
               </select>
             </Campo>
             <Campo label="Data de admissão">
