@@ -78,17 +78,14 @@ Garantir o funcionamento correto das funcionalidades principais do sistema de ge
 **Cadastro**
 - [Cadastro com apenas nome (campo mínimo obrigatório)](#ct-007---cadastro-com-apenas-nome-campo-mínimo-obrigatório)
 - [Tentativa de salvar sem preencher o nome](#ct-008---tentativa-de-salvar-sem-preencher-o-nome)
-- Cadastro com todos os campos preenchidos (5 abas)
-- Navegação entre abas sem perder dados preenchidos
-- Busca automática de endereço ao digitar CEP válido
-- Comportamento com CEP inválido ou inexistente
-- Aplicação de máscara no campo de telefone
-- Opção "não lembro o dia e mês" na data de admissão
-- Upload de foto de perfil
-- Cadastro com foto — verificar se aparece na lista e no perfil
+- [Cadastro com todos os campos preenchidos (5 abas)](#ct-009---cadastro-com-todos-os-campos-preenchidos-5-abas)
+- [Navegação entre abas sem perder dados preenchidos](#ct-010---navegação-entre-abas-sem-perder-dados-preenchidos)
+- [Busca automática de endereço ao digitar CEP válido](#ct-011---busca-automática-de-endereço-ao-digitar-cep-válido)
+- [Opção "não lembro o dia e mês" na data de admissão](#ct-012---opção-não-lembro-o-dia-e-mês-na-data-de-admissão)
+- [Upload de foto de perfil](#ct-013---upload-de-foto-de-perfil)
 
 **Listagem**
-- Exibição de todos os membros cadastrados
+- [Exibição de todos os membros cadastrados](#ct-014---exibição-de-todos-os-membros-cadastrados)
 - Busca por nome
 - Busca por telefone
 - Filtro por status de membresia
@@ -96,8 +93,6 @@ Garantir o funcionamento correto das funcionalidades principais do sistema de ge
 
 **Visualização**
 - Perfil completo com todas as seções visíveis
-- Link de WhatsApp abre com número correto
-- Link de e-mail abre cliente de e-mail
 - Foto de perfil exibida corretamente
 
 **Edição**
@@ -391,7 +386,7 @@ Validar a criação do registro de um membro com sucesso preenchendo apenas o ca
 Foi apresentado um erro na UI e status code 400 (Bad Request) no console, não foi possível criar o usuário apenas com o campo obrigatório preenchido. (Jira-KAN-7)
 
 **Status**
-Falhou
+Falhou (Jira KAN-7)
 
 #### CT-008 - Tentativa de salvar sem preencher o nome
 **Objetivo**
@@ -433,6 +428,144 @@ O registro do membro foi criado, mas não apareceu a mensagem "Membro cadastrado
 
 **Status**
 Falhou
+
+#### CT-010 - Navegação entre abas sem perder dados preenchidos
+**Objetivo**
+Garantir que os dados inseridos em uma aba sejam mantidos intactos quando o usuário navegar entre diferentes abas da tela de membros.
+
+**Pré-condição**
+- O usuário deve estar autenticado no sistema.
+- O usuário deve estar na tela de novos membros, que possui um formulário editável e navegação por abas.
+
+**Passos**
+1. Preencher parcialmente ou totalmente os campos do formulário na aba "Pessoal", sem salvar.
+2. Clicar em outra aba disponível no menu de navegação interno (ex: Aba "Contato").
+3. Retornar à aba anterior (Aba "Dados Pessoais").
+
+**Resultado esperado**
+Os campos preenchidos no Passo 1 devem manter as mesmas informações inseridas, sem perda de dados, reset do formulário ou necessidade de novo preenchimento.
+
+**Resultado obtido**
+Resultado obtido é o mesmo resultado esperado. Sem anormalidades.
+
+**Status**
+Passou
+
+#### CT-011 - Busca automática de endereço ao digitar CEP válido
+**Objetivo**
+Garantir que a busca automática de endereço através de CEP esteja funionando adequadamente, inclusive retornando erro ao inserir um CEP inválido.
+
+**Pré-condição**
+- Estar logado e autenticado na plataforma
+- Estar na tela de cadastro de um registro, na aba "Contato"
+
+**Passos**
+1. Acessar a aba "Contato" 
+2. Preencher o campo de CEP
+3. Observar se é preenchido automaticamente 
+
+**Resultado esperado**
+É esperado que, se preenchido corretamente, os campos referentes ao endereço através do CEP se auto completem nos campos. Em caso de CEP inválido, deve mostrar uma mensagem ao usuário indicando que o CEP é inválido.
+
+**Resultado obtido**
+O resultado do caminho feliz aconteceu bem, mas o CEP inválido também mostrou como se estivesse tudo certo. 
+
+**Status**
+Falhou (Jira KAN-9)
+
+#### CT-012 - Opção "não lembro o dia e mês" na data de admissão
+**Objetivo**
+Garantir que quando o usuário não lembra o dia da admissão, pelo menos o ano seja registrado no sistema.
+
+**Pré-condição**
+- Estar autenticado no sistema, na tela de criação de membros.
+
+**Passos**
+1. Preencher, na aba de "Igreja", uma data.
+2. Clicar em "Não lembro o dia e o mês"
+3. Escolher um ano qualquer
+4. Salvar
+
+**Resultado esperado**
+É esperado que, se por ventura tiver alguma data registrada, a opção de apenas o ano sobreponha a data de admissão.
+
+**Resultado obtido**
+Ao salvar o usuário após este passo a passo, foi identificado a data específica foi sobreposta mesmo quando o usuário deixou o checkbox de "Não lembro o dia e mês" preenchido.
+
+**Status**
+Falhou (Jira KAN-10)
+
+#### CT-013 - Upload de foto de perfil
+**Objetivo**
+Validar que o sistema faz o upload de foto e mantém a foto no registro
+
+**Pré-condição**
+Usuário logado na plataforma na tela de criação de novos membros.
+
+**Passos**
+1. Após preencher pelo menos o campo de Nome Completo, clicar no botão "Adicionar Foto"
+2. Selecionar um arquivo de foto (.jpeg, .jpg, .png e .WebP) de até 5mb.
+3. Clicar em "Salvar Membro"
+4. Verificar se a foto se mantém no perfil do registro
+5. Abrir o registro do membro e clicar em "Trocar Foto"
+6. Selecionar outra foto
+7. Clicar em "Salvar Alterações"
+8. Verificar se a foto foi alterada no perfil do registro
+
+**Resultado esperado**
+É esperado que o upload ocorra sem erros e que a informaçõa persista no registro.
+
+**Resultado obtido**
+Durante os testes o upload funcionou normalmente na criação do registro, porém na edição foi observado que não está atualizando a foto.
+
+**Status**
+Falhou (Jira KAN-11)
+
+#### CT-014 - Exibição de todos os membros cadastrados
+**Objetivo**
+Validar que o sistema exibe corretamente a lista completa de membros cadastrados.
+
+**Pré-condição**
+- Existirem membros cadastrados na base de dados.
+- Usuário autenticado com permissão para visualizar membros.
+
+**Passos**
+1. Acessar o sistema com um usuário válido.
+2. Navegar até a tela de listagem de membros.
+3. Observar os registros exibidos na lista.
+
+**Resultado esperado**
+O sistema deve exibir todos os membros cadastrados, apresentando corretamente as informações definidas para a listagem, sem omissões ou duplicidades.
+
+**Resultado obtido**
+O resultado obtido foi o mesmo que o esperado.
+
+**Status**
+Passou
+
+#### CT-015 - Busca por nome
+**Objetivo**
+Validar que o sistema realiza a busca de membros pelo nome informado.
+
+**Pré-condição**
+- Existirem membros cadastrados na base de dados.
+- Usuário autenticado com permissão para visualizar membros.
+
+**Passos**
+1. Acessar o sistema com um usuário válido.
+2. Navegar até a tela de listagem de membros.
+3. Informar o nome completo ou parcial de um membro no campo de busca.
+4. Executar a pesquisa.
+5. Verificar se o resulto é satisfatório
+
+**Resultado esperado**
+O sistema deve retornar apenas os membros que correspondam ao critério de busca informado, exibindo os resultados de forma correta e atualizada.
+
+**Resultado obtido**
+Resultado obtido é o resultado esperado.
+
+**Status**
+Passou
 
 ### PGMs — Pequenos Grupos Multiplicadores
 
