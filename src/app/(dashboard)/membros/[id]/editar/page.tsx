@@ -5,7 +5,8 @@ import { createClient } from '@/lib/supabase/client'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import UploadFoto from '@/components/UploadFoto'
-import { ChevronLeft, Save, User, Phone, Heart, Church, Shield } from 'lucide-react'
+// ADICIONADO ChevronRight NO IMPORT ABAIXO
+import { ChevronLeft, Save, User, Phone, Heart, Church, Shield, ChevronRight } from 'lucide-react'
 
 // Função de máscara movida para fora para melhor performance (não é recriada a cada render)
 function mascaraTelefone(valor: string) {
@@ -62,8 +63,6 @@ type Formulario = {
   so_ano_admissao: boolean 
   ministerios_interesse: string
   foto_url: string
-
-
 }
 
 const vazio: Formulario = {
@@ -113,7 +112,6 @@ export default function EditarMembroPage() {
       if (data) {
         setForm({
           ...data,
-          // campos que podem vir null do banco
           complemento:                 data.complemento ?? '',
           rua:                         data.rua ?? '',
           numero:                      data.numero ?? '',
@@ -137,12 +135,10 @@ export default function EditarMembroPage() {
           tamanho_camiseta:            data.tamanho_camiseta ?? '',
           ministerios_interesse:       data.ministerios_interesse ?? '',
           forma_admissao:              data.forma_admissao ?? '',
-          // campos boolean
           tem_filhos:           data.tem_filhos ?? false,
           concluiu_integracao:  data.concluiu_integracao ?? false,
           autorizacao_imagem:   data.autorizacao_imagem ?? false,
           so_ano_admissao:      data.so_ano_admissao ?? false,
-          // status
           status_membresia: data.status_membresia ?? 'Membro Ativo',
         })
       }
@@ -179,7 +175,6 @@ export default function EditarMembroPage() {
     setSalvando(true)
     setErro('')
 
-    // Campos permitidos para atualização
     const payload = {
       nome_completo:               form.nome_completo,
       data_nascimento:             form.data_nascimento || null,
@@ -266,68 +261,66 @@ export default function EditarMembroPage() {
 
       <div className="bg-white rounded-2xl border border-gray-200 p-6">
         {/* ABA 1 — Pessoal */}
-{abaAtiva === 0 && (
-  <div className="space-y-6">
-    {/* Upload de foto */}
-    <div className="flex justify-center py-2">
-      <UploadFoto
-        fotoAtual={form.foto_url || null}
-        nome={form.nome_completo}
-        onUpload={(url) => set('foto_url', url)}
-      />
-    </div>
+        {abaAtiva === 0 && (
+          <div className="space-y-6">
+            <div className="flex justify-center py-2">
+              <UploadFoto
+                fotoAtual={form.foto_url || null}
+                nome={form.nome_completo}
+                onUpload={(url) => set('foto_url', url)}
+              />
+            </div>
 
-    {/* Campos pessoais */}
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div className="sm:col-span-2">
-        <Campo label="Nome completo *">
-          <input className={inputClass} value={form.nome_completo}
-            onChange={e => set('nome_completo', e.target.value)} />
-        </Campo>
-      </div>
-      <Campo label="Data de nascimento">
-        <input type="date" className={inputClass} value={form.data_nascimento}
-          onChange={e => set('data_nascimento', e.target.value)} />
-      </Campo>
-      <Campo label="Gênero">
-        <select className={selectClass} value={form.genero}
-          onChange={e => set('genero', e.target.value)}>
-          <option value="">Selecione</option>
-          <option>Masculino</option><option>Feminino</option><option>Outro</option>
-        </select>
-      </Campo>
-      <Campo label="Estado civil">
-        <select className={selectClass} value={form.estado_civil}
-          onChange={e => set('estado_civil', e.target.value)}>
-          <option value="">Selecione</option>
-          <option>Solteiro</option><option>Casado</option>
-          <option>Divorciado</option><option>Viúvo</option><option>União Estável</option>
-        </select>
-      </Campo>
-      <Campo label="Naturalidade">
-        <input className={inputClass} value={form.naturalidade}
-          onChange={e => set('naturalidade', e.target.value)} />
-      </Campo>
-      <Campo label="Escolaridade">
-        <select className={selectClass} value={form.escolaridade}
-          onChange={e => set('escolaridade', e.target.value)}>
-          <option value="">Selecione</option>
-          <option>Ensino Fundamental Incompleto</option>
-          <option>Ensino Fundamental Completo</option>
-          <option>Ensino Médio Incompleto</option>
-          <option>Ensino Médio Completo</option>
-          <option>Ensino Superior Incompleto</option>
-          <option>Ensino Superior Completo</option>
-          <option>Pós-graduação</option>
-        </select>
-      </Campo>
-      <Campo label="Profissão">
-        <input className={inputClass} value={form.profissao}
-          onChange={e => set('profissao', e.target.value)} />
-      </Campo>
-    </div>
-  </div>
-)}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="sm:col-span-2">
+                <Campo label="Nome completo *">
+                  <input className={inputClass} value={form.nome_completo}
+                    onChange={e => set('nome_completo', e.target.value)} />
+                </Campo>
+              </div>
+              <Campo label="Data de nascimento">
+                <input type="date" className={inputClass} value={form.data_nascimento}
+                  onChange={e => set('data_nascimento', e.target.value)} />
+              </Campo>
+              <Campo label="Gênero">
+                <select className={selectClass} value={form.genero}
+                  onChange={e => set('genero', e.target.value)}>
+                  <option value="">Selecione</option>
+                  <option>Masculino</option><option>Feminino</option><option>Outro</option>
+                </select>
+              </Campo>
+              <Campo label="Estado civil">
+                <select className={selectClass} value={form.estado_civil}
+                  onChange={e => set('estado_civil', e.target.value)}>
+                  <option value="">Selecione</option>
+                  <option>Solteiro</option><option>Casado</option>
+                  <option>Divorciado</option><option>Viúvo</option><option>União Estável</option>
+                </select>
+              </Campo>
+              <Campo label="Naturalidade">
+                <input className={inputClass} value={form.naturalidade}
+                  onChange={e => set('naturalidade', e.target.value)} />
+              </Campo>
+              <Campo label="Escolaridade">
+                <select className={selectClass} value={form.escolaridade}
+                  onChange={e => set('escolaridade', e.target.value)}>
+                  <option value="">Selecione</option>
+                  <option>Ensino Fundamental Incompleto</option>
+                  <option>Ensino Fundamental Completo</option>
+                  <option>Ensino Médio Incompleto</option>
+                  <option>Ensino Médio Completo</option>
+                  <option>Ensino Superior Incompleto</option>
+                  <option>Ensino Superior Completo</option>
+                  <option>Pós-graduação</option>
+                </select>
+              </Campo>
+              <Campo label="Profissão">
+                <input className={inputClass} value={form.profissao}
+                  onChange={e => set('profissao', e.target.value)} />
+              </Campo>
+            </div>
+          </div>
+        )}
 
         {/* ABA 2 — Contato */}
         {abaAtiva === 1 && (
@@ -569,17 +562,24 @@ export default function EditarMembroPage() {
           ← Anterior
         </button>
         <span className="text-xs text-gray-400">{abaAtiva + 1} de {abas.length}</span>
-        {abaAtiva < abas.length - 1 ? (
-          <button onClick={() => setAbaAtiva(i => Math.min(abas.length - 1, i + 1))}
-            className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium transition-colors cursor-pointer">
-            Próximo →
-          </button>
-        ) : (
-          <button onClick={salvar} disabled={salvando}
-            className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white rounded-xl text-sm font-medium transition-colors">
+        
+        <div className="flex items-center gap-2">
+          {abaAtiva < abas.length - 1 && (
+            <button
+              onClick={() => setAbaAtiva(i => Math.min(abas.length - 1, i + 1))}
+              className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium transition-colors cursor-pointer"
+            >
+              Próximo <ChevronRight size={16} />
+            </button>
+          )}
+          <button
+            onClick={salvar}
+            disabled={salvando}
+            className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white rounded-xl text-sm font-medium transition-colors"
+          >
             <Save size={16} /> {salvando ? 'Salvando...' : 'Salvar alterações'}
           </button>
-        )}
+        </div>
       </div>
     </div>
   )

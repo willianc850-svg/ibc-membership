@@ -515,14 +515,15 @@ export default function NovoMembroPage() {
 
         <span className="text-xs text-gray-400">{indiceAtual + 1} de {total}</span>
 
-        {indiceAtual < total - 1 ? (
-          <button
-            onClick={() => setAbaAtiva(i => Math.min(total - 1, i + 1))}
-            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium transition-colors cursor-pointer"
-          >
-            Próximo <ChevronRight size={16} />
-          </button>
-        ) : (
+        <div className="flex items-center gap-2">
+          {indiceAtual < total - 1 && (
+            <button
+              onClick={() => setAbaAtiva(i => Math.min(total - 1, i + 1))}
+              className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium transition-colors cursor-pointer"
+            >
+              Próximo <ChevronRight size={16} />
+            </button>
+          )}
           <button
             onClick={salvar}
             disabled={salvando}
@@ -530,7 +531,7 @@ export default function NovoMembroPage() {
           >
             <Save size={16} /> {salvando ? 'Salvando...' : 'Salvar membro'}
           </button>
-        )}
+        </div>
       </div>
     </div>
   )
