@@ -13,6 +13,8 @@ import {
   UserMinus,
   Eye,
 } from 'lucide-react'
+import { usePermissao } from '@/lib/hooks/usePermissao'
+import { Pencil, Trash2 } from 'lucide-react'
 
 type Membro = {
   id: string
@@ -42,6 +44,7 @@ export default function MembrosPage() {
   const [busca, setBusca] = useState('')
   const [filtroStatus, setFiltroStatus] = useState('todos')
   const supabase = createClient()
+  const { isAdmin, isSuperAdmin, userId } = usePermissao()
 
   async function buscarMembros() {
     setCarregando(true)
@@ -80,6 +83,20 @@ useEffect(() => {
   function iniciais(nome: string) {
     return nome.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()
   }
+
+  async function handleDeletar(id: string, nome: string) {
+  if (!confirm(`Tem certeza que deseja excluir "${nome}"?`)) return
+  
+  const { error } = await supabase.from('membros').delete().eq('id', id)
+  
+  if (error) {
+    alert('Erro ao deletar membro')
+    return
+  }
+  
+  // Atualiza a lista removendo o membro
+  setMembros(membros.filter(m => m.id !== id))
+}
 
   return (
     <div>
@@ -192,13 +209,33 @@ useEffect(() => {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <Link
-                          href={`/membros/${membro.id}`}
-                          className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-medium"
-                        >
-                          <Eye size={14} />
-                          Ver
-                        </Link>
+                        <div className="flex items-center justify-end gap-2">
+                          <Link
+                            href={`/membros/${membro.id}`}
+                            className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                          >
+                            <Eye size={14} />
+                            Ver
+                          </Link>
+                          {isAdmin && (
+                            <Link
+                              href={`/membros/${membro.id}/editar`}
+                              className="inline-flex items-center gap-1 text-xs text-amber-600 hover:text-amber-800 font-medium"
+                            >
+                              <Pencil size={14} />
+                              Editar
+                            </Link>
+                          )}
+                          {isSuperAdmin && (
+                            <button
+                              onClick={() => handleDeletar(membro.id, membro.nome_completo)}
+                              className="inline-flex items-center gap-1 text-xs text-red-600 hover:text-red-800 font-medium"
+                            >
+                              <Trash2 size={14} />
+                              Deletar
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   )
