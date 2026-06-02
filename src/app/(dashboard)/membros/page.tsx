@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { usePermissao } from '@/lib/hooks/usePermissao'
 import { Pencil, Trash2 } from 'lucide-react'
+import ModalConfirmacao from '@/components/ModalConfirmacao'
 
 type Membro = {
   id: string
@@ -45,6 +46,8 @@ export default function MembrosPage() {
   const [filtroStatus, setFiltroStatus] = useState('todos')
   const supabase = createClient()
   const { isAdmin, isSuperAdmin, userId } = usePermissao()
+  const [membroDeletando, setMembroDeletando] = useState<{id: string; nome: string} | null>(null)
+  const [erro, setErro] = useState('')
 
   async function buscarMembros() {
     setCarregando(true)
@@ -85,17 +88,35 @@ useEffect(() => {
   }
 
   async function handleDeletar(id: string, nome: string) {
-  if (!confirm(`Tem certeza que deseja excluir "${nome}"?`)) return
-  
-  const { error } = await supabase.from('membros').delete().eq('id', id)
-  
-  if (error) {
-    alert('Erro ao deletar membro')
-    return
+  setMembroDeletando({ id, nome })
+}
+
+async function confirmarDeletar() {
+  if (!membroDeletando) return
+
+  try {
+    await supabase.from('membros_celulas').delete().eq('membro_id', membroDeletando.id)
+    await supabase.from('membros_ministerios').delete().eq('membro_id', membroDeletando.id)
+    await supabase.from('reuniao_participantes').delete().eq('membro_id', membroDeletando.id)
+
+    const { error } = await supabase.from('membros').delete().eq('id', membroDeletando.id)
+
+    if (error) {
+      if (error.code === 'PGRST204') {
+        setErro('Este membro está vinculado a outros registros e não pode ser deletado.')
+      } else {
+        setErro('Erro ao deletar membro: ' + error.message)
+      }
+      setMembroDeletando(null)
+      return
+    }
+
+    setMembros(membros.filter(m => m.id !== membroDeletando.id))
+    setMembroDeletando(null)
+  } catch (err) {
+    setErro('Erro inesperado ao deletar')
+    setMembroDeletando(null)
   }
-  
-  // Atualiza a lista removendo o membro
-  setMembros(membros.filter(m => m.id !== id))
 }
 
   return (
@@ -245,6 +266,26 @@ useEffect(() => {
           </div>
         )}
       </div>
+      <ModalConfirmacao
+        aberto={!!membroDeletando}
+        titulo="Deletar membro"
+        mensagem={`Tem certeza que deseja excluir "${membroDeletando?.nome}"? Esta ação não pode ser desfeita.`}
+        textoBotaoPrimario="Deletar"
+        textoBotaoSecundario="Cancelar"
+        carregando={false}
+        perigo={true}
+        onConfirmar={confirmarDeletar}
+        onCancelar={() => {
+          setMembroDeletando(null)
+          setErro('')
+        }}
+      />
+
+      {erro && (
+        <div className="fixed bottom-4 right-4 bg-red-600 text-white px-4 py-3 rounded-lg shadow-lg max-w-sm">
+          {erro}
+        </div>
+      )}
     </div>
   )
 }
