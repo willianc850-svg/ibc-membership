@@ -46,7 +46,11 @@ export default function MembrosPage() {
   const [filtroStatus, setFiltroStatus] = useState('todos')
   const supabase = createClient()
   const { isAdmin, isSuperAdmin, userId } = usePermissao()
-  const [membroDeletando, setMembroDeletando] = useState<{id: string; nome: string} | null>(null)
+  const [membroDeletando, setMembroDeletando] = useState<{
+    id: string
+    nome: string
+    lideracas?: string[]
+  } | null>(null)  
   const [erro, setErro] = useState('')
 
   async function buscarMembros() {
@@ -87,37 +91,72 @@ useEffect(() => {
     return nome.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()
   }
 
-  async function handleDeletar(id: string, nome: string) {
-  setMembroDeletando({ id, nome })
+async function handleDeletar(id: string, nome: string) {
+  try {
+    // Busca se o membro é líder de algum ministério
+    const { data: ministerios } = await supabase
+      .from('ministerios')
+      .select('id, nome')
+      .eq('lider_id', id)
+
+    // Busca se o membro é líder de algum PGM
+    const { data: pgms } = await supabase
+      .from('pgm')
+      .select('id, nome')
+      .eq('lider_id', id)
+
+    const lideracas = [
+      ...(ministerios?.map(m => `Ministério: ${m.nome}`) || []),
+      ...(pgms?.map(p => `PGM: ${p.nome}`) || []),
+    ]
+
+    setMembroDeletando({
+      id,
+      nome,
+      lideracas, // Passa as lideranças
+    })
+  } catch (err) {
+    setErro('Erro ao verificar se o membro é líder')
+  }
 }
 
 async function confirmarDeletar() {
-  if (!membroDeletando) return
+    if (!membroDeletando) return
 
-  try {
-    await supabase.from('membros_celulas').delete().eq('membro_id', membroDeletando.id)
-    await supabase.from('membros_ministerios').delete().eq('membro_id', membroDeletando.id)
-    await supabase.from('reuniao_participantes').delete().eq('membro_id', membroDeletando.id)
+    try {
+      // Remove as lideranças (set lider_id para NULL)
+      await supabase
+        .from('ministerios')
+        .update({ lider_id: null })
+        .eq('lider_id', membroDeletando.id)
 
-    const { error } = await supabase.from('membros').delete().eq('id', membroDeletando.id)
+      await supabase
+        .from('pgm')
+        .update({ lider_id: null })
+        .eq('lider_id', membroDeletando.id)
 
-    if (error) {
-      if (error.code === 'PGRST204') {
-        setErro('Este membro está vinculado a outros registros e não pode ser deletado.')
-      } else {
+      // Remove vínculos com células, ministérios e reuniões
+      await supabase.from('membros_celulas').delete().eq('membro_id', membroDeletando.id)
+      await supabase.from('membros_ministerios').delete().eq('membro_id', membroDeletando.id)
+      await supabase.from('reuniao_participantes').delete().eq('membro_id', membroDeletando.id)
+
+      // Deleta o membro
+      const { error } = await supabase.from('membros').delete().eq('id', membroDeletando.id)
+
+      if (error) {
         setErro('Erro ao deletar membro: ' + error.message)
+        setMembroDeletando(null)
+        return
       }
-      setMembroDeletando(null)
-      return
-    }
 
-    setMembros(membros.filter(m => m.id !== membroDeletando.id))
-    setMembroDeletando(null)
-  } catch (err) {
-    setErro('Erro inesperado ao deletar')
-    setMembroDeletando(null)
+      // Remove da lista
+      setMembros(membros.filter(m => m.id !== membroDeletando.id))
+      setMembroDeletando(null)
+    } catch (err) {
+      setErro('Erro inesperado ao deletar')
+      setMembroDeletando(null)
+    }
   }
-}
 
   return (
     <div>
@@ -269,7 +308,11 @@ async function confirmarDeletar() {
       <ModalConfirmacao
         aberto={!!membroDeletando}
         titulo="Deletar membro"
-        mensagem={`Tem certeza que deseja excluir "${membroDeletando?.nome}"? Esta ação não pode ser desfeita.`}
+        mensagem={
+          membroDeletando?.lideracas && membroDeletando.lideracas.length > 0
+            ? `${membroDeletando.nome} é líder de:\n\n${membroDeletando.lideracas.join('\n')}\n\nAo deletar, essas lideranças serão removidas. Tem certeza?`
+            : `Tem certeza que deseja excluir "${membroDeletando?.nome}"? Esta ação não pode ser desfeita.`
+        }
         textoBotaoPrimario="Deletar"
         textoBotaoSecundario="Cancelar"
         carregando={false}
@@ -280,12 +323,6 @@ async function confirmarDeletar() {
           setErro('')
         }}
       />
-
-      {erro && (
-        <div className="fixed bottom-4 right-4 bg-red-600 text-white px-4 py-3 rounded-lg shadow-lg max-w-sm">
-          {erro}
-        </div>
-      )}
     </div>
   )
 }

@@ -29,7 +29,7 @@ export default function ModalConfirmacao({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl p-6 max-w-sm mx-4 shadow-xl">
         <h2 className="text-lg font-bold text-gray-900 mb-2">{titulo}</h2>
-        <p className="text-sm text-gray-600 mb-6">{mensagem}</p>
+            <p className="text-sm text-gray-600 mb-6 whitespace-pre-wrap">{mensagem}</p>
 
         <div className="flex gap-3">
           <button
