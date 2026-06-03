@@ -103,6 +103,8 @@ export default function NovoMembroPage() {
   const [form, setForm] = useState<Formulario>(inicial)
   const [salvando, setSalvando] = useState(false)
   const [erro, setErro] = useState('')
+  const [cepStatus, setCepStatus] = useState<'idle' | 'valido' | 'invalido'>('idle')
+  const [mensagemCep, setMensagemCep] = useState('')
   const router = useRouter()
   const supabase = createClient()
 
@@ -143,17 +145,38 @@ export default function NovoMembroPage() {
 
   async function buscarCep(cep: string) {
   const cepLimpo = cep.replace(/\D/g, '')
-  if (cepLimpo.length !== 8) return
+  if (cepLimpo.length !== 8) {
+    setCepStatus('idle')
+    return
+  }
 
   try {
     const res = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`)
     const data = await res.json()
-    if (data.erro) return
+    
+    if (data.erro) {
+      setCepStatus('invalido')
+      setMensagemCep('CEP não encontrado')
+      // Limpa os campos de endereço
+      set('rua', '')
+      set('bairro', '')
+      set('cidade', '')
+      return
+    }
 
+    // CEP válido - preenche os campos
     set('rua', data.logradouro ?? '')
     set('bairro', data.bairro ?? '')
     set('cidade', data.localidade ?? '')
-  } catch {}
+    setCepStatus('valido')
+    setMensagemCep('')
+  } catch (err) {
+    setCepStatus('invalido')
+    setMensagemCep('Erro ao buscar CEP')
+    set('rua', '')
+    set('bairro', '')
+    set('cidade', '')
+  }
 }
 
   return (
@@ -315,15 +338,22 @@ export default function NovoMembroPage() {
                     if (valor.replace(/\D/g, '').length === 8) buscarCep(valor)
                   }}
                 />
-                {form.cep.replace(/\D/g, '').length === 8 && (
+                {cepStatus === 'valido' && (
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-green-600 font-medium">
                     ✓
                   </span>
                 )}
+                {cepStatus === 'invalido' && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-red-600 font-medium">
+                    ✕
+                  </span>
+                )}
               </div>
-              <p className="text-xs text-gray-400 mt-1">
-                Preencha o CEP para completar o endereço automaticamente.
-              </p>
+              {mensagemCep && (
+                <p className={`text-xs mt-1 ${cepStatus === 'invalido' ? 'text-red-600' : 'text-green-600'}`}>
+                  {mensagemCep}
+                </p>
+              )}
             </Campo>
           </div>
         )}

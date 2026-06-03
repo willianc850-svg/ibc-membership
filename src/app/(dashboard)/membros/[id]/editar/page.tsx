@@ -99,6 +99,8 @@ export default function EditarMembroPage() {
   const [carregando, setCarregando] = useState(true)
   const [salvando, setSalvando] = useState(false)
   const [erro, setErro] = useState('')
+  const [cepStatus, setCepStatus] = useState<'idle' | 'valido' | 'invalido'>('idle')
+  const [mensagemCep, setMensagemCep] = useState('')
   const supabase = createClient()
 
   useEffect(() => {
@@ -152,19 +154,40 @@ export default function EditarMembroPage() {
   }
 
   async function buscarCep(cep: string) {
-    const cepLimpo = cep.replace(/\D/g, '')
-    if (cepLimpo.length !== 8) return
-
-    try {
-      const res = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`)
-      const data = await res.json()
-      if (data.erro) return
-
-      set('rua', data.logradouro ?? '')
-      set('bairro', data.bairro ?? '')
-      set('cidade', data.localidade ?? '')
-    } catch {}
+  const cepLimpo = cep.replace(/\D/g, '')
+  if (cepLimpo.length !== 8) {
+    setCepStatus('idle')
+    return
   }
+
+  try {
+    const res = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`)
+    const data = await res.json()
+    
+    if (data.erro) {
+      setCepStatus('invalido')
+      setMensagemCep('CEP não encontrado')
+      // Limpa os campos de endereço
+      set('rua', '')
+      set('bairro', '')
+      set('cidade', '')
+      return
+    }
+
+    // CEP válido - preenche os campos
+    set('rua', data.logradouro ?? '')
+    set('bairro', data.bairro ?? '')
+    set('cidade', data.localidade ?? '')
+    setCepStatus('valido')
+    setMensagemCep('')
+  } catch (err) {
+    setCepStatus('invalido')
+    setMensagemCep('Erro ao buscar CEP')
+    set('rua', '')
+    set('bairro', '')
+    set('cidade', '')
+  }
+}
 
   async function salvar() {
     if (!form.nome_completo.trim()) {
@@ -375,12 +398,22 @@ export default function EditarMembroPage() {
                     if (valor.replace(/\D/g, '').length === 8) buscarCep(valor)
                   }}
                 />
-                {form.cep.replace(/\D/g, '').length === 8 && (
+                {cepStatus === 'valido' && (
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-green-600 font-medium">
                     ✓
                   </span>
                 )}
+                {cepStatus === 'invalido' && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-red-600 font-medium">
+                    ✕
+                  </span>
+                )}
               </div>
+              {mensagemCep && (
+                <p className={`text-xs mt-1 ${cepStatus === 'invalido' ? 'text-red-600' : 'text-green-600'}`}>
+                  {mensagemCep}
+                </p>
+              )}
             </Campo>
           </div>
         )}

@@ -86,7 +86,7 @@ Garantir o funcionamento correto das funcionalidades principais do sistema de ge
 
 **Listagem**
 - [Exibição de todos os membros cadastrados](#ct-014---exibição-de-todos-os-membros-cadastrados)
-- Busca por nome
+- [Busca por nome](#ct-015---busca-por-nome)
 - Busca por telefone
 - Filtro por status de membresia
 - Exibição do bairro na coluna da tabela
@@ -566,6 +566,24 @@ Resultado obtido é o resultado esperado.
 
 **Status**
 Passou
+
+#### CT-019 - Perfil completo com todas as seções visíveis
+
+**Objetivo**
+Visualizar e garantir que os dados preenchidos em cadastro e edição sejam devidamente visualizados. Deve haver persistência dos dados.
+
+**Pré-condição**
+- Usuário
+**Passos**
+1. 
+2. 
+3. 
+
+**Resultado esperado**
+
+**Resultado obtido**
+
+**Status**
 
 ### PGMs — Pequenos Grupos Multiplicadores
 
