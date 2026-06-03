@@ -43,7 +43,8 @@ type Formulario = {
   data_admissao: string
   forma_admissao: string
   data_batismo_aguas: string
-  data_batismo_espirito: string
+  ano_batismo_aguas: string
+  so_ano_batismo_aguas: boolean
   igreja_procedencia: string
   cursos_teologicos: string
   concluiu_integracao: boolean
@@ -65,7 +66,7 @@ const inicial: Formulario = {
   telefone: '', email: '', rua: '', numero: '', complemento: '', bairro: '', cidade: '', cep: '',
   data_casamento: '', tem_filhos: false, filhos_info: '',
   status_membresia: '', data_admissao: '', forma_admissao: '',
-  data_batismo_aguas: '', data_batismo_espirito: '', igreja_procedencia: '',
+  data_batismo_aguas: '', so_ano_batismo_aguas: false, igreja_procedencia: '',
   cursos_teologicos: '', concluiu_integracao: false,
   alergias_restricoes: '', tipo_sanguineo: '', contato_emergencia_nome: '',
   contato_emergencia_telefone: '', habilidades: '', tamanho_camiseta: '',
@@ -439,10 +440,33 @@ export default function NovoMembroPage() {
                 value={form.igreja_procedencia}
                 onChange={e => set('igreja_procedencia', e.target.value)} />
             </Campo>
-            <Campo label="Data de batismo nas águas">
-              <input type="date" className={inputClass} value={form.data_batismo_aguas}
-                onChange={e => set('data_batismo_aguas', e.target.value)} />
-            </Campo>
+            <div className="sm:col-span-2">
+              <Campo label="Data de batismo nas águas">
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.so_ano_batismo_aguas}
+                      onChange={e => set('so_ano_batismo_aguas', e.target.checked)}
+                      className="w-4 h-4 accent-indigo-600"
+                    />
+                    <span className="text-xs text-gray-500">Não lembro o dia e mês, somente o ano</span>
+                  </label>
+                  {form.so_ano_batismo_aguas ? (
+                    <select className={selectClass} value={form.ano_batismo_aguas}
+                      onChange={e => set('ano_batismo_aguas', e.target.value)}>
+                      <option value="">Selecione o ano</option>
+                      {Array.from({ length: 50 }, (_, i) => new Date().getFullYear() - i).map(ano => (
+                        <option key={ano} value={String(ano)}>{ano}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input type="date" className={inputClass} value={form.data_batismo_aguas}
+                      onChange={e => set('data_batismo_aguas', e.target.value)} />
+                  )}
+                </div>
+              </Campo>
+            </div>
             <div className="sm:col-span-2">
               <Campo label="Cursos teológicos ou de liderança">
                 <textarea className={inputClass + ' resize-none'} rows={2}

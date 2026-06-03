@@ -48,7 +48,8 @@ type Formulario = {
   data_admissao: string
   forma_admissao: string
   data_batismo_aguas: string
-  data_batismo_espirito: string
+  ano_batismo_aguas: string
+  so_ano_batismo_aguas: boolean
   igreja_procedencia: string
   cursos_teologicos: string
   concluiu_integracao: boolean
@@ -137,11 +138,13 @@ export default function EditarMembroPage() {
           tamanho_camiseta:            data.tamanho_camiseta ?? '',
           ministerios_interesse:       data.ministerios_interesse ?? '',
           forma_admissao:              data.forma_admissao ?? '',
-          tem_filhos:           data.tem_filhos ?? false,
-          concluiu_integracao:  data.concluiu_integracao ?? false,
-          autorizacao_imagem:   data.autorizacao_imagem ?? false,
-          so_ano_admissao:      data.so_ano_admissao ?? false,
-          status_membresia: data.status_membresia ?? 'Membro Ativo',
+          ano_batismo_aguas:           data.ano_batismo_aguas ?? '',
+          so_ano_batismo_aguas:        data.so_ano_batismo_aguas ?? false,
+          tem_filhos:                  data.tem_filhos ?? false,
+          concluiu_integracao:         data.concluiu_integracao ?? false,
+          autorizacao_imagem:          data.autorizacao_imagem ?? false,
+          so_ano_admissao:             data.so_ano_admissao ?? false,
+          status_membresia:            data.status_membresia ?? 'Membro Ativo',
         })
       }
       setCarregando(false)
@@ -198,43 +201,45 @@ export default function EditarMembroPage() {
     setSalvando(true)
     setErro('')
 
-    const payload = {
-      nome_completo:               form.nome_completo,
-      data_nascimento:             form.data_nascimento || null,
-      genero:                      form.genero || null,
-      estado_civil:                form.estado_civil || null,
-      naturalidade:                form.naturalidade || null,
-      escolaridade:                form.escolaridade || null,
-      profissao:                   form.profissao || null,
-      telefone:                    form.telefone || null,
-      email:                       form.email || null,
-      rua:                         form.rua || null,
-      numero:                      form.numero || null,
-      complemento:                 form.complemento || null,
-      bairro:                      form.bairro || null,
-      cidade:                      form.cidade || null,
-      cep:                         form.cep || null,
-      data_casamento:              form.data_casamento || null,
-      tem_filhos:                  form.tem_filhos,
-      filhos_info:                 form.filhos_info || null,
-      status_membresia:            form.status_membresia,
-      data_admissao:               form.data_admissao || null,
-      ano_admissao:                form.ano_admissao || null,
-      so_ano_admissao:             form.so_ano_admissao,
-      forma_admissao:              form.forma_admissao || null,
-      data_batismo_aguas:          form.data_batismo_aguas || null,
-      igreja_procedencia:          form.igreja_procedencia || null,
-      cursos_teologicos:           form.cursos_teologicos || null,
-      concluiu_integracao:         form.concluiu_integracao,
-      alergias_restricoes:         form.alergias_restricoes || null,
-      tipo_sanguineo:              form.tipo_sanguineo || null,
-      contato_emergencia_nome:     form.contato_emergencia_nome || null,
-      contato_emergencia_telefone: form.contato_emergencia_telefone || null,
-      habilidades:                 form.habilidades || null,
-      tamanho_camiseta:            form.tamanho_camiseta || null,
-      autorizacao_imagem:          form.autorizacao_imagem,
-      ministerios_interesse:       form.ministerios_interesse || null,
-    }
+const payload = {
+  nome_completo:               form.nome_completo,
+  data_nascimento:             form.data_nascimento || null,
+  genero:                      form.genero || null,
+  estado_civil:                form.estado_civil || null,
+  naturalidade:                form.naturalidade || null,
+  escolaridade:                form.escolaridade || null,
+  profissao:                   form.profissao || null,
+  telefone:                    form.telefone || null,
+  email:                       form.email || null,
+  rua:                         form.rua || null,
+  numero:                      form.numero || null,
+  complemento:                 form.complemento || null,
+  bairro:                      form.bairro || null,
+  cidade:                      form.cidade || null,
+  cep:                         form.cep || null,
+  data_casamento:              form.data_casamento || null,
+  tem_filhos:                  form.tem_filhos,
+  filhos_info:                 form.filhos_info || null,
+  status_membresia:            form.status_membresia,
+  data_admissao:               form.so_ano_admissao ? null : (form.data_admissao || null),
+  ano_admissao:                form.so_ano_admissao ? (form.ano_admissao || null) : null,
+  so_ano_admissao:             form.so_ano_admissao,
+  data_batismo_aguas:          form.so_ano_batismo_aguas ? null : (form.data_batismo_aguas || null),
+  ano_batismo_aguas:           form.so_ano_batismo_aguas ? (form.ano_batismo_aguas || null) : null,
+  so_ano_batismo_aguas:        form.so_ano_batismo_aguas,
+  forma_admissao:              form.forma_admissao || null,
+  igreja_procedencia:          form.igreja_procedencia || null,
+  cursos_teologicos:           form.cursos_teologicos || null,
+  concluiu_integracao:         form.concluiu_integracao,
+  alergias_restricoes:         form.alergias_restricoes || null,
+  tipo_sanguineo:              form.tipo_sanguineo || null,
+  contato_emergencia_nome:     form.contato_emergencia_nome || null,
+  contato_emergencia_telefone: form.contato_emergencia_telefone || null,
+  habilidades:                 form.habilidades || null,
+  tamanho_camiseta:            form.tamanho_camiseta || null,
+  autorizacao_imagem:          form.autorizacao_imagem,
+  ministerios_interesse:       form.ministerios_interesse || null,
+}
 
     const { error } = await supabase
       .from('membros')
@@ -500,10 +505,33 @@ export default function EditarMembroPage() {
               <input className={inputClass} value={form.igreja_procedencia}
                 onChange={e => set('igreja_procedencia', e.target.value)} />
             </Campo>
-            <Campo label="Batismo nas águas">
-              <input type="date" className={inputClass} value={form.data_batismo_aguas}
-                onChange={e => set('data_batismo_aguas', e.target.value)} />
-            </Campo>
+            <div className="sm:col-span-2">
+              <Campo label="Data de batismo nas águas">
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.so_ano_batismo_aguas}
+                      onChange={e => set('so_ano_batismo_aguas', e.target.checked)}
+                      className="w-4 h-4 accent-indigo-600"
+                    />
+                    <span className="text-xs text-gray-500">Não lembro o dia e mês, somente o ano</span>
+                  </label>
+                  {form.so_ano_batismo_aguas ? (
+                    <select className={selectClass} value={form.ano_batismo_aguas}
+                      onChange={e => set('ano_batismo_aguas', e.target.value)}>
+                      <option value="">Selecione o ano</option>
+                      {Array.from({ length: 50 }, (_, i) => new Date().getFullYear() - i).map(ano => (
+                        <option key={ano} value={String(ano)}>{ano}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input type="date" className={inputClass} value={form.data_batismo_aguas}
+                      onChange={e => set('data_batismo_aguas', e.target.value)} />
+                  )}
+                </div>
+              </Campo>
+            </div>
             <div className="sm:col-span-2">
               <Campo label="Cursos teológicos">
                 <textarea className={inputClass + ' resize-none'} rows={2}
