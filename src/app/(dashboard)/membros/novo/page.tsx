@@ -123,14 +123,24 @@ export default function NovoMembroPage() {
     setSalvando(true)
     setErro('')
 
-    const payload = Object.fromEntries(
-      Object.entries(form).map(([k, v]) => [k, v === '' ? null : v])
-    )
+    const payload = { ...form }
+
+      if (payload.so_ano_batismo_aguas) {
+        payload.data_batismo_aguas = ''
+      }
+
+      if (payload.so_ano_admissao) {
+        payload.data_admissao = ''
+      }
+
+      const payloadFinal = Object.fromEntries(
+        Object.entries(payload).map(([k, v]) => [k, v === '' ? null : v])
+      )
 
     console.log('status_membresia:', form.status_membresia)
     console.log('payload:', payload) 
 
-    const { error } = await supabase.from('membros').insert(payload)
+    const { error } = await supabase.from('membros').insert(payloadFinal)
 
     if (error) {
       setErro('Erro ao salvar. Tente novamente.')
@@ -415,7 +425,15 @@ export default function NovoMembroPage() {
                     <input
                       type="checkbox"
                       checked={form.so_ano_admissao}
-                      onChange={e => set('so_ano_admissao', e.target.checked)}
+                      onChange={e => {
+                        const checked = e.target.checked
+
+                        set('so_ano_admissao', checked)
+
+                        if (checked) {
+                          set('data_admissao', '')
+                        }
+                      }}
                       className="w-4 h-4 accent-indigo-600"
                     />
                     <span className="text-xs text-gray-500">Não lembro o dia e mês, somente o ano</span>
@@ -445,10 +463,18 @@ export default function NovoMembroPage() {
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
-                      type="checkbox"
-                      checked={form.so_ano_batismo_aguas}
-                      onChange={e => set('so_ano_batismo_aguas', e.target.checked)}
-                      className="w-4 h-4 accent-indigo-600"
+                        type="checkbox"
+                        checked={form.so_ano_batismo_aguas}
+                        onChange={e => {
+                          const checked = e.target.checked
+
+                          set('so_ano_batismo_aguas', checked)
+
+                          if (checked) {
+                            set('data_batismo_aguas', '')
+                          }
+                        }}
+                        className="w-4 h-4 accent-indigo-600"
                     />
                     <span className="text-xs text-gray-500">Não lembro o dia e mês, somente o ano</span>
                   </label>

@@ -34,9 +34,12 @@ type Membro = {
   filhos_info: string | null
   status_membresia: string
   data_admissao: string | null
+  ano_admissao: number | null
+  so_ano_admissao: boolean
   forma_admissao: string | null
   data_batismo_aguas: string | null
-  data_batismo_espirito: string | null
+  ano_batismo_aguas: number | null
+  so_ano_batismo_aguas: boolean
   igreja_procedencia: string | null
   cursos_teologicos: string | null
   concluiu_integracao: boolean
@@ -63,6 +66,22 @@ const statusCor: Record<string, string> = {
 function formatarData(data: string | null) {
   if (!data) return '—'
   return new Date(data + 'T12:00:00').toLocaleDateString('pt-BR')
+}
+
+function exibirAdmissao(membro: Membro) {
+  if (membro.so_ano_admissao && membro.ano_admissao) {
+    return String(membro.ano_admissao)
+  }
+
+  return formatarData(membro.data_admissao)
+}
+
+function exibirBatismo(membro: Membro) {
+  if (membro.so_ano_batismo_aguas && membro.ano_batismo_aguas) {
+    return String(membro.ano_batismo_aguas)
+  }
+
+  return formatarData(membro.data_batismo_aguas)
 }
 
 function Secao({ icone: Icone, titulo, children }: {
@@ -217,9 +236,9 @@ export default function PerfilMembroPage() {
                   <MapPin size={11} /> {membro.cidade}
                 </span>
               )}
-              {membro.data_admissao && (
+              {(membro.data_admissao || membro.ano_admissao) && (
                 <span className="flex items-center gap-1 text-xs text-gray-500">
-                  <Calendar size={11} /> Membro desde {formatarData(membro.data_admissao)}
+                  <Calendar size={11} /> Membro desde {exibirAdmissao(membro)}
                 </span>
               )}
             </div>
@@ -276,9 +295,9 @@ export default function PerfilMembroPage() {
       <Secao icone={Church} titulo="Dados eclesiásticos">
         <Item label="Status de membresia" valor={membro.status_membresia} />
         <Item label="Forma de admissão" valor={membro.forma_admissao} />
-        <Item label="Data de admissão" valor={formatarData(membro.data_admissao)} />
+        <Item label="Data de admissão" valor={exibirAdmissao(membro)} />
         <Item label="Igreja de procedência" valor={membro.igreja_procedencia} />
-        <Item label="Batismo nas águas" valor={formatarData(membro.data_batismo_aguas)} />
+        <Item label="Batismo nas águas" valor={exibirBatismo(membro)} />
         <Item label="Cursos teológicos" valor={membro.cursos_teologicos} fullWidth />
         <ItemBool label="Concluiu integração" valor={membro.concluiu_integracao} />
       </Secao>
