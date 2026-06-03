@@ -72,7 +72,7 @@ const vazio: Formulario = {
   telefone: '', email: '', rua: '', numero: '', complemento: '', bairro: '', cidade: '', cep: '',
   data_casamento: '', tem_filhos: false, filhos_info: '',
   status_membresia: 'Visitante', data_admissao: '', forma_admissao: '',
-  data_batismo_aguas: '', data_batismo_espirito: '', igreja_procedencia: '',
+  data_batismo_aguas: '', igreja_procedencia: '',
   cursos_teologicos: '', concluiu_integracao: false,
   alergias_restricoes: '', tipo_sanguineo: '', contato_emergencia_nome: '',
   contato_emergencia_telefone: '', habilidades: '', tamanho_camiseta: '',
