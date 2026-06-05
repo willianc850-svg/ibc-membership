@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# scripts locais
+scripts/importar-membros.js
+
+# dados pessoais
+membros.csv
