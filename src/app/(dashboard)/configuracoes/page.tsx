@@ -66,9 +66,9 @@ export default function ConfiguracoesPage() {
 
   async function carregarUsuarios() {
     setCarregandoUsers(true)
-    const res = await fetch('/api/admin/listar-usuarios')
+    const res = await fetch('/api/admin/usuarios')
     const data = await res.json()
-    if (Array.isArray(data)) setUsuarios(data)
+    if (data.usuarios) setUsuarios(data.usuarios)
     setCarregandoUsers(false)
   }
 
@@ -108,10 +108,14 @@ export default function ConfiguracoesPage() {
     setMsgUser(null)
     setCriandoUser(true)
 
-    const res = await fetch('/api/admin/criar-usuario', {
+    const res = await fetch('/api/admin/usuarios', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(novoUser),
+      body: JSON.stringify({
+        email: novoUser.email,
+        password: novoUser.senha,
+        role: novoUser.role,
+      }),
     })
     const data = await res.json()
 
@@ -129,22 +133,33 @@ export default function ConfiguracoesPage() {
   async function deletarUsuario(userId: string, nomeUser: string) {
     if (!confirm(`Excluir o usuário "${nomeUser}"? Esta ação não pode ser desfeita.`)) return
 
-    const res = await fetch('/api/admin/deletar-usuario', {
+    const res = await fetch('/api/admin/usuarios', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId }),
+      body: JSON.stringify({ usuario_id: userId }),
     })
 
-    if (res.ok) carregarUsuarios()
-    else {
+    if (res.ok) {
+      carregarUsuarios()
+    } else {
       const data = await res.json()
       alert(data.error ?? 'Erro ao excluir usuário.')
     }
   }
 
-    async function alterarRole(userId: string, novoRole: 'SUPER_ADMIN' | 'ADMIN' | 'USER') {
-      await supabase.from('perfis').update({ role: novoRole }).eq('id', userId)
-    carregarUsuarios()
+  async function alterarRole(userId: string, novoRole: 'SUPER_ADMIN' | 'ADMIN' | 'USER') {
+    const res = await fetch('/api/admin/usuarios', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ usuario_id: userId, role: novoRole }),
+    })
+
+    if (res.ok) {
+      carregarUsuarios()
+    } else {
+      const data = await res.json()
+      alert(data.error ?? 'Erro ao alterar role.')
+    }
   }
 
   if (carregandoRole) return (
