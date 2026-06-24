@@ -2,7 +2,6 @@
   "name": "ibc-membership",
   "type": "module",
   "version": "...",
-  
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -10,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@supabase/auth-helpers-nextjs": "^0.15.0",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.105.3",
     "csv-parse": "^6.2.1",
