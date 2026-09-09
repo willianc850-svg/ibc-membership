@@ -5,20 +5,21 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
   LayoutDashboard, Users, UsersRound, HandHeart,
-  BarChart3, Settings, LogOut, Church, Menu, X,
+  BarChart3, Settings, LogOut, Church, Menu, X, Wallet,
 } from 'lucide-react'
 import { useState } from 'react'
-
 import { CalendarDays } from 'lucide-react'
+import { usePermissao } from '@/lib/hooks/usePermissao'
 
-const menuItems = [
-  { href: '/dashboard',    label: 'Dashboard',    icon: LayoutDashboard },
-  { href: '/membros',      label: 'Membros',      icon: Users           },
-  { href: '/reunioes',     label: 'Reuniões',     icon: CalendarDays    }, // ← adicionar
-  { href: '/pgm',          label: 'PGMs',         icon: UsersRound      },
-  { href: '/ministerios',  label: 'Ministérios',  icon: HandHeart       },
-  { href: '/relatorios',   label: 'Relatórios',   icon: BarChart3       },
-  { href: '/configuracoes',label: 'Configurações',icon: Settings        },
+const menuBase: { href: string; label: string; icon: typeof Wallet; tesouraria?: boolean }[] = [
+  { href: '/dashboard',     label: 'Dashboard',     icon: LayoutDashboard },
+  { href: '/membros',       label: 'Membros',       icon: Users           },
+  { href: '/reunioes',      label: 'Reuniões',      icon: CalendarDays    },
+  { href: '/pgm',           label: 'PGMs',          icon: UsersRound      },
+  { href: '/ministerios',   label: 'Ministérios',   icon: HandHeart       },
+  { href: '/tesouraria',    label: 'Tesouraria',    icon: Wallet, tesouraria: true },
+  { href: '/relatorios',    label: 'Relatórios',    icon: BarChart3       },
+  { href: '/configuracoes', label: 'Configurações', icon: Settings        },
 ]
 
 export default function DashboardLayout({
@@ -30,6 +31,8 @@ export default function DashboardLayout({
   const router = useRouter()
   const supabase = createClient()
   const [menuAberto, setMenuAberto] = useState(false)
+  const { podeTesouraria } = usePermissao()
+  const menuItems = menuBase.filter((item) => !item.tesouraria || podeTesouraria)
 
   async function handleLogout() {
     await supabase.auth.signOut()

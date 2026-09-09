@@ -1,8 +1,13 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+const rotasPublicas = ['/login', '/esqueci-senha', '/auth/callback']
+
+function ehRotaPublica(pathname: string) {
+  return rotasPublicas.some((rota) => pathname === rota || pathname.startsWith(`${rota}/`))
+}
+
 export async function proxy(request: NextRequest) {
-  // Deixar rotas de API passarem sem verificação de auth
   if (request.nextUrl.pathname.startsWith('/api')) {
     return NextResponse.next({ request })
   }
@@ -29,12 +34,17 @@ export async function proxy(request: NextRequest) {
   )
 
   const { data: { user } } = await supabase.auth.getUser()
+  const pathname = request.nextUrl.pathname
 
-  if (!user && !request.nextUrl.pathname.startsWith('/login')) {
+  if (!user && !ehRotaPublica(pathname)) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  if (user && request.nextUrl.pathname.startsWith('/login')) {
+  if (user && user.user_metadata?.must_set_password === true && pathname !== '/definir-senha') {
+    return NextResponse.redirect(new URL('/definir-senha', request.url))
+  }
+
+  if (user && (pathname === '/login' || pathname === '/esqueci-senha')) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 

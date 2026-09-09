@@ -3,17 +3,22 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { usePermissao } from '@/lib/hooks/usePermissao'
+import { labelRole } from '@/lib/tesouraria'
+import ModalConfirmacao from '@/components/ModalConfirmacao'
 import {
   Settings, User, Lock, Save, Loader2,
-  CheckCircle, UserPlus, Trash2, ShieldCheck, Shield,
+  CheckCircle, UserPlus, Trash2, ShieldCheck, Shield, Mail,
 } from 'lucide-react'
+
+type Role = 'SUPER_ADMIN' | 'ADMIN' | 'TESOUREIRO' | 'USER'
 
 type UsuarioSistema = {
   id: string
   email: string
   nome: string
-  role: 'SUPER_ADMIN' | 'ADMIN' | 'USER'
+  role: Role
   created_at: string
+  convite_pendente: boolean
 }
 
 const inputClass = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -33,7 +38,8 @@ function Mensagem({ msg }: { msg: { tipo: 'sucesso' | 'erro'; texto: string } })
 
 export default function ConfiguracoesPage() {
   const { role, isSuperAdmin, carregando: carregandoRole } = usePermissao()
-  // Conta
+  const podeGerenciarUsuarios = isSuperAdmin || role === 'ADMIN' || role === 'TESOUREIRO'
+
   const [email, setEmail] = useState('')
   const [novaSenha, setNovaSenha] = useState('')
   const [confirmarSenha, setConfirmarSenha] = useState('')
@@ -42,13 +48,15 @@ export default function ConfiguracoesPage() {
   const [msgPerfil, setMsgPerfil] = useState<{ tipo: 'sucesso' | 'erro'; texto: string } | null>(null)
   const [msgSenha, setMsgSenha] = useState<{ tipo: 'sucesso' | 'erro'; texto: string } | null>(null)
 
-  // Usuários (SUPER_ADMIN)
   const [usuarios, setUsuarios] = useState<UsuarioSistema[]>([])
   const [carregandoUsers, setCarregandoUsers] = useState(false)
   const [mostrarFormUser, setMostrarFormUser] = useState(false)
-  const [novoUser, setNovoUser] = useState({ nome: '', email: '', senha: '', role: 'USER' })
+  const [novoUser, setNovoUser] = useState({ nome: '', email: '', role: 'USER' as Role })
   const [criandoUser, setCriandoUser] = useState(false)
   const [msgUser, setMsgUser] = useState<{ tipo: 'sucesso' | 'erro'; texto: string } | null>(null)
+  const [reenviandoId, setReenviandoId] = useState<string | null>(null)
+  const [excluindo, setExcluindo] = useState<UsuarioSistema | null>(null)
+  const [excluindoLoading, setExcluindoLoading] = useState(false)
 
   const supabase = createClient()
 
@@ -61,8 +69,8 @@ export default function ConfiguracoesPage() {
   }, [])
 
   useEffect(() => {
-    if (isSuperAdmin) carregarUsuarios()
-  }, [isSuperAdmin])
+    if (podeGerenciarUsuarios) carregarUsuarios()
+  }, [podeGerenciarUsuarios])
 
   async function carregarUsuarios() {
     setCarregandoUsers(true)
@@ -112,42 +120,44 @@ export default function ConfiguracoesPage() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        nome: novoUser.nome,
         email: novoUser.email,
-        password: novoUser.senha,
-        role: novoUser.role,
+        role: isSuperAdmin ? novoUser.role : 'USER',
       }),
     })
     const data = await res.json()
 
     if (!res.ok) {
-      setMsgUser({ tipo: 'erro', texto: data.error ?? 'Erro ao criar usuário.' })
+      setMsgUser({ tipo: 'erro', texto: data.error ?? 'Erro ao enviar convite.' })
     } else {
-      setMsgUser({ tipo: 'sucesso', texto: 'Usuário criado com sucesso!' })
-      setNovoUser({ nome: '', email: '', senha: '', role: 'USER' })
+      setMsgUser({ tipo: 'sucesso', texto: 'Convite enviado. O link vale por 24 horas.' })
+      setNovoUser({ nome: '', email: '', role: 'USER' })
       setMostrarFormUser(false)
       carregarUsuarios()
     }
     setCriandoUser(false)
   }
 
-  async function deletarUsuario(userId: string, nomeUser: string) {
-    if (!confirm(`Excluir o usuário "${nomeUser}"? Esta ação não pode ser desfeita.`)) return
-
+  async function confirmarExclusao() {
+    if (!excluindo) return
+    setExcluindoLoading(true)
     const res = await fetch('/api/admin/usuarios', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ usuario_id: userId }),
+      body: JSON.stringify({ usuario_id: excluindo.id }),
     })
+    setExcluindoLoading(false)
+    setExcluindo(null)
 
     if (res.ok) {
       carregarUsuarios()
     } else {
       const data = await res.json()
-      alert(data.error ?? 'Erro ao excluir usuário.')
+      setMsgUser({ tipo: 'erro', texto: data.error ?? 'Erro ao excluir usuário.' })
     }
   }
 
-  async function alterarRole(userId: string, novoRole: 'SUPER_ADMIN' | 'ADMIN' | 'USER') {
+  async function alterarRole(userId: string, novoRole: Role) {
     const res = await fetch('/api/admin/usuarios', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -158,8 +168,26 @@ export default function ConfiguracoesPage() {
       carregarUsuarios()
     } else {
       const data = await res.json()
-      alert(data.error ?? 'Erro ao alterar role.')
+      setMsgUser({ tipo: 'erro', texto: data.error ?? 'Erro ao alterar role.' })
     }
+  }
+
+  async function reenviarConvite(userId: string) {
+    setReenviandoId(userId)
+    setMsgUser(null)
+    const res = await fetch('/api/admin/usuarios/reenviar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ usuario_id: userId }),
+    })
+    const data = await res.json()
+    setReenviandoId(null)
+    if (!res.ok) {
+      setMsgUser({ tipo: 'erro', texto: data.error ?? 'Erro ao reenviar e-mail.' })
+      return
+    }
+    setMsgUser({ tipo: 'sucesso', texto: 'E-mail de acesso reenviado.' })
+    carregarUsuarios()
   }
 
   if (carregandoRole) return (
@@ -177,8 +205,7 @@ export default function ConfiguracoesPage() {
         </div>
       </div>
 
-      {/* Gestão de usuários — apenas SUPER_ADMIN */}
-      {isSuperAdmin && (
+      {podeGerenciarUsuarios && (
         <div className="bg-white border border-gray-200 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-5 pb-4 border-b border-gray-100">
             <div className="flex items-center gap-2">
@@ -193,10 +220,14 @@ export default function ConfiguracoesPage() {
             </button>
           </div>
 
-          {/* Form novo usuário */}
           {mostrarFormUser && (
             <form onSubmit={criarUsuario} className="bg-gray-50 rounded-xl p-4 mb-5 space-y-3">
-              <p className="text-sm font-medium text-gray-700">Criar novo usuário</p>
+              <p className="text-sm font-medium text-gray-700">
+                {isSuperAdmin ? 'Convidar admin, tesoureiro ou usuário' : 'Convidar usuário'}
+              </p>
+              <p className="text-xs text-gray-500">
+                A pessoa recebe um e-mail com link para definir a senha. O link expira em 24 horas.
+              </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">Nome</label>
@@ -208,26 +239,23 @@ export default function ConfiguracoesPage() {
                   <input type="email" className={inputClass} placeholder="email@exemplo.com"
                     value={novoUser.email} onChange={e => setNovoUser(p => ({ ...p, email: e.target.value }))} required />
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Senha inicial</label>
-                  <input type="password" className={inputClass} placeholder="Mínimo 6 caracteres"
-                    value={novoUser.senha} onChange={e => setNovoUser(p => ({ ...p, senha: e.target.value }))} required />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Nível de acesso</label>
-                  <select className={inputClass} value={novoUser.role}
-                    onChange={e => setNovoUser(p => ({ ...p, role: e.target.value }))}>
-                    <option value="USER">Usuário</option>
-                    <option value="ADMIN">Admin</option>
-                    <option value="SUPER_ADMIN">Super Admin</option>
-                  </select>
-                </div>
+                {isSuperAdmin && (
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Nível de acesso</label>
+                    <select className={inputClass} value={novoUser.role}
+                      onChange={e => setNovoUser(p => ({ ...p, role: e.target.value as Role }))}>
+                      <option value="USER">Usuário</option>
+                      <option value="ADMIN">Admin</option>
+                      <option value="TESOUREIRO">Tesoureiro</option>
+                    </select>
+                  </div>
+                )}
               </div>
               {msgUser && <Mensagem msg={msgUser} />}
               <div className="flex gap-2">
                 <button type="submit" disabled={criandoUser}
                   className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors">
-                  {criandoUser ? <><Loader2 size={14} className="animate-spin" /> Criando...</> : 'Criar usuário'}
+                  {criandoUser ? <><Loader2 size={14} className="animate-spin" /> Enviando...</> : 'Enviar convite'}
                 </button>
                 <button type="button" onClick={() => setMostrarFormUser(false)}
                   className="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
@@ -237,9 +265,12 @@ export default function ConfiguracoesPage() {
             </form>
           )}
 
-          {/* Lista de usuários */}
+          {!mostrarFormUser && msgUser && <div className="mb-4"><Mensagem msg={msgUser} /></div>}
+
           {carregandoUsers ? (
             <p className="text-sm text-gray-400 text-center py-4">Carregando usuários...</p>
+          ) : usuarios.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-4">Nenhum usuário para exibir.</p>
           ) : (
             <div className="divide-y divide-gray-100">
               {usuarios.map(u => (
@@ -248,25 +279,50 @@ export default function ConfiguracoesPage() {
                     {u.nome?.charAt(0).toUpperCase() ?? '?'}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900">{u.nome}</p>
-                    <p className="text-xs text-gray-400">{u.email}</p>
+                    <p className="text-sm font-medium text-gray-900 truncate">{u.nome || '—'}</p>
+                    <p className="text-xs text-gray-400 truncate">{u.email}</p>
+                    {u.convite_pendente && (
+                      <p className="text-xs text-amber-600 mt-0.5">Convite pendente</p>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <select
-                      value={u.role}
-                      onChange={e => alterarRole(u.id, e.target.value as 'SUPER_ADMIN' | 'ADMIN' | 'USER')}
-                      className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    >
-                      <option value="USER">Usuário</option>
-                      <option value="ADMIN">Admin</option>
-                      <option value="SUPER_ADMIN">Super Admin</option>
-                    </select>
-                    <button
-                      onClick={() => deletarUsuario(u.id, u.nome)}
-                      className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    {isSuperAdmin && u.role !== 'SUPER_ADMIN' ? (
+                      <select
+                        value={u.role}
+                        onChange={e => alterarRole(u.id, e.target.value as Role)}
+                        className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                        <option value="USER">Usuário</option>
+                        <option value="ADMIN">Admin</option>
+                        <option value="TESOUREIRO">Tesoureiro</option>
+                      </select>
+                    ) : (
+                      <span className="text-xs text-gray-500 px-2">
+                        {labelRole(u.role)}
+                      </span>
+                    )}
+                    {u.role !== 'SUPER_ADMIN' && (
+                      <button
+                        type="button"
+                        title="Reenviar e-mail de acesso"
+                        disabled={reenviandoId === u.id}
+                        onClick={() => reenviarConvite(u.id)}
+                        className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors disabled:opacity-50"
+                      >
+                        {reenviandoId === u.id
+                          ? <Loader2 size={14} className="animate-spin" />
+                          : <Mail size={14} />}
+                      </button>
+                    )}
+                    {u.role !== 'SUPER_ADMIN' && (
+                      <button
+                        type="button"
+                        onClick={() => setExcluindo(u)}
+                        className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -275,33 +331,32 @@ export default function ConfiguracoesPage() {
         </div>
       )}
 
-      {/* Badge de nível de acesso */}
       <div className="bg-white border border-gray-200 rounded-2xl p-5 flex items-center gap-3">
         {role === 'SUPER_ADMIN'
           ? <ShieldCheck size={20} className="text-indigo-600" />
+          : role === 'TESOUREIRO'
+          ? <ShieldCheck size={20} className="text-emerald-600" />
           : role === 'ADMIN'
           ? <ShieldCheck size={20} className="text-purple-500" />
           : <Shield size={20} className="text-gray-400" />
         }
         <div>
           <p className="text-sm font-medium text-gray-900">
-            Seu nível de acesso: {
-              role === 'SUPER_ADMIN' ? 'Super Admin' :
-              role === 'ADMIN' ? 'Admin' : 'Usuário'
-            }
+            Seu nível de acesso: {labelRole(role ?? 'USER')}
           </p>
           <p className="text-xs text-gray-500 mt-0.5">
             {role === 'SUPER_ADMIN'
-              ? 'Você tem acesso total ao sistema e pode criar usuários.'
+              ? 'Você pode convidar admins, tesoureiros e usuários, e acessar a tesouraria.'
+              : role === 'TESOUREIRO'
+              ? 'Você acessa a tesouraria e pode editar qualquer registro de membro.'
               : role === 'ADMIN'
-              ? 'Você pode editar qualquer registro de membro.'
+              ? 'Você pode convidar usuários e gerenciar os que você criou.'
               : 'Você pode visualizar tudo e editar apenas o seu próprio registro.'
             }
           </p>
         </div>
       </div>
 
-      {/* E-mail */}
       <div className="bg-white border border-gray-200 rounded-2xl p-6">
         <div className="flex items-center gap-2 mb-5 pb-4 border-b border-gray-100">
           <User size={18} className="text-indigo-600" />
@@ -321,7 +376,6 @@ export default function ConfiguracoesPage() {
         </form>
       </div>
 
-      {/* Senha */}
       <div className="bg-white border border-gray-200 rounded-2xl p-6">
         <div className="flex items-center gap-2 mb-5 pb-4 border-b border-gray-100">
           <Lock size={18} className="text-indigo-600" />
@@ -346,6 +400,16 @@ export default function ConfiguracoesPage() {
         </form>
       </div>
 
+      <ModalConfirmacao
+        aberto={!!excluindo}
+        titulo="Excluir usuário"
+        mensagem={`Excluir "${excluindo?.nome || excluindo?.email}"? Esta ação não pode ser desfeita.`}
+        textoBotaoPrimario="Excluir"
+        perigo
+        carregando={excluindoLoading}
+        onConfirmar={confirmarExclusao}
+        onCancelar={() => setExcluindo(null)}
+      />
     </div>
   )
 }

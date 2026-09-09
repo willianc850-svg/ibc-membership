@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { Church, Loader2 } from 'lucide-react'
@@ -12,6 +13,13 @@ export default function LoginPage() {
   const [carregando, setCarregando] = useState(false)
   const router = useRouter()
   const supabase = createClient()
+
+  useEffect(() => {
+    const motivo = new URLSearchParams(window.location.search).get('erro')
+    if (motivo === 'link-invalido') {
+      setErro('Link inválido ou expirado. Peça um novo e-mail e abra o link no mesmo navegador.')
+    }
+  }, [])
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -74,6 +82,12 @@ export default function LoginPage() {
               required
               className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
+          </div>
+
+          <div className="text-right">
+            <Link href="/esqueci-senha" className="text-sm text-indigo-600 hover:text-indigo-700">
+              Esqueci minha senha
+            </Link>
           </div>
 
           {erro && (
