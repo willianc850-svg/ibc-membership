@@ -10,6 +10,7 @@ import AcessoGuard from '@/components/AcessoGuard'
 import { usePermissao } from '@/lib/hooks/usePermissao'
 import { ChevronLeft, Save, User, Phone, Heart, Shield, ChevronRight } from 'lucide-react'
 import { VincularContaMembro } from '@/components/VincularConta'
+import LogoIbc from '@/components/LogoIbc'
 
 // Função de máscara movida para fora para melhor performance (não é recriada a cada render)
 function mascaraTelefone(valor: string) {
