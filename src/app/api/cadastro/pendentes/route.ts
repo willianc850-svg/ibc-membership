@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getCaller, origemDoPedido, redirectAuth } from '@/lib/admin/usuarios'
+import { fichaParaInsertMembros, sanitizarFichaPublica } from '@/lib/ficha-membro'
 
 export async function GET() {
   const auth = await getCaller()
@@ -39,15 +40,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true })
   }
 
+  const ficha = sanitizarFichaPublica(pendente.dados)
   const { data: membro, error: insertError } = await admin
     .from('membros')
-    .insert({
-      nome_completo: pendente.nome_completo,
-      telefone: pendente.telefone,
-      email: pendente.email,
-      foto_url: pendente.foto_url,
-      status_membresia: 'Congregado',
-    })
+    .insert(
+      fichaParaInsertMembros(ficha, {
+        nome_completo: pendente.nome_completo,
+        telefone: pendente.telefone || ficha.telefone || null,
+        email: pendente.email || ficha.email || null,
+        foto_url: pendente.foto_url,
+      }),
+    )
     .select('id')
     .single()
 

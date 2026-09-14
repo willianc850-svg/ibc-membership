@@ -16,3 +16,8 @@ ALTER TABLE public.cadastros_pendentes ENABLE ROW LEVEL SECURITY;
 
 COMMENT ON TABLE public.cadastros_pendentes IS
   'Fichas enviadas pelo formulário público /cadastro; só entram em membros após aprovação.';
+
+-- Ficha completa do QR (abas Pessoal, Contato, Família, Igreja, Saúde).
+-- Rodar também se a tabela já existir.
+ALTER TABLE public.cadastros_pendentes
+  ADD COLUMN IF NOT EXISTS dados jsonb NOT NULL DEFAULT '{}'::jsonb;

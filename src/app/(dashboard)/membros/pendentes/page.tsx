@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import AcessoGuard from '@/components/AcessoGuard'
 import { usePermissao } from '@/lib/hooks/usePermissao'
-import { ChevronLeft, Check, X, Loader2, ClipboardList } from 'lucide-react'
+import { FichaMembroLeitura } from '@/components/FichaMembroCampos'
+import { sanitizarFichaPublica, type FichaMembro } from '@/lib/ficha-membro'
+import { ChevronLeft, Check, X, Loader2, ClipboardList, ChevronDown } from 'lucide-react'
 
 type Pendente = {
   id: string
@@ -13,6 +15,7 @@ type Pendente = {
   email: string | null
   foto_url: string | null
   created_at: string
+  dados?: unknown
 }
 
 export default function PendentesPage() {
@@ -28,10 +31,19 @@ export default function PendentesPage() {
   )
 }
 
+function fichaDoPendente(c: Pendente): FichaMembro {
+  const ficha = sanitizarFichaPublica(c.dados)
+  ficha.nome_completo = c.nome_completo || ficha.nome_completo
+  ficha.telefone = c.telefone || ficha.telefone
+  ficha.email = c.email || ficha.email
+  return ficha
+}
+
 function PendentesConteudo() {
   const [lista, setLista] = useState<Pendente[]>([])
   const [carregando, setCarregando] = useState(true)
   const [acaoId, setAcaoId] = useState<string | null>(null)
+  const [abertoId, setAbertoId] = useState<string | null>(null)
   const [erro, setErro] = useState('')
 
   async function carregar() {
@@ -60,6 +72,7 @@ function PendentesConteudo() {
       return
     }
     setLista((atual) => atual.filter((c) => c.id !== id))
+    if (abertoId === id) setAbertoId(null)
   }
 
   return (
@@ -70,7 +83,7 @@ function PendentesConteudo() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Cadastros pendentes</h1>
-          <p className="text-sm text-gray-500">Enviados pelo QR / formulário público</p>
+          <p className="text-sm text-gray-500">Enviados pelo QR / formulário público. Abra a ficha antes de aprovar.</p>
         </div>
       </div>
 
@@ -88,43 +101,61 @@ function PendentesConteudo() {
           </div>
         ) : (
           <ul className="divide-y divide-gray-100">
-            {lista.map((c) => (
-              <li key={c.id} className="p-4 flex flex-col sm:flex-row sm:items-center gap-3">
-                {c.foto_url ? (
-                  <img src={c.foto_url} alt="" className="w-12 h-12 rounded-full object-cover" />
-                ) : (
-                  <div className="w-12 h-12 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
-                    {c.nome_completo.slice(0, 1)}
+            {lista.map((c) => {
+              const aberto = abertoId === c.id
+              return (
+                <li key={c.id} className="p-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    {c.foto_url ? (
+                      <img src={c.foto_url} alt="" className="w-12 h-12 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
+                        {c.nome_completo.slice(0, 1)}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900">{c.nome_completo}</p>
+                      <p className="text-sm text-gray-500">{c.telefone || 'Sem telefone'} · {c.email || 'Sem e-mail'}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {new Date(c.created_at).toLocaleString('pt-BR')}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setAbertoId(aberto ? null : c.id)}
+                        className="inline-flex items-center justify-center gap-1 min-h-11 px-3 rounded-xl border border-gray-200 text-gray-700 text-sm font-medium"
+                      >
+                        <ChevronDown size={16} className={aberto ? 'rotate-180' : ''} />
+                        {aberto ? 'Ocultar ficha' : 'Ver ficha'}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={acaoId === c.id}
+                        onClick={() => agir(c.id, 'aprovar')}
+                        className="inline-flex items-center justify-center gap-1 min-h-11 px-3 rounded-xl bg-green-600 text-white text-sm font-medium disabled:opacity-50"
+                      >
+                        {acaoId === c.id ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                        Aprovar
+                      </button>
+                      <button
+                        type="button"
+                        disabled={acaoId === c.id}
+                        onClick={() => agir(c.id, 'recusar')}
+                        className="inline-flex items-center justify-center gap-1 min-h-11 px-3 rounded-xl border border-red-200 text-red-600 text-sm font-medium disabled:opacity-50"
+                      >
+                        <X size={16} /> Recusar
+                      </button>
+                    </div>
                   </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900">{c.nome_completo}</p>
-                  <p className="text-sm text-gray-500">{c.telefone || 'Sem telefone'} · {c.email || 'Sem e-mail'}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    {new Date(c.created_at).toLocaleString('pt-BR')}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    disabled={acaoId === c.id}
-                    onClick={() => agir(c.id, 'aprovar')}
-                    className="inline-flex items-center justify-center gap-1 min-h-11 px-3 rounded-xl bg-green-600 text-white text-sm font-medium disabled:opacity-50"
-                  >
-                    {acaoId === c.id ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
-                    Aprovar
-                  </button>
-                  <button
-                    type="button"
-                    disabled={acaoId === c.id}
-                    onClick={() => agir(c.id, 'recusar')}
-                    className="inline-flex items-center justify-center gap-1 min-h-11 px-3 rounded-xl border border-red-200 text-red-600 text-sm font-medium disabled:opacity-50"
-                  >
-                    <X size={16} /> Recusar
-                  </button>
-                </div>
-              </li>
-            ))}
+                  {aberto && (
+                    <div className="mt-4 pt-4 border-t border-gray-100">
+                      <FichaMembroLeitura form={fichaDoPendente(c)} fotoUrl={c.foto_url} />
+                    </div>
+                  )}
+                </li>
+              )
+            })}
           </ul>
         )}
       </div>
