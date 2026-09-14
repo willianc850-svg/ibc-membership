@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { HandHeart, Plus, Users, Pencil, Trash2 } from 'lucide-react'
+import { usePermissao } from '@/lib/hooks/usePermissao'
 
 type Ministerio = {
   id: string
@@ -15,6 +16,7 @@ type Ministerio = {
 }
 
 export default function MinisteriosPage() {
+  const { isAdmin } = usePermissao()
   const [ministerios, setMinisterios] = useState<Ministerio[]>([])
   const [carregando, setCarregando] = useState(true)
   const [novoNome, setNovoNome] = useState('')
@@ -113,7 +115,7 @@ export default function MinisteriosPage() {
             <p className="text-sm text-gray-500">{ministerios.length} cadastrados</p>
           </div>
         </div>
-        {!mostrarForm && (
+        {isAdmin && !mostrarForm && (
           <button
             onClick={() => setMostrarForm(true)}
             className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors"
@@ -124,7 +126,7 @@ export default function MinisteriosPage() {
       </div>
 
       {/* Formulário */}
-      {mostrarForm && (
+      {isAdmin && mostrarForm && (
         <div className="bg-white border border-gray-200 rounded-2xl p-5 mb-6">
           <h2 className="font-semibold text-gray-900 mb-4">
             {editando ? 'Editar ministério' : 'Novo ministério'}
@@ -192,6 +194,7 @@ export default function MinisteriosPage() {
     </p>
   )}
 </div>
+                {isAdmin && (
                 <div className="flex items-center gap-1 ml-2 flex-shrink-0">
                   <button
                     onClick={() => abrirEdicao(m)}
@@ -206,6 +209,7 @@ export default function MinisteriosPage() {
                     <Trash2 size={14} />
                   </button>
                 </div>
+                )}
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                 <span className="flex items-center gap-1.5 text-sm text-gray-500">

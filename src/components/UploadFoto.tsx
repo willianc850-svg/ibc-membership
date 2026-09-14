@@ -13,6 +13,7 @@ type Props = {
 export default function UploadFoto({ fotoAtual, nome, onUpload }: Props) {
   const [uploading, setUploading] = useState(false)
   const [preview, setPreview] = useState<string | null>(fotoAtual)
+  const [erro, setErro] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
   const supabase = createClient()
 
@@ -26,12 +27,13 @@ export default function UploadFoto({ fotoAtual, nome, onUpload }: Props) {
 
     console.log('Arquivo selecionado:', arquivo.name, arquivo.type, arquivo.size)
 
+    setErro('')
     if (!arquivo.type.startsWith('image/')) {
-      alert('Selecione apenas arquivos de imagem.')
+      setErro('Selecione apenas arquivos de imagem.')
       return
     }
     if (arquivo.size > 5 * 1024 * 1024) {
-      alert('A imagem deve ter no máximo 5MB.')
+      setErro('A imagem deve ter no máximo 5MB.')
       return
     }
 
@@ -54,7 +56,7 @@ export default function UploadFoto({ fotoAtual, nome, onUpload }: Props) {
 
     if (error) {
       console.error('Erro:', error)
-      alert(`Erro ao fazer upload: ${error.message}`)
+      setErro(`Erro ao fazer upload: ${error.message}`)
       setPreview(fotoAtual)
       setUploading(false)
       return
@@ -94,7 +96,7 @@ export default function UploadFoto({ fotoAtual, nome, onUpload }: Props) {
           <button
             type="button"
             onClick={removerFoto}
-            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full min-h-11 min-w-11 inline-flex items-center justify-center hover:bg-red-600 transition-colors"
           >
             <X size={12} />
           </button>
@@ -127,6 +129,7 @@ export default function UploadFoto({ fotoAtual, nome, onUpload }: Props) {
           {uploading ? 'Enviando...' : preview ? 'Trocar foto' : 'Adicionar foto'}
         </button>
         <p className="text-xs text-gray-400 text-center mt-1">JPG, PNG ou WebP · Máx. 5MB</p>
+        {erro && <p className="text-xs text-red-600 text-center mt-1">{erro}</p>}
       </div>
     </div>
   )

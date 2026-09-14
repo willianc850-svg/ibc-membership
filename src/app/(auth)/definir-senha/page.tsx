@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { Church, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
+import LogoIbc from '@/components/LogoIbc'
+import CampoSenha from '@/components/CampoSenha'
 
 export default function DefinirSenhaPage() {
   const router = useRouter()
@@ -106,9 +108,7 @@ export default function DefinirSenhaPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
       <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
         <div className="flex flex-col items-center mb-8">
-          <div className="bg-indigo-600 text-white rounded-2xl p-4 mb-4">
-            <Church size={32} />
-          </div>
+          <LogoIbc size={72} className="mb-4" />
           <h1 className="text-2xl font-bold text-gray-900">Definir senha</h1>
           <p className="text-gray-500 text-sm mt-1 text-center">
             Crie a senha que você usará para entrar no sistema
@@ -116,28 +116,24 @@ export default function DefinirSenhaPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nova senha</label>
-            <input
-              type="password"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              placeholder="Mínimo 6 caracteres"
-              required
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Confirmar senha</label>
-            <input
-              type="password"
-              value={confirmar}
-              onChange={(e) => setConfirmar(e.target.value)}
-              placeholder="Repita a senha"
-              required
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-            />
-          </div>
+          <CampoSenha
+            id="definir-senha"
+            label="Nova senha"
+            value={senha}
+            onChange={setSenha}
+            placeholder="Mínimo 6 caracteres"
+            autoComplete="new-password"
+            required
+          />
+          <CampoSenha
+            id="definir-senha-confirmar"
+            label="Confirmar senha"
+            value={confirmar}
+            onChange={setConfirmar}
+            placeholder="Repita a senha"
+            autoComplete="new-password"
+            required
+          />
 
           {erro && (
             <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-2.5">

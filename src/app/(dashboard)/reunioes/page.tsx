@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { CalendarDays, Plus, FileText, Users, Clock } from 'lucide-react'
+import AcessoGuard from '@/components/AcessoGuard'
+import { usePermissao } from '@/lib/hooks/usePermissao'
 
 type Reuniao = {
   id: string
@@ -31,6 +33,19 @@ const statusCor: Record<string, string> = {
 }
 
 export default function ReunioesPage() {
+  const { podeReunioesRelatorios, carregando } = usePermissao()
+  return (
+    <AcessoGuard
+      permitido={podeReunioesRelatorios}
+      carregando={carregando}
+      mensagem="As reuniões são visíveis apenas para Super Admin, Admin e Tesoureiro."
+    >
+      <ReunioesConteudo />
+    </AcessoGuard>
+  )
+}
+
+function ReunioesConteudo() {
   const [reunioes, setReunioes] = useState<Reuniao[]>([])
   const [carregando, setCarregando] = useState(true)
   const [filtroTipo, setFiltroTipo] = useState('todos')

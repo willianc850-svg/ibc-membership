@@ -37,6 +37,8 @@ export function usePermissao() {
     isSuperAdmin: role === 'SUPER_ADMIN',
     isTesoureiro: role === 'TESOUREIRO',
     podeTesouraria: role === 'SUPER_ADMIN' || role === 'TESOUREIRO',
+    podeDocumentos: role === 'SUPER_ADMIN' || role === 'ADMIN',
+    podeReunioesRelatorios: role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'TESOUREIRO',
     isAdmin: role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'TESOUREIRO',
     isUser: role === 'USER',
   }

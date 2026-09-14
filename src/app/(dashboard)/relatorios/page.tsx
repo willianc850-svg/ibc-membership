@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { BarChart3, Download, Filter } from 'lucide-react'
 import * as XLSX from 'xlsx'
+import AcessoGuard from '@/components/AcessoGuard'
+import { usePermissao } from '@/lib/hooks/usePermissao'
 
 type Membro = {
   id: string
@@ -57,6 +59,19 @@ const filtrosIniciais: Filtros = {
 }
 
 export default function RelatoriosPage() {
+  const { podeReunioesRelatorios, carregando } = usePermissao()
+  return (
+    <AcessoGuard
+      permitido={podeReunioesRelatorios}
+      carregando={carregando}
+      mensagem="Os relatórios são visíveis apenas para Super Admin, Admin e Tesoureiro."
+    >
+      <RelatoriosConteudo />
+    </AcessoGuard>
+  )
+}
+
+function RelatoriosConteudo() {
   const [membros, setMembros] = useState<Membro[]>([])
   const [carregando, setCarregando] = useState(true)
   const [filtros, setFiltros] = useState<Filtros>(filtrosIniciais)

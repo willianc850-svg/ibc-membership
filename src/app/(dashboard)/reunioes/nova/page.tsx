@@ -5,6 +5,9 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronLeft, Save, Search, X } from 'lucide-react'
+import AcessoGuard from '@/components/AcessoGuard'
+import { usePermissao } from '@/lib/hooks/usePermissao'
+import InputHorario24 from '@/components/InputHorario24'
 
 type Membro = { id: string; nome_completo: string; status_membresia: string }
 type Ministerio = { id: string; nome: string }
@@ -21,6 +24,19 @@ function Campo({ label, children }: { label: string; children: React.ReactNode }
 }
 
 export default function NovaReuniaoPage() {
+  const { podeReunioesRelatorios, carregando } = usePermissao()
+  return (
+    <AcessoGuard
+      permitido={podeReunioesRelatorios}
+      carregando={carregando}
+      mensagem="As reuniões são visíveis apenas para Super Admin, Admin e Tesoureiro."
+    >
+      <NovaReuniaoConteudo />
+    </AcessoGuard>
+  )
+}
+
+function NovaReuniaoConteudo() {
   const router = useRouter()
   const supabase = createClient()
 
@@ -167,8 +183,10 @@ export default function NovaReuniaoPage() {
             </Campo>
 
             <Campo label="Horário">
-              <input type="time" className={inputClass} value={form.horario}
-                onChange={e => set('horario', e.target.value)} />
+              <InputHorario24
+                value={form.horario}
+                onChange={(valor) => set('horario', valor)}
+              />
             </Campo>
 
             <div className="sm:col-span-2">

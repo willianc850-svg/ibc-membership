@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Church, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
+import LogoIbc from '@/components/LogoIbc'
 import type { EmailOtpType } from '@supabase/supabase-js'
 
 export default function AuthCallbackPage() {
@@ -80,8 +81,8 @@ export default function AuthCallbackPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
       <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md text-center">
-        <div className="bg-indigo-600 text-white rounded-2xl p-4 mb-4 inline-flex">
-          <Church size={32} />
+        <div className="mb-4 inline-flex">
+          <LogoIbc size={72} />
         </div>
         {erro ? (
           <>

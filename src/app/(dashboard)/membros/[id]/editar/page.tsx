@@ -6,7 +6,10 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import UploadFoto from '@/components/UploadFoto'
 // ADICIONADO ChevronRight NO IMPORT ABAIXO
-import { ChevronLeft, Save, User, Phone, Heart, Church, Shield, ChevronRight } from 'lucide-react'
+import AcessoGuard from '@/components/AcessoGuard'
+import { usePermissao } from '@/lib/hooks/usePermissao'
+import { ChevronLeft, Save, User, Phone, Heart, Shield, ChevronRight } from 'lucide-react'
+import { VincularContaMembro } from '@/components/VincularConta'
 
 // Função de máscara movida para fora para melhor performance (não é recriada a cada render)
 function mascaraTelefone(valor: string) {
@@ -21,7 +24,7 @@ const abas = [
   { id: 'pessoal',  label: 'Pessoal',       icone: User   },
   { id: 'contato',  label: 'Contato',       icone: Phone  },
   { id: 'familia',  label: 'Família',       icone: Heart  },
-  { id: 'igreja',   label: 'Igreja',        icone: Church },
+  { id: 'igreja',   label: 'Igreja',        icone: LogoIbc },
   { id: 'saude',    label: 'Saúde & Extra', icone: Shield },
 ]
 
@@ -94,6 +97,44 @@ function Campo({ label, children }: { label: string; children: React.ReactNode }
 export default function EditarMembroPage() {
   const params = useParams()
   const id = params.id as string
+  const { isAdmin, userId, carregando: carregandoPerm } = usePermissao()
+  const [permitido, setPermitido] = useState(false)
+  const [verificando, setVerificando] = useState(true)
+
+  useEffect(() => {
+    if (carregandoPerm) return
+    if (isAdmin) {
+      setPermitido(true)
+      setVerificando(false)
+      return
+    }
+    async function checarDono() {
+      const supabase = createClient()
+      const { data } = await supabase
+        .from('membros')
+        .select('user_id')
+        .eq('id', id)
+        .single()
+      setPermitido(!!userId && data?.user_id === userId)
+      setVerificando(false)
+    }
+    checarDono()
+  }, [carregandoPerm, isAdmin, userId, id])
+
+  return (
+    <AcessoGuard
+      permitido={permitido}
+      carregando={carregandoPerm || verificando}
+      mensagem="Você só pode editar o seu próprio cadastro."
+    >
+      <EditarMembroConteudo />
+    </AcessoGuard>
+  )
+}
+
+function EditarMembroConteudo() {
+  const params = useParams()
+  const id = params.id as string
   const router = useRouter()
   const [abaAtiva, setAbaAtiva] = useState(0)
   const [form, setForm] = useState<Formulario>(vazio)
@@ -102,6 +143,8 @@ export default function EditarMembroPage() {
   const [erro, setErro] = useState('')
   const [cepStatus, setCepStatus] = useState<'idle' | 'valido' | 'invalido'>('idle')
   const [mensagemCep, setMensagemCep] = useState('')
+  const [userIdVinculo, setUserIdVinculo] = useState<string | null>(null)
+  const { isAdmin } = usePermissao()
   const supabase = createClient()
 
   useEffect(() => {
@@ -113,6 +156,7 @@ export default function EditarMembroPage() {
         .single()
 
       if (data) {
+        setUserIdVinculo(data.user_id ?? null)
         setForm({
           ...data,
           complemento:                 data.complemento ?? '',
@@ -274,12 +318,16 @@ const payload = {
         </div>
       </div>
 
+      {isAdmin && (
+        <VincularContaMembro membroId={id} userIdAtual={userIdVinculo} />
+      )}
+
       <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-6 overflow-x-auto">
         {abas.map((aba, i) => {
           const Icone = aba.icone
           return (
             <button key={aba.id} onClick={() => setAbaAtiva(i)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-colors flex-1 justify-center
+              className={`flex items-center gap-1.5 px-3 py-2.5 min-h-11 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0
                 ${abaAtiva === i ? 'bg-white text-indigo-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
               <Icone size={14} />{aba.label}
             </button>
@@ -355,6 +403,9 @@ const payload = {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Campo label="Telefone / WhatsApp">
               <input
+                type="tel"
+                inputMode="numeric"
+                autoComplete="tel"
                 className={inputClass}
                 placeholder="(00) 00000-0000"
                 value={form.telefone}
@@ -435,7 +486,7 @@ const payload = {
               <label className="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" checked={form.tem_filhos}
                   onChange={e => set('tem_filhos', e.target.checked)}
-                  className="w-4 h-4 accent-indigo-600" />
+                  className="w-5 h-5 shrink-0 accent-indigo-600" />
                 <span className="text-sm font-medium text-gray-700">Possui filhos</span>
               </label>
             </div>
@@ -474,7 +525,7 @@ const payload = {
                       type="checkbox"
                       checked={form.so_ano_admissao}
                       onChange={e => set('so_ano_admissao', e.target.checked)}
-                      className="w-4 h-4 accent-indigo-600"
+                      className="w-5 h-5 shrink-0 accent-indigo-600"
                     />
                     <span className="text-xs text-gray-500">Não lembro o dia e mês, somente o ano</span>
                   </label>
@@ -513,7 +564,7 @@ const payload = {
                       type="checkbox"
                       checked={form.so_ano_batismo_aguas}
                       onChange={e => set('so_ano_batismo_aguas', e.target.checked)}
-                      className="w-4 h-4 accent-indigo-600"
+                      className="w-5 h-5 shrink-0 accent-indigo-600"
                     />
                     <span className="text-xs text-gray-500">Não lembro o dia e mês, somente o ano</span>
                   </label>
@@ -543,7 +594,7 @@ const payload = {
               <label className="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" checked={form.concluiu_integracao}
                   onChange={e => set('concluiu_integracao', e.target.checked)}
-                  className="w-4 h-4 accent-indigo-600" />
+                  className="w-5 h-5 shrink-0 accent-indigo-600" />
                 <span className="text-sm font-medium text-gray-700">
                   Concluiu o curso de integração
                 </span>
@@ -584,10 +635,14 @@ const payload = {
                 onChange={e => set('contato_emergencia_nome', e.target.value)} />
             </Campo>
             <Campo label="Contato de emergência — telefone">
-              <input className={inputClass} 
+              <input
+                type="tel"
+                inputMode="numeric"
+                className={inputClass}
                 placeholder="(00) 00000-0000"
                 value={form.contato_emergencia_telefone}
-                onChange={e => set('contato_emergencia_telefone', mascaraTelefone(e.target.value))} />
+                onChange={e => set('contato_emergencia_telefone', mascaraTelefone(e.target.value))}
+              />
             </Campo>
             <div className="sm:col-span-2">
               <Campo label="Habilidades e talentos">
@@ -600,7 +655,7 @@ const payload = {
               <label className="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" checked={form.autorizacao_imagem}
                   onChange={e => set('autorizacao_imagem', e.target.checked)}
-                  className="w-4 h-4 accent-indigo-600" />
+                  className="w-5 h-5 shrink-0 accent-indigo-600" />
                 <span className="text-sm font-medium text-gray-700">
                   Autoriza uso de imagem (LGPD)
                 </span>
@@ -616,19 +671,18 @@ const payload = {
         </div>
       )}
 
-      <div className="flex items-center justify-between mt-6">
+      <div className="sticky bottom-16 lg:bottom-0 z-10 mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] bg-[var(--ibc-page)]">
         <button onClick={() => setAbaAtiva(i => Math.max(0, i - 1))}
           disabled={abaAtiva === 0}
-          className="px-4 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 transition-colors">
+          className="flex items-center justify-center min-h-11 px-4 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 transition-colors">
           ← Anterior
         </button>
-        <span className="text-xs text-gray-400">{abaAtiva + 1} de {abas.length}</span>
-        
-        <div className="flex items-center gap-2">
+        <span className="text-xs text-gray-400 text-center">{abaAtiva + 1} de {abas.length}</span>
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2">
           {abaAtiva < abas.length - 1 && (
             <button
               onClick={() => setAbaAtiva(i => Math.min(abas.length - 1, i + 1))}
-              className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium transition-colors cursor-pointer"
+              className="flex items-center justify-center gap-2 min-h-11 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium transition-colors"
             >
               Próximo <ChevronRight size={16} />
             </button>
@@ -636,7 +690,7 @@ const payload = {
           <button
             onClick={salvar}
             disabled={salvando}
-            className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white rounded-xl text-sm font-medium transition-colors"
+            className="flex items-center justify-center gap-2 min-h-11 px-4 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white rounded-xl text-sm font-medium transition-colors"
           >
             <Save size={16} /> {salvando ? 'Salvando...' : 'Salvar alterações'}
           </button>

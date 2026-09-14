@@ -55,7 +55,21 @@ export async function GET() {
         p.convite_pendente ?? authUser?.user_metadata?.must_set_password,
       ),
       criado_por: p.criado_por,
+      membro_id: null as string | null,
+      membro_nome: null as string | null,
     }
+  })
+
+  const { data: membros } = await caller.admin
+    .from('membros')
+    .select('id, nome_completo, user_id')
+
+  const membroPorUser = new Map(
+    (membros ?? []).filter((m) => m.user_id).map((m) => [m.user_id as string, m]),
+  )
+  lista = lista.map((u) => {
+    const m = membroPorUser.get(u.id)
+    return m ? { ...u, membro_id: m.id, membro_nome: m.nome_completo } : u
   })
 
   if (caller.role === 'ADMIN' || caller.role === 'TESOUREIRO') {
@@ -114,6 +128,18 @@ export async function POST(req: Request) {
   if (perfilError) {
     await caller.admin.auth.admin.deleteUser(data.user.id)
     return NextResponse.json({ error: perfilError.message }, { status: 400 })
+  }
+
+  const { data: ficha } = await caller.admin
+    .from('membros')
+    .select('id')
+    .ilike('email', email)
+    .is('user_id', null)
+    .limit(1)
+    .maybeSingle()
+
+  if (ficha?.id) {
+    await caller.admin.from('membros').update({ user_id: data.user.id }).eq('id', ficha.id)
   }
 
   return NextResponse.json({ usuario: { id: data.user.id, email, nome, role } })

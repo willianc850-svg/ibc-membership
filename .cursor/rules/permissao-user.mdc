@@ -1,0 +1,14 @@
+---
+description: Acesso do USER — consultar membros/PGM/ministérios; editar só o próprio; sem Reuniões, Relatórios, Tesouraria nem Documentos
+alwaysApply: true
+---
+
+# Permissão do USER
+
+- **Membros:** consulta a lista e a ficha; **edita só o próprio** cadastro (`membro.user_id === userId`). Sem criar membro.
+- **PGM e Ministérios:** só consulta (sem criar, editar, excluir ou vincular).
+- **Reuniões e Relatórios:** sem menu e sem rota.
+- **Tesouraria:** só SUPER_ADMIN e TESOUREIRO.
+- **Documentos:** só SUPER_ADMIN e ADMIN (não TESOUREIRO, não USER).
+
+O USER só consegue editar o próprio membro se `membros.user_id` estiver preenchido no Supabase.

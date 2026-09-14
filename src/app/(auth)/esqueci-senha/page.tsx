@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { Church, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
+import LogoIbc from '@/components/LogoIbc'
 
 export default function EsqueciSenhaPage() {
   const [email, setEmail] = useState('')
@@ -34,9 +35,7 @@ export default function EsqueciSenhaPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
       <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
         <div className="flex flex-col items-center mb-8">
-          <div className="bg-indigo-600 text-white rounded-2xl p-4 mb-4">
-            <Church size={32} />
-          </div>
+          <LogoIbc size={72} className="mb-4" />
           <h1 className="text-2xl font-bold text-gray-900">Esqueci minha senha</h1>
           <p className="text-gray-500 text-sm mt-1 text-center">
             Enviaremos um link válido por 24 horas

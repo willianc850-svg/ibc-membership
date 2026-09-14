@@ -4,7 +4,10 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { Church, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
+import LogoIbc from '@/components/LogoIbc'
+import BotaoTema from '@/components/BotaoTema'
+import CampoSenha from '@/components/CampoSenha'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -42,50 +45,47 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
-
-        {/* Logo e título */}
+    <div className="min-h-dvh flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 relative px-4 py-8" style={{ paddingTop: 'max(2rem, env(safe-area-inset-top))', paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}>
+      <div className="absolute top-4 right-4" style={{ top: 'max(1rem, env(safe-area-inset-top))', right: 'max(1rem, env(safe-area-inset-right))' }}>
+        <BotaoTema compacto />
+      </div>
+      <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 w-full max-w-md">
         <div className="flex flex-col items-center mb-8">
-          <div className="bg-indigo-600 text-white rounded-2xl p-4 mb-4">
-            <Church size={32} />
-          </div>
+          <LogoIbc size={72} className="mb-4" />
           <h1 className="text-2xl font-bold text-gray-900">IBC Membership</h1>
           <p className="text-gray-500 text-sm mt-1">Sistema de Gestão de Membros</p>
         </div>
 
-        {/* Formulário */}
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="login-email" className="block text-sm font-medium text-gray-700 mb-1">
               E-mail
             </label>
             <input
+              id="login-email"
               type="email"
+              autoComplete="username"
+              inputMode="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seu@email.com"
               required
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full min-h-11 border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Senha
-            </label>
-            <input
-              type="password"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              placeholder="••••••••"
-              required
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-            />
-          </div>
+          <CampoSenha
+            id="login-senha"
+            label="Senha"
+            value={senha}
+            onChange={setSenha}
+            placeholder="••••••••"
+            autoComplete="current-password"
+            required
+          />
 
           <div className="text-right">
-            <Link href="/esqueci-senha" className="text-sm text-indigo-600 hover:text-indigo-700">
+            <Link href="/esqueci-senha" className="inline-flex items-center min-h-11 text-sm text-indigo-600 hover:text-indigo-700">
               Esqueci minha senha
             </Link>
           </div>
@@ -99,7 +99,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={carregando}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white font-medium rounded-lg py-2.5 text-sm transition-colors flex items-center justify-center gap-2"
+            className="w-full min-h-11 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white font-medium rounded-lg py-2.5 text-sm transition-colors flex items-center justify-center gap-2"
           >
             {carregando ? (
               <><Loader2 size={16} className="animate-spin" /> Entrando...</>
@@ -108,7 +108,6 @@ export default function LoginPage() {
             )}
           </button>
         </form>
-
       </div>
     </div>
   )

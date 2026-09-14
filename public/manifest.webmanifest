@@ -1,0 +1,26 @@
+{
+  "name": "IBC Membership",
+  "short_name": "IBC",
+  "description": "Gestão de membros da Igreja Batista Central",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0B1020",
+  "theme_color": "#11235B",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

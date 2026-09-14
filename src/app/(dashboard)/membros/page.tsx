@@ -12,6 +12,7 @@ import {
   UserX,
   UserMinus,
   Eye,
+  Smartphone,
 } from 'lucide-react'
 import { usePermissao } from '@/lib/hooks/usePermissao'
 import { Pencil, Trash2 } from 'lucide-react'
@@ -26,6 +27,7 @@ type Membro = {
   bairro: string | null
   foto_url: string | null
   created_at: string
+  user_id: string | null
 }
 
 const statusConfig: Record<string, { label: string; cor: string; icone: React.ReactNode }> = {
@@ -57,7 +59,7 @@ export default function MembrosPage() {
     setCarregando(true)
     const { data, error } = await supabase
       .from('membros')
-      .select('id, nome_completo, telefone, email, status_membresia, bairro, foto_url, created_at')
+      .select('id, nome_completo, telefone, email, status_membresia, bairro, foto_url, created_at, user_id')
       .order('nome_completo')
 
     if (!error && data) setMembros(data)
@@ -158,10 +160,56 @@ async function confirmarDeletar() {
     }
   }
 
+  function Avatar({ membro, tamanho = 'w-11 h-11 text-sm' }: { membro: Membro; tamanho?: string }) {
+    if (membro.foto_url) {
+      return (
+        <img
+          src={membro.foto_url}
+          alt={membro.nome_completo}
+          className={`${tamanho} rounded-full object-cover shrink-0`}
+        />
+      )
+    }
+    return (
+      <div className={`${tamanho} rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold shrink-0`}>
+        {iniciais(membro.nome_completo)}
+      </div>
+    )
+  }
+
+  function Acoes({ membro, compacto = false }: { membro: Membro; compacto?: boolean }) {
+    const btn = compacto
+      ? 'inline-flex items-center justify-center min-h-11 min-w-11 rounded-xl text-sm font-medium'
+      : 'inline-flex items-center gap-1 min-h-9 px-2 text-xs font-medium'
+    return (
+      <div className={`flex items-center ${compacto ? 'gap-1' : 'justify-end gap-2'}`}>
+        <Link href={`/membros/${membro.id}`} className={`${btn} text-indigo-600 hover:bg-indigo-50`}>
+          <Eye size={compacto ? 18 : 14} />
+          {!compacto && 'Ver'}
+        </Link>
+        {(isAdmin || membro.user_id === userId) && (
+          <Link href={`/membros/${membro.id}/editar`} className={`${btn} text-amber-600 hover:bg-amber-50`}>
+            <Pencil size={compacto ? 18 : 14} />
+            {!compacto && 'Editar'}
+          </Link>
+        )}
+        {isSuperAdmin && (
+          <button
+            type="button"
+            onClick={() => handleDeletar(membro.id, membro.nome_completo)}
+            className={`${btn} text-red-600 hover:bg-red-50`}
+          >
+            <Trash2 size={compacto ? 18 : 14} />
+            {!compacto && 'Deletar'}
+          </button>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div>
-      {/* Cabeçalho */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
         <div className="flex items-center gap-3">
           <Users size={24} className="text-indigo-600" />
           <div>
@@ -169,31 +217,49 @@ async function confirmarDeletar() {
             <p className="text-sm text-gray-500">{membros.length} cadastrados</p>
           </div>
         </div>
-        <Link
-          href="/membros/novo"
-          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors"
-        >
-          <Plus size={16} />
-          Novo membro
-        </Link>
+        {isAdmin && (
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/membros/pendentes"
+              className="inline-flex items-center justify-center min-h-11 px-4 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-xl"
+            >
+              Cadastros pendentes
+            </Link>
+            <Link
+              href="/membros/qr"
+              className="inline-flex items-center justify-center min-h-11 px-4 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-xl"
+            >
+              QR de cadastro
+            </Link>
+            <Link
+              href="/membros/novo"
+              className="inline-flex items-center justify-center gap-2 min-h-11 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 rounded-xl transition-colors"
+            >
+              <Plus size={16} />
+              Novo membro
+            </Link>
+          </div>
+        )}
       </div>
 
-      {/* Busca e filtros */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
-            type="text"
+            type="search"
             placeholder="Buscar por nome, e-mail ou telefone..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-gray-900"
+            className="w-full min-h-11 pl-9 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-gray-900"
           />
         </div>
-        <div className="relative">
+        <div className="relative sm:w-56">
           <Filter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)}
-            className="pl-9 pr-8 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-gray-900 appearance-none">
+          <select
+            value={filtroStatus}
+            onChange={(e) => setFiltroStatus(e.target.value)}
+            className="w-full min-h-11 pl-9 pr-8 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-gray-900 appearance-none"
+          >
             <option value="todos">Todos os status</option>
             <option value="Pastor">Pastor</option>
             <option value="Diretoria">Diretoria</option>
@@ -223,86 +289,81 @@ async function confirmarDeletar() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-100 bg-gray-50">
-                  <th className="text-left text-xs font-medium text-gray-500 px-4 py-3">Membro</th>
-                  <th className="text-left text-xs font-medium text-gray-500 px-4 py-3 hidden sm:table-cell">Contato</th>
-                  <th className="text-left text-xs font-medium text-gray-500 px-4 py-3 hidden md:table-cell">Bairro</th>
-                  <th className="text-left text-xs font-medium text-gray-500 px-4 py-3">Status</th>
-                  <th className="text-right text-xs font-medium text-gray-500 px-4 py-3">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {membrosFiltrados.map((membro) => {
-                  const status = statusConfig[membro.status_membresia] ?? statusConfig['']
-                  return (
-                    <tr key={membro.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          {membro.foto_url ? (
-                            <img
-                              src={membro.foto_url}
-                              alt={membro.nome_completo}
-                              className="w-9 h-9 rounded-full object-cover shrink-0"
-                            />
-                          ) : (
-                            <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold shrink-0">
-                              {iniciais(membro.nome_completo)}
-                            </div>
-                          )}
-                          <span className="font-medium text-gray-900 text-sm">{membro.nome_completo}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 hidden sm:table-cell">
-                        <p className="text-sm text-gray-700">{membro.telefone ?? '—'}</p>
-                        <p className="text-xs text-gray-400">{membro.email ?? '—'}</p>
-                      </td>
-                      <td className="px-4 py-3 hidden md:table-cell text-sm text-gray-600">
-                        {membro.bairro ?? '—'}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full ${status.cor}`}>
-                          {status.icone}
-                          {status.label}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Link
-                            href={`/membros/${membro.id}`}
-                            className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-medium"
-                          >
-                            <Eye size={14} />
-                            Ver
-                          </Link>
-                          {isAdmin && (
-                            <Link
-                              href={`/membros/${membro.id}/editar`}
-                              className="inline-flex items-center gap-1 text-xs text-amber-600 hover:text-amber-800 font-medium"
-                            >
-                              <Pencil size={14} />
-                              Editar
-                            </Link>
-                          )}
-                          {isSuperAdmin && (
-                            <button
-                              onClick={() => handleDeletar(membro.id, membro.nome_completo)}
-                              className="inline-flex items-center gap-1 text-xs text-red-600 hover:text-red-800 font-medium"
-                            >
-                              <Trash2 size={14} />
-                              Deletar
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+          <>
+            <div className="md:hidden divide-y divide-gray-100">
+              {membrosFiltrados.map((membro) => {
+                const status = statusConfig[membro.status_membresia] ?? statusConfig['']
+                const tel = membro.telefone?.replace(/\D/g, '') ?? ''
+                return (
+                  <div key={membro.id} className="p-4 flex gap-3">
+                    <Avatar membro={membro} />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900 text-sm leading-snug">{membro.nome_completo}</p>
+                      <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full mt-1 ${status.cor}`}>
+                        {status.icone}
+                        {status.label}
+                      </span>
+                      {membro.telefone && (
+                        <a
+                          href={`https://wa.me/55${tel}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-2 inline-flex items-center gap-1.5 min-h-11 text-sm text-green-700"
+                        >
+                          <Smartphone size={16} /> {membro.telefone}
+                        </a>
+                      )}
+                    </div>
+                    <Acoes membro={membro} compacto />
+                  </div>
+                )
+              })}
+            </div>
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50">
+                    <th className="text-left text-xs font-medium text-gray-500 px-4 py-3">Membro</th>
+                    <th className="text-left text-xs font-medium text-gray-500 px-4 py-3">Contato</th>
+                    <th className="text-left text-xs font-medium text-gray-500 px-4 py-3">Bairro</th>
+                    <th className="text-left text-xs font-medium text-gray-500 px-4 py-3">Status</th>
+                    <th className="text-right text-xs font-medium text-gray-500 px-4 py-3">Ações</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {membrosFiltrados.map((membro) => {
+                    const status = statusConfig[membro.status_membresia] ?? statusConfig['']
+                    return (
+                      <tr key={membro.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <Avatar membro={membro} tamanho="w-9 h-9 text-xs" />
+                            <span className="font-medium text-gray-900 text-sm">{membro.nome_completo}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <p className="text-sm text-gray-700">{membro.telefone ?? '—'}</p>
+                          <p className="text-xs text-gray-400">{membro.email ?? '—'}</p>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {membro.bairro ?? '—'}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full ${status.cor}`}>
+                            {status.icone}
+                            {status.label}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <Acoes membro={membro} />
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
       <ModalConfirmacao

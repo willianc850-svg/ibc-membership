@@ -6,9 +6,10 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   ChevronLeft, Pencil, Trash2, User, Phone, Heart,
-  Church, Shield, Calendar, MapPin, Mail, Smartphone,
+  Shield, Calendar, MapPin, Mail, Smartphone,
 } from 'lucide-react'
 import { usePermissao } from '@/lib/hooks/usePermissao'
+import LogoIbc from '@/components/LogoIbc'
 
 type Membro = {
   id: string
@@ -184,14 +185,14 @@ export default function PerfilMembroPage() {
     <div className="max-w-3xl mx-auto space-y-4">
 
       {/* Cabeçalho */}
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
         <div className="flex items-center gap-3">
           <Link href="/membros" className="p-2 rounded-lg hover:bg-gray-100 text-gray-600">
             <ChevronLeft size={20} />
           </Link>
           <h1 className="text-xl font-bold text-gray-900">Perfil do Membro</h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
   {podeEditar && (
     <Link
       href={`/membros/${id}/editar`}
@@ -214,7 +215,7 @@ export default function PerfilMembroPage() {
 
       {/* Card de identidade */}
       <div className="bg-white rounded-2xl border border-gray-200 p-6">
-        <div className="flex items-center gap-5">
+        <div className="flex flex-col sm:flex-row items-center gap-5">
           {membro.foto_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={membro.foto_url} alt={membro.nome_completo}
@@ -292,7 +293,7 @@ export default function PerfilMembroPage() {
       </Secao>
 
       {/* Igreja */}
-      <Secao icone={Church} titulo="Dados eclesiásticos">
+      <Secao icone={LogoIbc} titulo="Dados eclesiásticos">
         <Item label="Status de membresia" valor={membro.status_membresia} />
         <Item label="Forma de admissão" valor={membro.forma_admissao} />
         <Item label="Data de admissão" valor={exibirAdmissao(membro)} />

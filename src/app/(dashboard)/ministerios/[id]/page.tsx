@@ -9,6 +9,8 @@ import {
   Search, Crown, X, Plus,
 } from 'lucide-react'
 
+import { usePermissao } from '@/lib/hooks/usePermissao'
+
 type Membro = {
   id: string
   nome_completo: string
@@ -50,6 +52,7 @@ function corDaFuncao(funcao: string) {
 
 export default function MinisterioDetalhesPage() {
   const { id } = useParams()
+  const { isAdmin } = usePermissao()
   const [ministerio, setMinisterio] = useState<Ministerio | null>(null)
   const [membros, setMembros] = useState<Membro[]>([])
   const [busca, setBusca] = useState('')
@@ -184,12 +187,14 @@ export default function MinisterioDetalhesPage() {
             <p className="text-sm text-gray-500 mt-0.5">{ministerio.descricao}</p>
           )}
         </div>
+        {isAdmin && (
         <button
           onClick={() => { setMostrarBusca(!mostrarBusca); setBusca(''); setMembroSelecionado(null); setNovaFuncao('') }}
           className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors"
         >
           <UserPlus size={16} /> Adicionar
         </button>
+        )}
       </div>
 
       {/* Card do líder */}
@@ -225,7 +230,7 @@ export default function MinisterioDetalhesPage() {
       )}
 
       {/* Formulário de adição */}
-      {mostrarBusca && (
+      {isAdmin && mostrarBusca && (
         <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-6 space-y-3">
           <p className="text-sm font-medium text-gray-700">Adicionar membro ao ministério</p>
 
@@ -309,16 +314,20 @@ export default function MinisterioDetalhesPage() {
           <span className="text-sm font-medium text-gray-700">
             {membros.length} {membros.length === 1 ? 'membro' : 'membros'}
           </span>
+          {isAdmin && (
           <span className="text-xs text-gray-400">
             Clique em ★ para definir o líder
           </span>
+          )}
         </div>
 
         {membros.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-gray-400">
             <HandHeart size={40} className="mb-3 opacity-30" />
             <p className="font-medium">Nenhum membro neste ministério</p>
+            {isAdmin && (
             <p className="text-sm mt-1">Clique em "Adicionar" para vincular membros</p>
+            )}
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
@@ -346,7 +355,7 @@ export default function MinisterioDetalhesPage() {
                   <p className="text-sm font-medium text-gray-900">{m.nome_completo}</p>
 
                   {/* Função — exibição ou edição */}
-                  {editandoFuncao === m.id ? (
+                  {editandoFuncao === m.id && isAdmin ? (
                     <div className="flex items-center gap-2 mt-1">
                       <input
                         autoFocus
@@ -368,7 +377,7 @@ export default function MinisterioDetalhesPage() {
                         Cancelar
                       </button>
                     </div>
-                  ) : (
+                  ) : isAdmin ? (
                     <button
                       onClick={() => { setEditandoFuncao(m.id); setFuncaoEditada(m.funcao ?? '') }}
                       className="flex items-center gap-1.5 mt-1 group"
@@ -383,12 +392,16 @@ export default function MinisterioDetalhesPage() {
                         </span>
                       )}
                     </button>
-                  )}
+                  ) : m.funcao ? (
+                    <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full mt-1 ${corDaFuncao(m.funcao)}`}>
+                      {m.funcao}
+                    </span>
+                  ) : null}
                 </div>
 
                 {/* Ações */}
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  {/* Botão líder */}
+                  {isAdmin && (
                   <button
                     onClick={() => definirLider(m.id)}
                     title={m.is_lider ? 'Remover como líder' : 'Definir como líder'}
@@ -400,14 +413,17 @@ export default function MinisterioDetalhesPage() {
                   >
                     ★
                   </button>
+                  )}
                   <Link href={`/membros/${m.id}`}
                     className="text-xs text-indigo-600 hover:text-indigo-800 font-medium px-1">
                     Ver
                   </Link>
+                  {isAdmin && (
                   <button onClick={() => desvincular(m.id)}
                     className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors">
                     <Trash2 size={14} />
                   </button>
+                  )}
                 </div>
               </div>
             ))}

@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { UsersRound, Plus, Users, Pencil, Trash2, Clock, MapPin } from 'lucide-react'
+import { usePermissao } from '@/lib/hooks/usePermissao'
+import { paraInputTime } from '@/lib/horario'
+import InputHorario24 from '@/components/InputHorario24'
 
 type Pgm = {
   id: string
@@ -19,6 +22,7 @@ type Pgm = {
 const diasSemana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo']
 
 export default function PgmsPage() {
+  const { isAdmin } = usePermissao()
   const [pgms, setPgms] = useState<Pgm[]>([])
   const [carregando, setCarregando] = useState(true)
   const [mostrarForm, setMostrarForm] = useState(false)
@@ -90,7 +94,7 @@ export default function PgmsPage() {
       nome: p.nome,
       bairro: p.bairro ?? '',
       dia_semana: p.dia_semana ?? '',
-      horario: p.horario ?? '',
+      horario: paraInputTime(p.horario),
       lider_id: p.lider_id ?? '',
     })
     setMostrarForm(true)
@@ -144,7 +148,7 @@ export default function PgmsPage() {
             <p className="text-sm text-gray-500">Pequenos Grupos Multiplicadores — {pgms.length} cadastrados</p>
           </div>
         </div>
-        {!mostrarForm && (
+        {isAdmin && !mostrarForm && (
           <button
             onClick={abrirNovo}
             className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors"
@@ -155,7 +159,7 @@ export default function PgmsPage() {
       </div>
 
       {/* Formulário */}
-      {mostrarForm && (
+      {isAdmin && mostrarForm && (
         <div className="bg-white border border-gray-200 rounded-2xl p-5 mb-6">
           <h2 className="font-semibold text-gray-900 mb-4">
             {editando ? 'Editar PGM' : 'Novo PGM'}
@@ -191,8 +195,11 @@ export default function PgmsPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Horário</label>
-              <input type="time" className={inputClass} value={form.horario}
-                onChange={e => setF('horario', e.target.value)} />
+              <InputHorario24
+                key={editando?.id ?? 'novo'}
+                value={form.horario}
+                onChange={(valor) => setF('horario', valor)}
+              />
             </div>
           </div>
           <div className="flex gap-2">
@@ -227,6 +234,7 @@ export default function PgmsPage() {
                     <p className="text-sm text-gray-500 mt-0.5">Líder: {p.lider_nome}</p>
                   )}
                 </div>
+                {isAdmin && (
                 <div className="flex items-center gap-1 ml-2 flex-shrink-0">
                   <button onClick={() => abrirEdicao(p)}
                     className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors">
@@ -237,6 +245,7 @@ export default function PgmsPage() {
                     <Trash2 size={14} />
                   </button>
                 </div>
+                )}
               </div>
 
               <div className="flex flex-wrap gap-2">

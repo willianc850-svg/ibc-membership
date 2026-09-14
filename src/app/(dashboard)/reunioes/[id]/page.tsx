@@ -9,6 +9,9 @@ import {
   Sparkles, FileDown, CheckCircle, Loader2, Pencil, Trash2, Save
 } from 'lucide-react'
 
+import AcessoGuard from '@/components/AcessoGuard'
+import { usePermissao } from '@/lib/hooks/usePermissao'
+
 type Reuniao = {
   id: string
   titulo: string
@@ -45,6 +48,19 @@ const tipoCor: Record<string, string> = {
 const statusPermitidos = ['Pastor', 'Diretoria', 'Líder de Ministério']
 
 export default function ReuniaoDetalhesPage() {
+  const { podeReunioesRelatorios, carregando } = usePermissao()
+  return (
+    <AcessoGuard
+      permitido={podeReunioesRelatorios}
+      carregando={carregando}
+      mensagem="As reuniões são visíveis apenas para Super Admin, Admin e Tesoureiro."
+    >
+      <ReuniaoDetalhesConteudo />
+    </AcessoGuard>
+  )
+}
+
+function ReuniaoDetalhesConteudo() {
   const { id } = useParams()
   const router = useRouter()
   const supabase = createClient()

@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronLeft, UsersRound, UserPlus, Trash2, Search, MapPin, Clock } from 'lucide-react'
+import { usePermissao } from '@/lib/hooks/usePermissao'
 
 type Membro = {
   id: string
@@ -31,6 +32,7 @@ type Pgm = {
 
 export default function PgmDetalhesPage() {
   const { id } = useParams()
+  const { isAdmin } = usePermissao()
   const [pgm, setPgm] = useState<Pgm | null>(null)
   const [membros, setMembros] = useState<Membro[]>([])
   const [busca, setBusca] = useState('')
@@ -134,16 +136,18 @@ export default function PgmDetalhesPage() {
             )}
           </div>
         </div>
+        {isAdmin && (
         <button
           onClick={() => setMostrarBusca(!mostrarBusca)}
           className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors"
         >
           <UserPlus size={16} /> Adicionar
         </button>
+        )}
       </div>
 
       {/* Busca */}
-      {mostrarBusca && (
+      {isAdmin && mostrarBusca && (
         <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-6">
           <p className="text-sm font-medium text-gray-700 mb-3">Buscar membro para adicionar</p>
           <div className="relative">
@@ -185,7 +189,9 @@ export default function PgmDetalhesPage() {
           <div className="flex flex-col items-center justify-center py-16 text-gray-400">
             <UsersRound size={40} className="mb-3 opacity-30" />
             <p className="font-medium">Nenhum membro neste PGM</p>
+            {isAdmin && (
             <p className="text-sm mt-1">Clique em "Adicionar" para vincular membros</p>
+            )}
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
@@ -210,10 +216,12 @@ export default function PgmDetalhesPage() {
                     className="text-xs text-indigo-600 hover:text-indigo-800 font-medium">
                     Ver perfil
                   </Link>
+                  {isAdmin && (
                   <button onClick={() => desvincular(m.id)}
                     className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors">
                     <Trash2 size={14} />
                   </button>
+                  )}
                 </div>
               </div>
             ))}

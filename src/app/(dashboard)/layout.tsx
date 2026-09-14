@@ -5,20 +5,31 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
   LayoutDashboard, Users, UsersRound, HandHeart,
-  BarChart3, Settings, LogOut, Church, Menu, X, Wallet,
+  BarChart3, Settings, LogOut, X, Wallet, FileText, CalendarDays, MoreHorizontal,
 } from 'lucide-react'
-import { useState } from 'react'
-import { CalendarDays } from 'lucide-react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { usePermissao } from '@/lib/hooks/usePermissao'
+import LogoIbc from '@/components/LogoIbc'
+import BotaoTema from '@/components/BotaoTema'
 
-const menuBase: { href: string; label: string; icon: typeof Wallet; tesouraria?: boolean }[] = [
+type MenuItem = {
+  href: string
+  label: string
+  icon: typeof Wallet
+  tesouraria?: boolean
+  documentos?: boolean
+  hideForUser?: boolean
+}
+
+const menuBase: MenuItem[] = [
   { href: '/dashboard',     label: 'Dashboard',     icon: LayoutDashboard },
   { href: '/membros',       label: 'Membros',       icon: Users           },
-  { href: '/reunioes',      label: 'Reuniões',      icon: CalendarDays    },
+  { href: '/reunioes',      label: 'Reuniões',      icon: CalendarDays, hideForUser: true },
   { href: '/pgm',           label: 'PGMs',          icon: UsersRound      },
   { href: '/ministerios',   label: 'Ministérios',   icon: HandHeart       },
   { href: '/tesouraria',    label: 'Tesouraria',    icon: Wallet, tesouraria: true },
-  { href: '/relatorios',    label: 'Relatórios',    icon: BarChart3       },
+  { href: '/documentos',    label: 'Documentos',    icon: FileText, documentos: true },
+  { href: '/relatorios',    label: 'Relatórios',    icon: BarChart3, hideForUser: true },
   { href: '/configuracoes', label: 'Configurações', icon: Settings        },
 ]
 
@@ -31,8 +42,22 @@ export default function DashboardLayout({
   const router = useRouter()
   const supabase = createClient()
   const [menuAberto, setMenuAberto] = useState(false)
-  const { podeTesouraria } = usePermissao()
-  const menuItems = menuBase.filter((item) => !item.tesouraria || podeTesouraria)
+  const { podeTesouraria, podeDocumentos, podeReunioesRelatorios } = usePermissao()
+  const menuItems = menuBase.filter((item) => {
+    if (item.tesouraria && !podeTesouraria) return false
+    if (item.documentos && !podeDocumentos) return false
+    if (item.hideForUser && !podeReunioesRelatorios) return false
+    return true
+  })
+
+  useEffect(() => {
+    if (!menuAberto) return
+    const anterior = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = anterior
+    }
+  }, [menuAberto])
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -44,186 +69,198 @@ export default function DashboardLayout({
     return pathname.startsWith(href)
   }
 
-  return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+  function estiloLink(href: string): CSSProperties {
+    const ativo = isAtivo(href)
+    return {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px',
+      padding: '12px',
+      minHeight: '44px',
+      borderRadius: '12px',
+      fontSize: '14px',
+      fontWeight: 500,
+      marginBottom: '2px',
+      textDecoration: 'none',
+      backgroundColor: ativo ? 'var(--ibc-active-bg)' : 'transparent',
+      color: ativo ? 'var(--ibc-active-text)' : 'var(--ibc-nav)',
+    }
+  }
 
-      {/* Sidebar desktop */}
-      <aside style={{
-        width: '256px',
-        backgroundColor: '#ffffff',
-        borderRight: '1px solid #e5e7eb',
-        display: 'flex',
-        flexDirection: 'column',
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        height: '100vh',
-        zIndex: 40,
-      }}
-        className="hidden lg:flex"
+  function RodapeSair() {
+    return (
+      <button
+        onClick={handleLogout}
+        className="flex items-center gap-3 px-3 min-h-11 w-full rounded-xl text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400"
       >
-        {/* Logo */}
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid #f3f4f6' }}>
+        <LogOut size={18} />
+        Sair
+      </button>
+    )
+  }
+
+  return (
+    <div
+      className="flex min-h-dvh overflow-x-hidden"
+      style={{ backgroundColor: 'var(--ibc-page)' }}
+    >
+      <aside
+        className="hidden lg:flex flex-col print:hidden"
+        style={{
+          width: '256px',
+          backgroundColor: 'var(--ibc-card)',
+          borderRight: '1px solid var(--ibc-border)',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          height: '100dvh',
+          zIndex: 40,
+        }}
+      >
+        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--ibc-border-subtle)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ backgroundColor: '#4f46e5', borderRadius: '12px', padding: '8px' }}>
-              <Church size={20} color="white" />
-            </div>
+            <LogoIbc size={36} />
             <div>
-              <p style={{ fontWeight: 700, color: '#111827', fontSize: '14px', margin: 0 }}>IBC Membership</p>
-              <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>Gestão de Membros</p>
+              <p style={{ fontWeight: 700, color: 'var(--ibc-text)', fontSize: '14px', margin: 0 }}>IBC Membership</p>
+              <p style={{ fontSize: '12px', color: 'var(--ibc-muted)', margin: 0 }}>Gestão de Membros</p>
             </div>
           </div>
         </div>
 
-        {/* Menu */}
         <nav style={{ flex: 1, padding: '12px', overflowY: 'auto' }}>
           {menuItems.map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                padding: '10px 12px',
-                borderRadius: '12px',
-                fontSize: '14px',
-                fontWeight: 500,
-                marginBottom: '2px',
-                textDecoration: 'none',
-                backgroundColor: isAtivo(href) ? '#eef2ff' : 'transparent',
-                color: isAtivo(href) ? '#4338ca' : '#4b5563',
-              }}
-            >
+            <Link key={href} href={href} style={estiloLink(href)}>
               <Icon size={18} />
               {label}
             </Link>
           ))}
         </nav>
 
-        {/* Sair */}
-        <div style={{ padding: '12px', borderTop: '1px solid #f3f4f6' }}>
-          <button
-            onClick={handleLogout}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              padding: '10px 12px',
-              width: '100%',
-              borderRadius: '12px',
-              fontSize: '14px',
-              fontWeight: 500,
-              color: '#4b5563',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-            }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#fef2f2'
-              ;(e.currentTarget as HTMLButtonElement).style.color = '#dc2626'
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent'
-              ;(e.currentTarget as HTMLButtonElement).style.color = '#4b5563'
-            }}
-          >
-            <LogOut size={18} />
-            Sair
-          </button>
+        <div style={{ padding: '12px', borderTop: '1px solid var(--ibc-border-subtle)' }}>
+          <BotaoTema />
+          <RodapeSair />
         </div>
       </aside>
 
-      {/* Overlay mobile */}
       {menuAberto && (
         <div
-          style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex' }}
           className="lg:hidden"
+          style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex' }}
         >
           <div
             style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)' }}
             onClick={() => setMenuAberto(false)}
           />
-          <aside style={{
-            width: '256px',
-            backgroundColor: '#ffffff',
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100vh',
-            position: 'relative',
-            zIndex: 51,
-          }}>
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <aside
+            className="flex flex-col"
+            style={{
+              width: '256px',
+              maxWidth: '85vw',
+              backgroundColor: 'var(--ibc-card)',
+              height: '100dvh',
+              position: 'relative',
+              zIndex: 51,
+              paddingBottom: 'env(safe-area-inset-bottom)',
+            }}
+          >
+            <div style={{
+              padding: '16px 16px 16px 20px',
+              paddingTop: 'max(16px, env(safe-area-inset-top))',
+              borderBottom: '1px solid var(--ibc-border-subtle)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ backgroundColor: '#4f46e5', borderRadius: '12px', padding: '8px' }}>
-                  <Church size={20} color="white" />
-                </div>
-                <p style={{ fontWeight: 700, color: '#111827', fontSize: '14px', margin: 0 }}>IBC Membership</p>
+                <LogoIbc size={32} />
+                <p style={{ fontWeight: 700, color: 'var(--ibc-text)', fontSize: '14px', margin: 0 }}>IBC Membership</p>
               </div>
-              <button onClick={() => setMenuAberto(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}>
-                <X size={20} />
+              <button
+                onClick={() => setMenuAberto(false)}
+                aria-label="Fechar menu"
+                className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg text-gray-500"
+              >
+                <X size={22} />
               </button>
             </div>
-            <nav style={{ flex: 1, padding: '12px' }}>
+            <nav style={{ flex: 1, padding: '12px', overflowY: 'auto' }}>
               {menuItems.map(({ href, label, icon: Icon }) => (
                 <Link
                   key={href}
                   href={href}
                   onClick={() => setMenuAberto(false)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '10px 12px',
-                    borderRadius: '12px',
-                    fontSize: '14px',
-                    fontWeight: 500,
-                    marginBottom: '2px',
-                    textDecoration: 'none',
-                    backgroundColor: isAtivo(href) ? '#eef2ff' : 'transparent',
-                    color: isAtivo(href) ? '#4338ca' : '#4b5563',
-                  }}
+                  style={estiloLink(href)}
                 >
                   <Icon size={18} />
                   {label}
                 </Link>
               ))}
             </nav>
-            <div style={{ padding: '12px', borderTop: '1px solid #f3f4f6' }}>
-              <button onClick={handleLogout}
-                style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', width: '100%', borderRadius: '12px', fontSize: '14px', fontWeight: 500, color: '#4b5563', background: 'none', border: 'none', cursor: 'pointer' }}>
-                <LogOut size={18} /> Sair
-              </button>
+            <div style={{ padding: '12px', borderTop: '1px solid var(--ibc-border-subtle)' }}>
+              <BotaoTema />
+              <RodapeSair />
             </div>
           </aside>
         </div>
       )}
 
-      {/* Conteúdo */}
-      <div style={{ flex: 1, marginLeft: '256px', display: 'flex', flexDirection: 'column' }} className="lg:ml-64">
-
-        {/* Header mobile */}
+      <div className="flex min-h-dvh flex-1 flex-col lg:ml-64">
         <header
-          style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #e5e7eb', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}
-          className="lg:hidden"
+          className="sticky top-0 z-30 flex lg:hidden items-center gap-3 px-4 min-h-14 print:hidden"
+          style={{
+            backgroundColor: 'var(--ibc-card)',
+            borderBottom: '1px solid var(--ibc-border)',
+            paddingTop: 'max(8px, env(safe-area-inset-top))',
+          }}
         >
-          <button
-            onClick={() => setMenuAberto(!menuAberto)}
-            style={{ padding: '8px', borderRadius: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', flexShrink: 0 }}
-          >
-            <Menu size={20} />
-          </button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ backgroundColor: '#4f46e5', borderRadius: '8px', padding: '6px' }}>
-              <Church size={16} color="white" />
-            </div>
-            <span style={{ fontWeight: 700, fontSize: '14px', color: '#111827' }}>IBC Membership</span>
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <LogoIbc size={28} />
+            <span className="font-bold text-sm truncate" style={{ color: 'var(--ibc-text)' }}>
+              IBC Membership
+            </span>
           </div>
+          <BotaoTema compacto />
         </header>
 
-        <main style={{ flex: 1, padding: '24px' }}>
+        <main className="flex-1 p-4 md:p-6 pb-24 lg:pb-6 print:p-4 print:pb-4">
           {children}
         </main>
+
+        <nav
+          className="fixed bottom-0 inset-x-0 z-30 grid grid-cols-3 lg:hidden border-t print:hidden"
+          style={{
+            backgroundColor: 'var(--ibc-card)',
+            borderColor: 'var(--ibc-border)',
+            paddingBottom: 'env(safe-area-inset-bottom)',
+          }}
+        >
+          <Link
+            href="/dashboard"
+            className={`flex flex-col items-center justify-center gap-0.5 min-h-14 text-[11px] font-medium ${
+              isAtivo('/dashboard') ? 'text-indigo-600' : 'text-gray-500'
+            }`}
+          >
+            <LayoutDashboard size={22} />
+            Início
+          </Link>
+          <Link
+            href="/membros"
+            className={`flex flex-col items-center justify-center gap-0.5 min-h-14 text-[11px] font-medium ${
+              isAtivo('/membros') ? 'text-indigo-600' : 'text-gray-500'
+            }`}
+          >
+            <Users size={22} />
+            Membros
+          </Link>
+          <button
+            type="button"
+            onClick={() => setMenuAberto(true)}
+            className="flex flex-col items-center justify-center gap-0.5 min-h-14 text-[11px] font-medium text-gray-500"
+          >
+            <MoreHorizontal size={22} />
+            Mais
+          </button>
+        </nav>
       </div>
     </div>
   )

@@ -3,15 +3,18 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, ChevronRight, Save, User, Phone, Heart, Church, Shield } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Save, User, Phone, Heart, Shield } from 'lucide-react'
 import UploadFoto from '@/components/UploadFoto'
 import Link from 'next/link'
+import AcessoGuard from '@/components/AcessoGuard'
+import { usePermissao } from '@/lib/hooks/usePermissao'
+import LogoIbc from '@/components/LogoIbc'
 
 const abas = [
   { id: 'pessoal',   label: 'Pessoal',      icone: User    },
   { id: 'contato',   label: 'Contato',      icone: Phone   },
   { id: 'familia',   label: 'Família',      icone: Heart   },
-  { id: 'igreja',    label: 'Igreja',       icone: Church  },
+  { id: 'igreja',    label: 'Igreja',       icone: LogoIbc  },
   { id: 'saude',     label: 'Saúde & Extra', icone: Shield  },
 ]
 
@@ -100,6 +103,19 @@ const inputClass = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm
 const selectClass = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
 
 export default function NovoMembroPage() {
+  const { isAdmin, carregando } = usePermissao()
+  return (
+    <AcessoGuard
+      permitido={isAdmin}
+      carregando={carregando}
+      mensagem="Somente Super Admin, Admin e Tesoureiro podem cadastrar membros."
+    >
+      <NovoMembroConteudo />
+    </AcessoGuard>
+  )
+}
+
+function NovoMembroConteudo() {
   const [abaAtiva, setAbaAtiva] = useState(0)
   const [form, setForm] = useState<Formulario>(inicial)
   const [salvando, setSalvando] = useState(false)
@@ -211,7 +227,7 @@ export default function NovoMembroPage() {
             <button
               key={aba.id}
               onClick={() => setAbaAtiva(i)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-colors flex-1 justify-center
+              className={`flex items-center gap-1.5 px-3 py-2.5 min-h-11 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0
                 ${abaAtiva === i
                   ? 'bg-white text-indigo-700 shadow-sm'
                   : 'text-gray-500 hover:text-gray-700'
@@ -301,6 +317,9 @@ export default function NovoMembroPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Campo label="Telefone / WhatsApp">
               <input
+                type="tel"
+                inputMode="numeric"
+                autoComplete="tel"
                 className={inputClass}
                 placeholder="(00) 00000-0000"
                 value={form.telefone}
@@ -381,7 +400,7 @@ export default function NovoMembroPage() {
               <label className="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" checked={form.tem_filhos}
                   onChange={e => set('tem_filhos', e.target.checked)}
-                  className="w-4 h-4 accent-indigo-600" />
+                  className="w-5 h-5 shrink-0 accent-indigo-600" />
                 <span className="text-sm font-medium text-gray-700">Possui filhos</span>
               </label>
             </div>
@@ -434,7 +453,7 @@ export default function NovoMembroPage() {
                           set('data_admissao', '')
                         }
                       }}
-                      className="w-4 h-4 accent-indigo-600"
+                      className="w-5 h-5 shrink-0 accent-indigo-600"
                     />
                     <span className="text-xs text-gray-500">Não lembro o dia e mês, somente o ano</span>
                   </label>
@@ -474,7 +493,7 @@ export default function NovoMembroPage() {
                             set('data_batismo_aguas', '')
                           }
                         }}
-                        className="w-4 h-4 accent-indigo-600"
+                        className="w-5 h-5 shrink-0 accent-indigo-600"
                     />
                     <span className="text-xs text-gray-500">Não lembro o dia e mês, somente o ano</span>
                   </label>
@@ -505,7 +524,7 @@ export default function NovoMembroPage() {
               <label className="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" checked={form.concluiu_integracao}
                   onChange={e => set('concluiu_integracao', e.target.checked)}
-                  className="w-4 h-4 accent-indigo-600" />
+                  className="w-5 h-5 shrink-0 accent-indigo-600" />
                 <span className="text-sm font-medium text-gray-700">
                   Concluiu o curso de integração / novos membros
                 </span>
@@ -550,9 +569,14 @@ export default function NovoMembroPage() {
                 onChange={e => set('contato_emergencia_nome', e.target.value)} />
             </Campo>
             <Campo label="Contato de emergência — telefone">
-              <input className={inputClass} placeholder="(00) 00000-0000"
+              <input
+                type="tel"
+                inputMode="numeric"
+                className={inputClass}
+                placeholder="(00) 00000-0000"
                 value={form.contato_emergencia_telefone}
-                onChange={e => set('contato_emergencia_telefone', e.target.value)} />
+                onChange={e => set('contato_emergencia_telefone', mascaraTelefone(e.target.value))}
+              />
             </Campo>
             <div className="sm:col-span-2">
               <Campo label="Habilidades e talentos">
@@ -566,7 +590,7 @@ export default function NovoMembroPage() {
               <label className="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" checked={form.autorizacao_imagem}
                   onChange={e => set('autorizacao_imagem', e.target.checked)}
-                  className="w-4 h-4 accent-indigo-600" />
+                  className="w-5 h-5 shrink-0 accent-indigo-600" />
                 <span className="text-sm font-medium text-gray-700">
                   Autoriza uso de imagem (LGPD) — fotos em cultos e redes sociais
                 </span>
@@ -584,22 +608,22 @@ export default function NovoMembroPage() {
       )}
 
       {/* Navegação entre abas */}
-      <div className="flex items-center justify-between mt-6">
+      <div className="sticky bottom-16 lg:bottom-0 z-10 mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] bg-[var(--ibc-page)]">
         <button
           onClick={() => setAbaAtiva(i => Math.max(0, i - 1))}
           disabled={indiceAtual === 0}
-          className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="flex items-center justify-center gap-2 min-h-11 px-4 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           <ChevronLeft size={16} /> Anterior
         </button>
 
-        <span className="text-xs text-gray-400">{indiceAtual + 1} de {total}</span>
+        <span className="text-xs text-gray-400 text-center">{indiceAtual + 1} de {total}</span>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2">
           {indiceAtual < total - 1 && (
             <button
               onClick={() => setAbaAtiva(i => Math.min(total - 1, i + 1))}
-              className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium transition-colors cursor-pointer"
+              className="flex items-center justify-center gap-2 min-h-11 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium transition-colors"
             >
               Próximo <ChevronRight size={16} />
             </button>
@@ -607,7 +631,7 @@ export default function NovoMembroPage() {
           <button
             onClick={salvar}
             disabled={salvando}
-            className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white rounded-xl text-sm font-medium transition-colors"
+            className="flex items-center justify-center gap-2 min-h-11 px-4 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white rounded-xl text-sm font-medium transition-colors"
           >
             <Save size={16} /> {salvando ? 'Salvando...' : 'Salvar membro'}
           </button>

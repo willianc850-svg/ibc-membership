@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-const rotasPublicas = ['/login', '/esqueci-senha', '/auth/callback']
+const rotasPublicas = ['/login', '/esqueci-senha', '/auth/callback', '/cadastro']
 
 function ehRotaPublica(pathname: string) {
   return rotasPublicas.some((rota) => pathname === rota || pathname.startsWith(`${rota}/`))

@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { usePermissao } from '@/lib/hooks/usePermissao'
 import { labelRole } from '@/lib/tesouraria'
+import { VincularFichaUsuario } from '@/components/VincularConta'
 import ModalConfirmacao from '@/components/ModalConfirmacao'
 import {
   Settings, User, Lock, Save, Loader2,
-  CheckCircle, UserPlus, Trash2, ShieldCheck, Shield, Mail,
+  CheckCircle, UserPlus, Trash2, ShieldCheck, Shield, Mail, Smartphone,
 } from 'lucide-react'
 
 type Role = 'SUPER_ADMIN' | 'ADMIN' | 'TESOUREIRO' | 'USER'
@@ -19,6 +20,8 @@ type UsuarioSistema = {
   role: Role
   created_at: string
   convite_pendente: boolean
+  membro_id: string | null
+  membro_nome: string | null
 }
 
 const inputClass = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -274,7 +277,7 @@ export default function ConfiguracoesPage() {
           ) : (
             <div className="divide-y divide-gray-100">
               {usuarios.map(u => (
-                <div key={u.id} className="flex items-center gap-3 py-3">
+                <div key={u.id} className="flex flex-wrap items-center gap-3 py-3">
                   <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
                     {u.nome?.charAt(0).toUpperCase() ?? '?'}
                   </div>
@@ -300,6 +303,13 @@ export default function ConfiguracoesPage() {
                       <span className="text-xs text-gray-500 px-2">
                         {labelRole(u.role)}
                       </span>
+                    )}
+                    {u.role === 'USER' && (
+                      <VincularFichaUsuario
+                        usuarioId={u.id}
+                        membroIdAtual={u.membro_id ?? null}
+                        onAtualizado={carregarUsuarios}
+                      />
                     )}
                     {u.role !== 'SUPER_ADMIN' && (
                       <button
@@ -331,6 +341,17 @@ export default function ConfiguracoesPage() {
         </div>
       )}
 
+      <div className="bg-white border border-gray-200 rounded-2xl p-5 flex items-start gap-3">
+        <Smartphone size={20} className="text-indigo-600 shrink-0 mt-0.5" />
+        <div>
+          <p className="text-sm font-medium text-gray-900">Usar no celular</p>
+          <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+            Não precisa baixar na loja. No celular, abra este site no Safari (iPhone) ou Chrome (Android),
+            toque em Compartilhar e escolha <strong>Adicionar à tela inicial</strong>. O atalho abre como um app.
+          </p>
+        </div>
+      </div>
+
       <div className="bg-white border border-gray-200 rounded-2xl p-5 flex items-center gap-3">
         {role === 'SUPER_ADMIN'
           ? <ShieldCheck size={20} className="text-indigo-600" />
@@ -346,12 +367,12 @@ export default function ConfiguracoesPage() {
           </p>
           <p className="text-xs text-gray-500 mt-0.5">
             {role === 'SUPER_ADMIN'
-              ? 'Você pode convidar admins, tesoureiros e usuários, e acessar a tesouraria.'
+              ? 'Você pode convidar admins, tesoureiros e usuários, acessar tesouraria e documentos.'
               : role === 'TESOUREIRO'
               ? 'Você acessa a tesouraria e pode editar qualquer registro de membro.'
               : role === 'ADMIN'
-              ? 'Você pode convidar usuários e gerenciar os que você criou.'
-              : 'Você pode visualizar tudo e editar apenas o seu próprio registro.'
+              ? 'Você pode convidar usuários, gerenciar os que você criou e acessar documentos.'
+              : 'Você consulta membros, PGMs e ministérios, e pode editar apenas o seu próprio cadastro.'
             }
           </p>
         </div>
