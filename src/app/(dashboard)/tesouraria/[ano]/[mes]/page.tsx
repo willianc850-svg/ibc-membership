@@ -199,34 +199,35 @@ function FichaMes() {
   const totalSaidas = soma(saidas)
 
   if (!ano || mes < 1 || mes > 12) {
-    return <p className="text-sm text-red-600">Mês inválido.</p>
+    return <p data-cy="msgMesInvalido" className="text-sm text-red-600">Mês inválido.</p>
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div data-cy="pageTesourariaMes" className="max-w-5xl mx-auto space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{MESES[mes - 1]} {ano}</h1>
           <p className="text-sm text-gray-500">Controle financeiro — Igreja Batista Central de Ipatinga</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button onClick={() => irMes(-1)} className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Mês anterior</button>
-          <button onClick={() => irMes(1)} className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Próximo mês</button>
-          <Link href="/tesouraria" className="px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Resumo anual</Link>
-          <Link href="/tesouraria/relatorio" className="px-3 py-2 text-sm border border-gray-300 rounded-lg">Relatório</Link>
+          <button onClick={() => irMes(-1)} data-cy="btnMesAnterior" className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Mês anterior</button>
+          <button onClick={() => irMes(1)} data-cy="btnProximoMes" className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Próximo mês</button>
+          <Link href="/tesouraria" data-cy="btnResumoAnual" className="px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Resumo anual</Link>
+          <Link href="/tesouraria/relatorio" data-cy="btnRelatorioTrimestral" className="px-3 py-2 text-sm border border-gray-300 rounded-lg">Relatório</Link>
         </div>
       </div>
 
-      {erro && <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3">{erro}</div>}
+      {erro && <div data-cy="msgErroTesourariaMes" className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3">{erro}</div>}
 
       {carregando ? (
-        <p className="text-sm text-gray-400 py-8 text-center">Carregando lançamentos...</p>
+        <p data-cy="loadingLancamentos" className="text-sm text-gray-400 py-8 text-center">Carregando lançamentos...</p>
       ) : (
         <>
           <Secao titulo="Entradas">
             {BLOCOS_RECEITA.map((bloco) => (
               <Bloco
                 key={bloco.categoria}
+                categoria={bloco.categoria}
                 titulo={bloco.titulo}
                 itens={lista.filter((l) => l.categoria === bloco.categoria)}
                 ehGasto={false}
@@ -247,6 +248,7 @@ function FichaMes() {
             {BLOCOS_GASTO.map((bloco) => (
               <Bloco
                 key={bloco.categoria}
+                categoria={bloco.categoria}
                 titulo={bloco.titulo}
                 itens={lista.filter((l) => l.categoria === bloco.categoria)}
                 ehGasto
@@ -267,9 +269,9 @@ function FichaMes() {
           <div className="bg-white border border-gray-200 rounded-2xl p-6">
             <h2 className="font-semibold text-gray-900 mb-4">Resultado final ao término do mês</h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <CardResumo rotulo="Entradas" valor={totalEntradas} cor="text-emerald-700" />
-              <CardResumo rotulo="Saídas" valor={totalSaidas} cor="text-red-700" />
-              <CardResumo rotulo="Saldo" valor={totalEntradas - totalSaidas} cor={totalEntradas - totalSaidas >= 0 ? 'text-indigo-700' : 'text-red-700'} />
+              <CardResumo rotulo="Entradas" valor={totalEntradas} cor="text-emerald-700" dataCy="totalEntradasMes" />
+              <CardResumo rotulo="Saídas" valor={totalSaidas} cor="text-red-700" dataCy="totalSaidasMes" />
+              <CardResumo rotulo="Saldo" valor={totalEntradas - totalSaidas} cor={totalEntradas - totalSaidas >= 0 ? 'text-indigo-700' : 'text-red-700'} dataCy="totalSaldoMes" />
             </div>
           </div>
         </>
@@ -297,9 +299,9 @@ function Secao({ titulo, children }: { titulo: string; children: React.ReactNode
   )
 }
 
-function CardResumo({ rotulo, valor, cor }: { rotulo: string; valor: number; cor: string }) {
+function CardResumo({ rotulo, valor, cor, dataCy }: { rotulo: string; valor: number; cor: string; dataCy: string }) {
   return (
-    <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
+    <div data-cy={dataCy} className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
       <p className="text-xs text-gray-500">{rotulo}</p>
       <p className={`text-lg font-semibold ${cor}`}>{formatarMoeda(valor)}</p>
     </div>
@@ -307,9 +309,10 @@ function CardResumo({ rotulo, valor, cor }: { rotulo: string; valor: number; cor
 }
 
 function Bloco({
-  titulo, itens, ehGasto, formAberto, form, salvando,
+  categoria, titulo, itens, ehGasto, formAberto, form, salvando,
   onNovo, onEditar, onExcluir, onFechar, onChange, onSalvar, onAbrirComprovante,
 }: {
+  categoria: CategoriaLancamento
   titulo: string
   itens: Lancamento[]
   ehGasto: boolean
@@ -326,30 +329,35 @@ function Bloco({
 }) {
   const total = soma(itens)
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-5">
+    <div data-cy={`blocoLancamento-${categoria}`} className="bg-white border border-gray-200 rounded-2xl p-5">
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-medium text-gray-900">{titulo}</h3>
-        <button onClick={onNovo} className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-700">
+        <button onClick={onNovo} data-cy={`btnAdicionarLancamento-${categoria}`} className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-700">
           <Plus size={14} /> Adicionar
         </button>
       </div>
 
       {formAberto && (
-        <form onSubmit={onSalvar} className="bg-gray-50 rounded-xl p-4 mb-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <form onSubmit={onSalvar} data-cy="formLancamento" className="bg-gray-50 rounded-xl p-4 mb-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
           <input className={inputClass} placeholder="Descrição" required
+            data-cy="inputDescricaoLancamento"
             value={form.descricao} onChange={(e) => onChange({ ...form, descricao: e.target.value })} />
           <input className={inputClass} type="date" required
+            data-cy="inputDataLancamento"
             value={form.data} onChange={(e) => onChange({ ...form, data: e.target.value })} />
           <input className={inputClass} placeholder="Valor" required
+            data-cy="inputValorLancamento"
             value={form.valor} onChange={(e) => onChange({ ...form, valor: e.target.value })} />
           <input className={inputClass} placeholder="Comentário (opcional)"
+            data-cy="inputComentarioLancamento"
             value={form.comentario} onChange={(e) => onChange({ ...form, comentario: e.target.value })} />
           {ehGasto && (
             <>
               <select className={inputClass} value={form.tag}
+                data-cy="selectTagLancamento"
                 onChange={(e) => onChange({ ...form, tag: e.target.value })}>
-                <option value="">Tag (opcional)</option>
-                {TAGS_GASTO.map((tag) => <option key={tag} value={tag}>{tag}</option>)}
+                <option value="" data-cy="optTagSelecione">Tag (opcional)</option>
+                {TAGS_GASTO.map((tag) => <option key={tag} value={tag} data-cy={`optTag-${tag}`}>{tag}</option>)}
               </select>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Comprovante (PDF, JPG ou PNG)</label>
@@ -357,20 +365,22 @@ function Bloco({
                   type="file"
                   accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
                   className="block w-full text-sm text-gray-600"
+                  data-cy="fileComprovanteLancamento"
                   onChange={(e) => onChange({ ...form, arquivo: e.target.files?.[0] ?? null })}
                 />
                 {form.comprovante_path && !form.arquivo && (
-                  <p className="text-xs text-gray-400 mt-1">Já existe um comprovante anexado.</p>
+                  <p data-cy="msgComprovanteAnexado" className="text-xs text-gray-400 mt-1">Já existe um comprovante anexado.</p>
                 )}
               </div>
             </>
           )}
           <div className="flex gap-2 sm:col-span-2">
             <button type="submit" disabled={salvando}
+              data-cy="btnSalvarLancamento"
               className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg disabled:opacity-60">
               {salvando ? <Loader2 size={14} className="animate-spin" /> : form.id ? 'Salvar' : 'Adicionar'}
             </button>
-            <button type="button" onClick={onFechar} className="px-4 py-2 border border-gray-300 text-sm rounded-lg">
+            <button type="button" onClick={onFechar} data-cy="btnCancelarLancamento" className="px-4 py-2 border border-gray-300 text-sm rounded-lg">
               Cancelar
             </button>
           </div>
@@ -378,7 +388,7 @@ function Bloco({
       )}
 
       {itens.length === 0 ? (
-        <p className="text-sm text-gray-400">Nenhum lançamento neste bloco.</p>
+        <p data-cy={`vazioBloco-${categoria}`} className="text-sm text-gray-400">Nenhum lançamento neste bloco.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -395,7 +405,7 @@ function Bloco({
             </thead>
             <tbody>
               {itens.map((item) => (
-                <tr key={item.id} className="border-b border-gray-50">
+                <tr key={item.id} data-cy={`lancamentoItem-${item.id}`} className="border-b border-gray-50">
                   <td className="py-2 pr-3">
                     <p className="text-gray-900">{item.descricao}</p>
                     {item.comentario && <p className="text-xs text-gray-400">{item.comentario}</p>}
@@ -408,6 +418,7 @@ function Bloco({
                     <td className="py-2 pr-3">
                       {item.comprovante_path ? (
                         <button type="button" onClick={() => onAbrirComprovante?.(item.comprovante_path!)}
+                          data-cy={`btnVerComprovante-${item.id}`}
                           className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700">
                           <Paperclip size={14} /> Ver
                         </button>
@@ -415,15 +426,15 @@ function Bloco({
                     </td>
                   )}
                   <td className="py-2 text-right whitespace-nowrap">
-                    <button onClick={() => onEditar(item)} className="p-1.5 text-gray-400 hover:text-indigo-600"><Pencil size={14} /></button>
-                    <button onClick={() => onExcluir(item)} className="p-1.5 text-gray-400 hover:text-red-600"><Trash2 size={14} /></button>
+                    <button onClick={() => onEditar(item)} data-cy={`btnEditarLancamento-${item.id}`} className="p-1.5 text-gray-400 hover:text-indigo-600"><Pencil size={14} /></button>
+                    <button onClick={() => onExcluir(item)} data-cy={`btnExcluirLancamento-${item.id}`} className="p-1.5 text-gray-400 hover:text-red-600"><Trash2 size={14} /></button>
                   </td>
                 </tr>
               ))}
               <tr>
                 <td className="pt-3 font-medium text-gray-900">Total</td>
                 <td></td>
-                <td className="pt-3 font-medium text-gray-900">{formatarMoeda(total)}</td>
+                <td data-cy={`totalBloco-${categoria}`} className="pt-3 font-medium text-gray-900">{formatarMoeda(total)}</td>
                 <td className="pt-3 text-gray-500">100%</td>
                 {ehGasto && <td></td>}
                 {ehGasto && <td></td>}

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
   BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer,
-  XAxis, YAxis, Tooltip, Legend
+  XAxis, YAxis, Tooltip,
 } from 'recharts'
 import {
   Users, UserCheck, UserMinus, Eye,
@@ -37,14 +37,15 @@ function faixaEtaria(idade: number) {
   return 'Melhor idade (60+)'
 }
 
-function CardResumo({ icone: Icone, label, valor, cor }: {
+function CardResumo({ icone: Icone, label, valor, cor, dataCy }: {
   icone: React.ElementType
   label: string
   valor: number
   cor: string
+  dataCy: string
 }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-5 flex items-center gap-4">
+    <div data-cy={dataCy} className="bg-white border border-gray-200 rounded-2xl p-5 flex items-center gap-4">
       <div className={`p-3 rounded-xl ${cor}`}>
         <Icone size={20} className="text-white" />
       </div>
@@ -72,8 +73,6 @@ export default function DashboardPage() {
   const [carregando, setCarregando] = useState(true)
   const supabase = createClient()
 
-  useEffect(() => { carregar() }, [])
-
   async function carregar() {
     const [{ data: mems }, { count: cells }, { count: mins }] = await Promise.all([
       supabase.from('membros').select(
@@ -87,6 +86,13 @@ export default function DashboardPage() {
     setTotalMinisterios(mins ?? 0)
     setCarregando(false)
   }
+
+  useEffect(() => {
+    // Carga inicial: setState só depois do await em carregar().
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void carregar()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // --- Cálculos ---
   const total = membros.length
@@ -163,11 +169,11 @@ export default function DashboardPage() {
   }
 
   if (carregando) return (
-    <div className="flex items-center justify-center py-24 text-gray-400">Carregando...</div>
+    <div data-cy="loadingDashboard" className="flex items-center justify-center py-24 text-gray-400">Carregando...</div>
   )
 
   return (
-    <div className="space-y-6">
+    <div data-cy="pageDashboard" className="space-y-6">
 
       {/* Título */}
       <div className="flex items-center gap-3">
@@ -180,14 +186,14 @@ export default function DashboardPage() {
 
       {/* Cards de resumo */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <CardResumo icone={Users}      label="Total de membros"  valor={total}          cor="bg-indigo-500" />
-        <CardResumo icone={UserCheck}  label="Membros ativos"    valor={ativos}         cor="bg-green-500"  />
-        <CardResumo icone={Eye}        label="Visitantes"        valor={visitantes}     cor="bg-blue-500"   />
-        <CardResumo icone={UserMinus}  label="Afastados"         valor={afastados}      cor="bg-yellow-500" />
+        <CardResumo icone={Users}      label="Total de membros"  valor={total}          cor="bg-indigo-500" dataCy="totalMembros" />
+        <CardResumo icone={UserCheck}  label="Membros ativos"    valor={ativos}         cor="bg-green-500"  dataCy="totalMembrosAtivos" />
+        <CardResumo icone={Eye}        label="Visitantes"        valor={visitantes}     cor="bg-blue-500"   dataCy="totalVisitantes" />
+        <CardResumo icone={UserMinus}  label="Afastados"         valor={afastados}      cor="bg-yellow-500" dataCy="totalAfastados" />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white border border-gray-200 rounded-2xl p-5 flex items-center gap-4">
+        <div data-cy="totalPgms" className="bg-white border border-gray-200 rounded-2xl p-5 flex items-center gap-4">
           <div className="p-3 rounded-xl bg-purple-500">
             <UsersRound size={20} className="text-white" />
           </div>
@@ -196,7 +202,7 @@ export default function DashboardPage() {
             <p className="text-sm text-gray-500">PGMs ativos</p>
           </div>
         </div>
-        <div className="bg-white border border-gray-200 rounded-2xl p-5 flex items-center gap-4">
+        <div data-cy="totalMinisterios" className="bg-white border border-gray-200 rounded-2xl p-5 flex items-center gap-4">
           <div className="p-3 rounded-xl bg-pink-500">
             <HandHeart size={20} className="text-white" />
           </div>
@@ -212,7 +218,7 @@ export default function DashboardPage() {
 
         <Grafico titulo="Status de membresia">
           {dadosStatus.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-8">Sem dados</p>
+            <p data-cy="vazioStatus" className="text-sm text-gray-400 text-center py-8">Sem dados</p>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
@@ -234,7 +240,7 @@ export default function DashboardPage() {
 
         <Grafico titulo="Distribuição por gênero">
           {dadosGenero.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-8">Sem dados</p>
+            <p data-cy="vazioGenero" className="text-sm text-gray-400 text-center py-8">Sem dados</p>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
@@ -258,7 +264,7 @@ export default function DashboardPage() {
 
         <Grafico titulo="Faixa etária">
           {dadosFaixa.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-8">Sem dados de nascimento</p>
+            <p data-cy="vazioFaixaEtaria" className="text-sm text-gray-400 text-center py-8">Sem dados de nascimento</p>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={dadosFaixa} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
@@ -278,7 +284,7 @@ export default function DashboardPage() {
 
         <Grafico titulo="Novos membros (últimos 6 meses)">
           {dadosCrescimento.every(d => d.value === 0) ? (
-            <p className="text-sm text-gray-400 text-center py-8">Sem admissões registradas</p>
+            <p data-cy="vazioAdmissoes" className="text-sm text-gray-400 text-center py-8">Sem admissões registradas</p>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={dadosCrescimento} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
@@ -298,7 +304,7 @@ export default function DashboardPage() {
 
         <Grafico titulo="Escolaridade">
           {dadosEscolaridade.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-8">Sem dados</p>
+            <p data-cy="vazioEscolaridade" className="text-sm text-gray-400 text-center py-8">Sem dados</p>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={dadosEscolaridade} layout="vertical"
@@ -314,7 +320,7 @@ export default function DashboardPage() {
 
         <Grafico titulo="Principais bairros">
           {dadosBairros.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-8">Sem dados de bairro</p>
+            <p data-cy="vazioBairros" className="text-sm text-gray-400 text-center py-8">Sem dados de bairro</p>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={dadosBairros} layout="vertical"

@@ -6,12 +6,12 @@ export default function TesourariaGuard({ children }: { children: React.ReactNod
   const { podeTesouraria, carregando } = usePermissao()
 
   if (carregando) {
-    return <div className="py-24 text-center text-gray-400 text-sm">Carregando...</div>
+    return <div data-cy="loadingPermissao" className="py-24 text-center text-gray-400 text-sm">Carregando...</div>
   }
 
   if (!podeTesouraria) {
     return (
-      <div className="max-w-lg mx-auto bg-white border border-gray-200 rounded-2xl p-8 text-center">
+      <div data-cy="msgAcessoRestrito" className="max-w-lg mx-auto bg-white border border-gray-200 rounded-2xl p-8 text-center">
         <h1 className="text-lg font-semibold text-gray-900 mb-2">Acesso restrito</h1>
         <p className="text-sm text-gray-500">
           A tesouraria é visível apenas para Super Admin e Tesoureiro.

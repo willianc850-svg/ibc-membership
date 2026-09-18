@@ -134,9 +134,9 @@ function NovaReuniaoConteudo() {
   const statusPermitidos = ['Pastor', 'Diretoria', 'Líder de Ministério']
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div data-cy="pageNovaReuniao" className="max-w-3xl mx-auto">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/reunioes" className="p-2 rounded-lg hover:bg-gray-100 text-gray-600">
+        <Link href="/reunioes" data-cy="btnVoltarReunioes" className="p-2 rounded-lg hover:bg-gray-100 text-gray-600">
           <ChevronLeft size={20} />
         </Link>
         <div>
@@ -151,34 +151,34 @@ function NovaReuniaoConteudo() {
           <h2 className="font-semibold text-gray-900">Dados da reunião</h2>
 
           <Campo label="Título *">
-            <input className={inputClass} placeholder="Ex: Reunião de Diretoria — Janeiro 2025"
+            <input data-cy="inputTituloReuniao" className={inputClass} placeholder="Ex: Reunião de Diretoria — Janeiro 2025"
               value={form.titulo} onChange={e => set('titulo', e.target.value)} />
           </Campo>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Campo label="Tipo *">
-              <select className={inputClass} value={form.tipo} onChange={e => set('tipo', e.target.value)}>
-                <option>Diretoria</option>
-                <option>Ministério</option>
-                <option>Assembleia</option>
-                <option>Outra</option>
+              <select data-cy="selectTipoReuniao" className={inputClass} value={form.tipo} onChange={e => set('tipo', e.target.value)}>
+                <option data-cy="optTipoReuniaoDiretoria">Diretoria</option>
+                <option data-cy="optTipoReuniaoMinisterio">Ministério</option>
+                <option data-cy="optTipoReuniaoAssembleia">Assembleia</option>
+                <option data-cy="optTipoReuniaoOutra">Outra</option>
               </select>
             </Campo>
 
             {form.tipo === 'Ministério' && (
               <Campo label="Ministério">
-                <select className={inputClass} value={form.ministerio_id}
+                <select data-cy="selectMinisterioReuniao" className={inputClass} value={form.ministerio_id}
                   onChange={e => set('ministerio_id', e.target.value)}>
-                  <option value="">Selecione</option>
+                  <option value="" data-cy="optMinisterioSelecione">Selecione</option>
                   {ministerios.map(m => (
-                    <option key={m.id} value={m.id}>{m.nome}</option>
+                    <option key={m.id} value={m.id} data-cy={`optMinisterio-${m.id}`}>{m.nome}</option>
                   ))}
                 </select>
               </Campo>
             )}
 
             <Campo label="Data *">
-              <input type="date" className={inputClass} value={form.data_reuniao}
+              <input type="date" data-cy="inputDataReuniao" className={inputClass} value={form.data_reuniao}
                 onChange={e => set('data_reuniao', e.target.value)} />
             </Campo>
 
@@ -186,19 +186,20 @@ function NovaReuniaoConteudo() {
               <InputHorario24
                 value={form.horario}
                 onChange={(valor) => set('horario', valor)}
+                dataCy="inputHorarioReuniao"
               />
             </Campo>
 
             <div className="sm:col-span-2">
               <Campo label="Local">
-                <input className={inputClass} placeholder="Ex: Sala de reuniões, Templo principal..."
+                <input data-cy="inputLocalReuniao" className={inputClass} placeholder="Ex: Sala de reuniões, Templo principal..."
                   value={form.local} onChange={e => set('local', e.target.value)} />
               </Campo>
             </div>
 
             <div className="sm:col-span-2">
               <Campo label="Pauta / Tópicos a serem discutidos">
-                <textarea className={inputClass + ' resize-none'} rows={4}
+                <textarea data-cy="textareaPauta" className={inputClass + ' resize-none'} rows={4}
                   placeholder="Liste os tópicos que serão discutidos na reunião..."
                   value={form.pauta} onChange={e => set('pauta', e.target.value)} />
               </Campo>
@@ -217,13 +218,14 @@ function NovaReuniaoConteudo() {
               placeholder="Buscar membro pelo nome..."
               value={busca}
               onChange={e => buscarMembros(e.target.value)}
+              data-cy="inputBuscaParticipante"
             />
           </div>
 
           {resultados.length > 0 && (
-            <div className="border border-gray-200 rounded-lg overflow-hidden mb-3">
+            <div data-cy="listaResultadosBusca" className="border border-gray-200 rounded-lg overflow-hidden mb-3">
               {resultados.map(m => (
-                <button key={m.id} onClick={() => adicionarParticipante(m)}
+                <button key={m.id} onClick={() => adicionarParticipante(m)} data-cy={`btnAdicionarParticipante-${m.id}`}
                   className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-indigo-50 transition-colors text-left border-b border-gray-100 last:border-0">
                   <span className="text-sm text-gray-900">{m.nome_completo}</span>
                   <span className="text-xs text-gray-400">{m.status_membresia}</span>
@@ -233,22 +235,22 @@ function NovaReuniaoConteudo() {
           )}
 
           {participantes.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-6">
+            <p data-cy="vazioParticipantes" className="text-sm text-gray-400 text-center py-6">
               Nenhum participante adicionado ainda
             </p>
           ) : (
-            <div className="space-y-2">
+            <div data-cy="listaParticipantes" className="space-y-2">
               {participantes.map(p => {
                 const podeConfirmar = statusPermitidos.includes(p.status_membresia)
                 return (
-                  <div key={p.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-2.5">
+                  <div key={p.id} data-cy={`participanteItem-${p.id}`} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-2.5">
                     <div>
                       <p className="text-sm font-medium text-gray-900">{p.nome_completo}</p>
                       <p className="text-xs text-gray-400">{p.status_membresia}
                         {podeConfirmar && <span className="ml-2 text-indigo-500">· poderá confirmar presença</span>}
                       </p>
                     </div>
-                    <button onClick={() => removerParticipante(p.id)}
+                    <button onClick={() => removerParticipante(p.id)} data-cy={`btnRemoverParticipante-${p.id}`}
                       className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
                       <X size={14} />
                     </button>
@@ -260,13 +262,13 @@ function NovaReuniaoConteudo() {
         </div>
 
         {erro && (
-          <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3">
+          <div data-cy="msgErroNovaReuniao" className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3">
             {erro}
           </div>
         )}
 
         <div className="flex justify-end">
-          <button onClick={salvar} disabled={salvando}
+          <button onClick={salvar} disabled={salvando} data-cy="btnCriarReuniao"
             className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-medium rounded-xl transition-colors cursor-pointer">
             <Save size={16} /> {salvando ? 'Salvando...' : 'Criar reunião'}
           </button>

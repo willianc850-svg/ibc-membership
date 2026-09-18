@@ -26,9 +26,11 @@ type UsuarioSistema = {
 
 const inputClass = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
 
-function Mensagem({ msg }: { msg: { tipo: 'sucesso' | 'erro'; texto: string } }) {
+function Mensagem({ msg, contexto }: { msg: { tipo: 'sucesso' | 'erro'; texto: string }; contexto: string }) {
   return (
-    <div className={`flex items-center gap-2 text-sm px-4 py-3 rounded-xl ${
+    <div
+      data-cy={`msg${msg.tipo === 'sucesso' ? 'Sucesso' : 'Erro'}${contexto}`}
+      className={`flex items-center gap-2 text-sm px-4 py-3 rounded-xl ${
       msg.tipo === 'sucesso'
         ? 'bg-green-50 border border-green-200 text-green-700'
         : 'bg-red-50 border border-red-200 text-red-600'
@@ -194,11 +196,11 @@ export default function ConfiguracoesPage() {
   }
 
   if (carregandoRole) return (
-    <div className="flex items-center justify-center py-24 text-gray-400">Carregando...</div>
+    <div data-cy="loadingConfiguracoes" className="flex items-center justify-center py-24 text-gray-400">Carregando...</div>
   )
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div data-cy="pageConfiguracoes" className="max-w-2xl mx-auto space-y-6">
 
       <div className="flex items-center gap-3 mb-2">
         <Settings size={24} className="text-indigo-600" />
@@ -217,6 +219,7 @@ export default function ConfiguracoesPage() {
             </div>
             <button
               onClick={() => setMostrarFormUser(!mostrarFormUser)}
+              data-cy="btnNovoUsuario"
               className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-3 py-2 rounded-xl transition-colors"
             >
               <UserPlus size={14} /> Novo usuário
@@ -224,7 +227,7 @@ export default function ConfiguracoesPage() {
           </div>
 
           {mostrarFormUser && (
-            <form onSubmit={criarUsuario} className="bg-gray-50 rounded-xl p-4 mb-5 space-y-3">
+            <form onSubmit={criarUsuario} data-cy="formConviteUsuario" className="bg-gray-50 rounded-xl p-4 mb-5 space-y-3">
               <p className="text-sm font-medium text-gray-700">
                 {isSuperAdmin ? 'Convidar admin, tesoureiro ou usuário' : 'Convidar usuário'}
               </p>
@@ -235,32 +238,37 @@ export default function ConfiguracoesPage() {
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">Nome</label>
                   <input className={inputClass} placeholder="Nome completo"
+                    data-cy="inputNomeConvite"
                     value={novoUser.nome} onChange={e => setNovoUser(p => ({ ...p, nome: e.target.value }))} required />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">E-mail</label>
                   <input type="email" className={inputClass} placeholder="email@exemplo.com"
+                    data-cy="inputEmailConvite"
                     value={novoUser.email} onChange={e => setNovoUser(p => ({ ...p, email: e.target.value }))} required />
                 </div>
                 {isSuperAdmin && (
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1">Nível de acesso</label>
                     <select className={inputClass} value={novoUser.role}
+                      data-cy="selectRoleConvite"
                       onChange={e => setNovoUser(p => ({ ...p, role: e.target.value as Role }))}>
-                      <option value="USER">Usuário</option>
-                      <option value="ADMIN">Admin</option>
-                      <option value="TESOUREIRO">Tesoureiro</option>
+                      <option value="USER" data-cy="optRoleConviteUser">Usuário</option>
+                      <option value="ADMIN" data-cy="optRoleConviteAdmin">Admin</option>
+                      <option value="TESOUREIRO" data-cy="optRoleConviteTesoureiro">Tesoureiro</option>
                     </select>
                   </div>
                 )}
               </div>
-              {msgUser && <Mensagem msg={msgUser} />}
+              {msgUser && <Mensagem msg={msgUser} contexto="Usuario" />}
               <div className="flex gap-2">
                 <button type="submit" disabled={criandoUser}
+                  data-cy="btnEnviarConvite"
                   className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors">
                   {criandoUser ? <><Loader2 size={14} className="animate-spin" /> Enviando...</> : 'Enviar convite'}
                 </button>
                 <button type="button" onClick={() => setMostrarFormUser(false)}
+                  data-cy="btnCancelarConvite"
                   className="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
                   Cancelar
                 </button>
@@ -268,16 +276,16 @@ export default function ConfiguracoesPage() {
             </form>
           )}
 
-          {!mostrarFormUser && msgUser && <div className="mb-4"><Mensagem msg={msgUser} /></div>}
+          {!mostrarFormUser && msgUser && <div className="mb-4"><Mensagem msg={msgUser} contexto="Usuario" /></div>}
 
           {carregandoUsers ? (
-            <p className="text-sm text-gray-400 text-center py-4">Carregando usuários...</p>
+            <p data-cy="loadingUsuarios" className="text-sm text-gray-400 text-center py-4">Carregando usuários...</p>
           ) : usuarios.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-4">Nenhum usuário para exibir.</p>
+            <p data-cy="vazioUsuarios" className="text-sm text-gray-400 text-center py-4">Nenhum usuário para exibir.</p>
           ) : (
-            <div className="divide-y divide-gray-100">
+            <div data-cy="listaUsuarios" className="divide-y divide-gray-100">
               {usuarios.map(u => (
-                <div key={u.id} className="flex flex-wrap items-center gap-3 py-3">
+                <div key={u.id} data-cy={`usuarioItem-${u.id}`} className="flex flex-wrap items-center gap-3 py-3">
                   <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
                     {u.nome?.charAt(0).toUpperCase() ?? '?'}
                   </div>
@@ -285,7 +293,7 @@ export default function ConfiguracoesPage() {
                     <p className="text-sm font-medium text-gray-900 truncate">{u.nome || '—'}</p>
                     <p className="text-xs text-gray-400 truncate">{u.email}</p>
                     {u.convite_pendente && (
-                      <p className="text-xs text-amber-600 mt-0.5">Convite pendente</p>
+                      <p data-cy={`badgeConvitePendente-${u.id}`} className="text-xs text-amber-600 mt-0.5">Convite pendente</p>
                     )}
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
@@ -293,11 +301,12 @@ export default function ConfiguracoesPage() {
                       <select
                         value={u.role}
                         onChange={e => alterarRole(u.id, e.target.value as Role)}
+                        data-cy={`selectRoleUsuario-${u.id}`}
                         className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       >
-                        <option value="USER">Usuário</option>
-                        <option value="ADMIN">Admin</option>
-                        <option value="TESOUREIRO">Tesoureiro</option>
+                        <option value="USER" data-cy={`optRoleUsuarioUser-${u.id}`}>Usuário</option>
+                        <option value="ADMIN" data-cy={`optRoleUsuarioAdmin-${u.id}`}>Admin</option>
+                        <option value="TESOUREIRO" data-cy={`optRoleUsuarioTesoureiro-${u.id}`}>Tesoureiro</option>
                       </select>
                     ) : (
                       <span className="text-xs text-gray-500 px-2">
@@ -317,6 +326,7 @@ export default function ConfiguracoesPage() {
                         title="Reenviar e-mail de acesso"
                         disabled={reenviandoId === u.id}
                         onClick={() => reenviarConvite(u.id)}
+                        data-cy={`btnReenviarConvite-${u.id}`}
                         className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors disabled:opacity-50"
                       >
                         {reenviandoId === u.id
@@ -328,6 +338,7 @@ export default function ConfiguracoesPage() {
                       <button
                         type="button"
                         onClick={() => setExcluindo(u)}
+                        data-cy={`btnExcluirUsuario-${u.id}`}
                         className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                       >
                         <Trash2 size={14} />
@@ -362,7 +373,7 @@ export default function ConfiguracoesPage() {
           : <Shield size={20} className="text-gray-400" />
         }
         <div>
-          <p className="text-sm font-medium text-gray-900">
+          <p data-cy="badgeNivelAcesso" className="text-sm font-medium text-gray-900">
             Seu nível de acesso: {labelRole(role ?? 'USER')}
           </p>
           <p className="text-xs text-gray-500 mt-0.5">
@@ -383,14 +394,16 @@ export default function ConfiguracoesPage() {
           <User size={18} className="text-indigo-600" />
           <h2 className="font-semibold text-gray-900">Dados da conta</h2>
         </div>
-        <form onSubmit={salvarPerfil} className="space-y-4">
+        <form onSubmit={salvarPerfil} data-cy="formPerfil" className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
             <input type="email" className={inputClass} value={email}
+              data-cy="inputEmailPerfil"
               onChange={e => setEmail(e.target.value)} required />
           </div>
-          {msgPerfil && <Mensagem msg={msgPerfil} />}
+          {msgPerfil && <Mensagem msg={msgPerfil} contexto="Perfil" />}
           <button type="submit" disabled={salvandoPerfil}
+            data-cy="btnSalvarEmail"
             className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-medium rounded-xl transition-colors">
             {salvandoPerfil ? <><Loader2 size={16} className="animate-spin" /> Salvando...</> : <><Save size={16} /> Salvar e-mail</>}
           </button>
@@ -402,19 +415,22 @@ export default function ConfiguracoesPage() {
           <Lock size={18} className="text-indigo-600" />
           <h2 className="font-semibold text-gray-900">Alterar senha</h2>
         </div>
-        <form onSubmit={salvarSenha} className="space-y-4">
+        <form onSubmit={salvarSenha} data-cy="formAlterarSenha" className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Nova senha</label>
             <input type="password" className={inputClass} placeholder="Mínimo 6 caracteres"
+              data-cy="inputNovaSenha"
               value={novaSenha} onChange={e => setNovaSenha(e.target.value)} required />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Confirmar nova senha</label>
             <input type="password" className={inputClass} placeholder="Repita a nova senha"
+              data-cy="inputConfirmarNovaSenha"
               value={confirmarSenha} onChange={e => setConfirmarSenha(e.target.value)} required />
           </div>
-          {msgSenha && <Mensagem msg={msgSenha} />}
+          {msgSenha && <Mensagem msg={msgSenha} contexto="Senha" />}
           <button type="submit" disabled={salvandoSenha}
+            data-cy="btnAlterarSenha"
             className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-medium rounded-xl transition-colors">
             {salvandoSenha ? <><Loader2 size={16} className="animate-spin" /> Salvando...</> : <><Save size={16} /> Alterar senha</>}
           </button>

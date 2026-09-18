@@ -44,7 +44,6 @@ function DocumentosConteudo() {
   })
 
   async function carregar() {
-    setCarregando(true)
     const { data, error } = await supabase
       .from('documentos')
       .select('*')
@@ -55,7 +54,9 @@ function DocumentosConteudo() {
   }
 
   useEffect(() => {
-    carregar()
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void carregar()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function salvar() {
@@ -131,7 +132,7 @@ function DocumentosConteudo() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div data-cy="pageDocumentos" className="max-w-4xl mx-auto space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <FileText className="text-indigo-600" />
@@ -143,6 +144,7 @@ function DocumentosConteudo() {
         {!mostrarForm && (
           <button
             onClick={() => { setMostrarForm(true); setErro('') }}
+            data-cy="btnNovoDocumento"
             className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors"
           >
             <Plus size={16} /> Novo documento
@@ -151,13 +153,13 @@ function DocumentosConteudo() {
       </div>
 
       {erro && (
-        <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-2.5">
+        <div data-cy="msgErroDocumentos" className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-2.5">
           {erro}
         </div>
       )}
 
       {mostrarForm && (
-        <div className="bg-white border border-gray-200 rounded-2xl p-5 space-y-4">
+        <div data-cy="formDocumento" className="bg-white border border-gray-200 rounded-2xl p-5 space-y-4">
           <h2 className="font-semibold text-gray-900">Anexar documento</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
@@ -167,6 +169,7 @@ function DocumentosConteudo() {
                 placeholder="Ex: ATA da assembleia de março"
                 value={form.titulo}
                 onChange={(e) => setForm((p) => ({ ...p, titulo: e.target.value }))}
+                data-cy="inputTituloDocumento"
               />
             </div>
             <div>
@@ -175,9 +178,10 @@ function DocumentosConteudo() {
                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm"
                 value={form.tipo}
                 onChange={(e) => setForm((p) => ({ ...p, tipo: e.target.value as TipoDocumento }))}
+                data-cy="selectTipoDocumento"
               >
                 {TIPOS_DOCUMENTO.map((t) => (
-                  <option key={t.valor} value={t.valor}>{t.label}</option>
+                  <option key={t.valor} value={t.valor} data-cy={`optTipoDocumento-${t.valor}`}>{t.label}</option>
                 ))}
               </select>
             </div>
@@ -187,6 +191,7 @@ function DocumentosConteudo() {
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
                 className="block w-full text-sm text-gray-600"
+                data-cy="fileDocumento"
                 onChange={(e) => setForm((p) => ({ ...p, arquivo: e.target.files?.[0] ?? null }))}
               />
             </div>
@@ -195,6 +200,7 @@ function DocumentosConteudo() {
             <button
               onClick={salvar}
               disabled={salvando}
+              data-cy="btnSalvarDocumento"
               className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg"
             >
               {salvando && <Loader2 size={14} className="animate-spin" />}
@@ -202,6 +208,7 @@ function DocumentosConteudo() {
             </button>
             <button
               onClick={() => { setMostrarForm(false); setForm({ titulo: '', tipo: 'ata', arquivo: null }) }}
+              data-cy="btnCancelarDocumento"
               className="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50"
             >
               Cancelar
@@ -212,14 +219,14 @@ function DocumentosConteudo() {
 
       <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
         {carregando ? (
-          <div className="py-16 text-center text-gray-400 text-sm">Carregando...</div>
+          <div data-cy="loadingDocumentos" className="py-16 text-center text-gray-400 text-sm">Carregando...</div>
         ) : lista.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+          <div data-cy="vazioDocumentos" className="flex flex-col items-center justify-center py-16 text-gray-400">
             <FileText size={40} className="mb-3 opacity-30" />
             <p className="font-medium">Nenhum documento anexado</p>
           </div>
         ) : (
-          <table className="w-full">
+          <table data-cy="listaDocumentos" className="w-full">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50">
                 <th className="text-left text-xs font-medium text-gray-500 px-4 py-3">Documento</th>
@@ -230,7 +237,7 @@ function DocumentosConteudo() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {lista.map((doc) => (
-                <tr key={doc.id} className="hover:bg-gray-50">
+                <tr key={doc.id} data-cy={`documentoItem-${doc.id}`} className="hover:bg-gray-50">
                   <td className="px-4 py-3 text-sm font-medium text-gray-900">{doc.titulo}</td>
                   <td className="px-4 py-3 hidden sm:table-cell">
                     <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">
@@ -244,12 +251,14 @@ function DocumentosConteudo() {
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => abrir(doc.storage_path)}
+                        data-cy={`btnAbrirDocumento-${doc.id}`}
                         className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-medium"
                       >
                         <ExternalLink size={14} /> Abrir
                       </button>
                       <button
                         onClick={() => setExcluindo(doc)}
+                        data-cy={`btnExcluirDocumento-${doc.id}`}
                         className="inline-flex items-center gap-1 text-xs text-red-600 hover:text-red-800 font-medium"
                       >
                         <Trash2 size={14} /> Excluir

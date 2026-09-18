@@ -118,38 +118,38 @@ function RelatorioTrimestral() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div data-cy="pageRelatorioTesouraria" className="max-w-5xl mx-auto space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Relatório trimestral</h1>
           <p className="text-sm text-gray-500">{titulo}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <select className="border border-gray-300 rounded-lg px-3 py-2 text-sm" value={ano}
+          <select data-cy="selectAnoRelatorio" className="border border-gray-300 rounded-lg px-3 py-2 text-sm" value={ano}
             onChange={(e) => setAno(Number(e.target.value))}>
-            {[anoAtual - 1, anoAtual, anoAtual + 1].map((a) => <option key={a} value={a}>{a}</option>)}
+            {[anoAtual - 1, anoAtual, anoAtual + 1].map((a) => <option key={a} value={a} data-cy={`optAnoRelatorio-${a}`}>{a}</option>)}
           </select>
-          <select className="border border-gray-300 rounded-lg px-3 py-2 text-sm" value={trimestre}
+          <select data-cy="selectTrimestre" className="border border-gray-300 rounded-lg px-3 py-2 text-sm" value={trimestre}
             onChange={(e) => setTrimestre(Number(e.target.value))}>
-            {TRIMESTRES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+            {TRIMESTRES.map((t) => <option key={t.id} value={t.id} data-cy={`optTrimestre-${t.id}`}>{t.label}</option>)}
           </select>
-          <button onClick={exportarPdf} className="flex items-center gap-2 px-3 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700">
+          <button onClick={exportarPdf} data-cy="btnExportarPdfTesouraria" className="flex items-center gap-2 px-3 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700">
             <FileDown size={14} /> Exportar PDF
           </button>
-          <Link href="/tesouraria" className="px-3 py-2 text-sm border border-gray-300 rounded-lg">Resumo</Link>
+          <Link href="/tesouraria" data-cy="btnResumoAnual" className="px-3 py-2 text-sm border border-gray-300 rounded-lg">Resumo</Link>
         </div>
       </div>
 
-      {erro && <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3">{erro}</div>}
+      {erro && <div data-cy="msgErroRelatorioTesouraria" className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3">{erro}</div>}
 
       {carregando ? (
-        <p className="text-sm text-gray-400 py-8 text-center">Carregando...</p>
+        <p data-cy="loadingRelatorioTesouraria" className="text-sm text-gray-400 py-8 text-center">Carregando...</p>
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <Card rotulo="Entradas" valor={totalEntradas} classe="text-emerald-700" />
-            <Card rotulo="Saídas" valor={totalSaidas} classe="text-red-700" />
-            <Card rotulo="Saldo" valor={totalEntradas - totalSaidas} classe={totalEntradas - totalSaidas >= 0 ? 'text-indigo-700' : 'text-red-700'} />
+            <Card rotulo="Entradas" valor={totalEntradas} classe="text-emerald-700" dataCy="totalEntradasTrimestre" />
+            <Card rotulo="Saídas" valor={totalSaidas} classe="text-red-700" dataCy="totalSaidasTrimestre" />
+            <Card rotulo="Saldo" valor={totalEntradas - totalSaidas} classe={totalEntradas - totalSaidas >= 0 ? 'text-indigo-700' : 'text-red-700'} dataCy="totalSaldoTrimestre" />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -171,7 +171,7 @@ function RelatorioTrimestral() {
             <h2 className="font-semibold text-gray-900 mb-3">Por mês</h2>
             {porMes.map((m) => (
               <div key={m.mes} className="flex justify-between text-sm py-1.5 border-b border-gray-50 last:border-0">
-                <Link href={`/tesouraria/${ano}/${m.mes}`} className="text-indigo-600 hover:underline">{m.nome}</Link>
+                <Link href={`/tesouraria/${ano}/${m.mes}`} data-cy={`linkMesTesouraria-${m.mes}`} className="text-indigo-600 hover:underline">{m.nome}</Link>
                 <span>{formatarMoeda(m.entradas - m.saidas)}</span>
               </div>
             ))}
@@ -180,7 +180,7 @@ function RelatorioTrimestral() {
           <div className="bg-white border border-gray-200 rounded-2xl p-5 overflow-x-auto">
             <h2 className="font-semibold text-gray-900 mb-3">Lançamentos do trimestre</h2>
             {lista.length === 0 ? (
-              <p className="text-sm text-gray-400">Nenhum lançamento neste trimestre.</p>
+              <p data-cy="vazioRelatorioTesouraria" className="text-sm text-gray-400">Nenhum lançamento neste trimestre.</p>
             ) : (
               <table className="w-full text-sm">
                 <thead>
@@ -193,7 +193,7 @@ function RelatorioTrimestral() {
                 </thead>
                 <tbody>
                   {lista.map((item) => (
-                    <tr key={item.id} className="border-b border-gray-50">
+                    <tr key={item.id} data-cy={`lancamentoRelatorioItem-${item.id}`} className="border-b border-gray-50">
                       <td className="py-2 pr-3 whitespace-nowrap">{formatarDataISO(item.data)}</td>
                       <td className="py-2 pr-3">{item.descricao}</td>
                       <td className="py-2 pr-3 text-gray-500">{labelCategoria(item.categoria)}</td>
@@ -212,9 +212,9 @@ function RelatorioTrimestral() {
   )
 }
 
-function Card({ rotulo, valor, classe }: { rotulo: string; valor: number; classe: string }) {
+function Card({ rotulo, valor, classe, dataCy }: { rotulo: string; valor: number; classe: string; dataCy: string }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-4">
+    <div data-cy={dataCy} className="bg-white border border-gray-200 rounded-2xl p-4">
       <p className="text-xs text-gray-500">{rotulo}</p>
       <p className={`text-lg font-semibold mt-1 ${classe}`}>{formatarMoeda(valor)}</p>
     </div>

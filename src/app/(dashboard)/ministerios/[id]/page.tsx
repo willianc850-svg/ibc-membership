@@ -65,11 +65,7 @@ export default function MinisterioDetalhesPage() {
   const [funcaoEditada, setFuncaoEditada] = useState('')
   const supabase = createClient()
 
-  useEffect(() => { carregar() }, [id])
-
   async function carregar() {
-    setCarregando(true)
-
     const { data: min } = await supabase
       .from('ministerios').select('*').eq('id', id).single()
     setMinisterio(min)
@@ -79,17 +75,37 @@ export default function MinisterioDetalhesPage() {
       .select('funcao, membro_id, membros(id, nome_completo, telefone, foto_url)')
       .eq('ministerio_id', id)
 
-    const lista: Membro[] = (vinculos ?? []).map((v: any) => ({
-      ...v.membros,
-      funcao: v.funcao,
-      is_lider: v.membros.id === min?.lider_id,
-    }))
+    type Vinculo = {
+      funcao: string | null
+      membros: {
+        id: string
+        nome_completo: string
+        telefone: string | null
+        foto_url: string | null
+      } | null
+    }
+
+    const lista: Membro[] = ((vinculos ?? []) as unknown as Vinculo[]).flatMap((v) => {
+      const m = v.membros
+      if (!m) return []
+      return [{
+        ...m,
+        funcao: v.funcao,
+        is_lider: m.id === min?.lider_id,
+      }]
+    })
 
     // Líder sempre primeiro
     lista.sort((a, b) => (b.is_lider ? 1 : 0) - (a.is_lider ? 1 : 0))
     setMembros(lista)
     setCarregando(false)
   }
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void carregar()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id])
 
   async function buscarMembros(termo: string) {
     setBusca(termo)
@@ -166,16 +182,16 @@ export default function MinisterioDetalhesPage() {
   }
 
   if (carregando) return (
-    <div className="flex items-center justify-center py-24 text-gray-400">Carregando...</div>
+    <div data-cy="loadingMinisterio" className="flex items-center justify-center py-24 text-gray-400">Carregando...</div>
   )
 
   const lider = membros.find(m => m.is_lider)
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div data-cy="pageMinisterioDetalhe" className="max-w-3xl mx-auto">
       {/* Cabeçalho */}
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/ministerios" className="p-2 rounded-lg hover:bg-gray-100 text-gray-600">
+        <Link href="/ministerios" data-cy="btnVoltarMinisterios" className="p-2 rounded-lg hover:bg-gray-100 text-gray-600">
           <ChevronLeft size={20} />
         </Link>
         <div className="flex-1">
@@ -190,6 +206,7 @@ export default function MinisterioDetalhesPage() {
         {isAdmin && (
         <button
           onClick={() => { setMostrarBusca(!mostrarBusca); setBusca(''); setMembroSelecionado(null); setNovaFuncao('') }}
+          data-cy="btnAdicionarMembroMinisterio"
           className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors"
         >
           <UserPlus size={16} /> Adicionar
@@ -199,7 +216,7 @@ export default function MinisterioDetalhesPage() {
 
       {/* Card do líder */}
       {lider && (
-        <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 mb-4 flex items-center gap-3">
+        <div data-cy="cardLiderMinisterio" className="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 mb-4 flex items-center gap-3">
           <div className="relative">
             {lider.foto_url ? (
               <img src={lider.foto_url} alt={lider.nome_completo}
@@ -222,7 +239,7 @@ export default function MinisterioDetalhesPage() {
               </span>
             )}
           </div>
-          <Link href={`/membros/${lider.id}`}
+          <Link href={`/membros/${lider.id}`} data-cy="linkVerPerfilLider"
             className="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex-shrink-0">
             Ver perfil
           </Link>
@@ -231,7 +248,7 @@ export default function MinisterioDetalhesPage() {
 
       {/* Formulário de adição */}
       {isAdmin && mostrarBusca && (
-        <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-6 space-y-3">
+        <div data-cy="formVincularMinisterio" className="bg-white border border-gray-200 rounded-2xl p-4 mb-6 space-y-3">
           <p className="text-sm font-medium text-gray-700">Adicionar membro ao ministério</p>
 
           {/* Busca */}
@@ -245,18 +262,20 @@ export default function MinisterioDetalhesPage() {
                 value={busca}
                 onChange={e => { buscarMembros(e.target.value); setMembroSelecionado(null) }}
                 autoFocus
+                data-cy="inputBuscaMembroMinisterio"
               />
               {membroSelecionado && (
                 <button onClick={() => { setBusca(''); setMembroSelecionado(null) }}
+                  data-cy="btnLimparSelecao"
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                   <X size={14} />
                 </button>
               )}
             </div>
             {resultados.length > 0 && (
-              <div className="mt-1 border border-gray-200 rounded-lg overflow-hidden">
+              <div data-cy="listaResultadosBusca" className="mt-1 border border-gray-200 rounded-lg overflow-hidden">
                 {resultados.map(m => (
-                  <button key={m.id} onClick={() => selecionarMembro(m)}
+                  <button key={m.id} onClick={() => selecionarMembro(m)} data-cy={`btnSelecionarMembro-${m.id}`}
                     className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-indigo-50 transition-colors text-left border-b border-gray-100 last:border-0">
                     <span className="text-sm text-gray-900">{m.nome_completo}</span>
                     <span className="text-xs text-gray-400">{m.status_membresia}</span>
@@ -278,6 +297,7 @@ export default function MinisterioDetalhesPage() {
                 value={novaFuncao}
                 onChange={e => setNovaFuncao(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') vincular() }}
+                data-cy="inputFuncaoMinisterio"
               />
               {novaFuncao && (
                 <div className="mt-2 flex items-center gap-2">
@@ -294,12 +314,14 @@ export default function MinisterioDetalhesPage() {
             <button
               onClick={vincular}
               disabled={!membroSelecionado}
+              data-cy="btnConfirmarVinculo"
               className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-colors"
             >
               <Plus size={14} /> Adicionar
             </button>
             <button
               onClick={() => { setMostrarBusca(false); setBusca(''); setMembroSelecionado(null); setNovaFuncao('') }}
+              data-cy="btnCancelarVinculo"
               className="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancelar
@@ -311,7 +333,7 @@ export default function MinisterioDetalhesPage() {
       {/* Lista de membros */}
       <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
         <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-700">
+          <span data-cy="totalMembrosMinisterio" className="text-sm font-medium text-gray-700">
             {membros.length} {membros.length === 1 ? 'membro' : 'membros'}
           </span>
           {isAdmin && (
@@ -322,17 +344,17 @@ export default function MinisterioDetalhesPage() {
         </div>
 
         {membros.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+          <div data-cy="vazioMembrosMinisterio" className="flex flex-col items-center justify-center py-16 text-gray-400">
             <HandHeart size={40} className="mb-3 opacity-30" />
             <p className="font-medium">Nenhum membro neste ministério</p>
             {isAdmin && (
-            <p className="text-sm mt-1">Clique em "Adicionar" para vincular membros</p>
+            <p className="text-sm mt-1">Clique em Adicionar para vincular membros</p>
             )}
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div data-cy="listaMembrosMinisterio" className="divide-y divide-gray-100">
             {membros.map(m => (
-              <div key={m.id} className={`flex items-center gap-3 px-5 py-3 ${m.is_lider ? 'bg-indigo-50/50' : ''}`}>
+              <div key={m.id} data-cy={`membroMinisterioItem-${m.id}`} className={`flex items-center gap-3 px-5 py-3 ${m.is_lider ? 'bg-indigo-50/50' : ''}`}>
                 {/* Avatar */}
                 <div className="relative flex-shrink-0">
                   {m.foto_url ? (
@@ -367,12 +389,15 @@ export default function MinisterioDetalhesPage() {
                           if (e.key === 'Escape') { setEditandoFuncao(null); setFuncaoEditada('') }
                         }}
                         placeholder="Ex: Cantor..."
+                        data-cy={`inputEditarFuncao-${m.id}`}
                       />
                       <button onClick={() => salvarFuncao(m.id)}
+                        data-cy={`btnSalvarFuncao-${m.id}`}
                         className="text-xs text-indigo-600 font-medium hover:text-indigo-800">
                         Salvar
                       </button>
                       <button onClick={() => { setEditandoFuncao(null); setFuncaoEditada('') }}
+                        data-cy={`btnCancelarFuncao-${m.id}`}
                         className="text-xs text-gray-400 hover:text-gray-600">
                         Cancelar
                       </button>
@@ -380,6 +405,7 @@ export default function MinisterioDetalhesPage() {
                   ) : isAdmin ? (
                     <button
                       onClick={() => { setEditandoFuncao(m.id); setFuncaoEditada(m.funcao ?? '') }}
+                      data-cy={`btnEditarFuncao-${m.id}`}
                       className="flex items-center gap-1.5 mt-1 group"
                     >
                       {m.funcao ? (
@@ -405,6 +431,7 @@ export default function MinisterioDetalhesPage() {
                   <button
                     onClick={() => definirLider(m.id)}
                     title={m.is_lider ? 'Remover como líder' : 'Definir como líder'}
+                    data-cy={`btnDefinirLider-${m.id}`}
                     className={`p-1.5 rounded-lg transition-colors text-sm ${
                       m.is_lider
                         ? 'text-yellow-500 hover:bg-yellow-50'
@@ -415,11 +442,13 @@ export default function MinisterioDetalhesPage() {
                   </button>
                   )}
                   <Link href={`/membros/${m.id}`}
+                    data-cy={`linkVerMembro-${m.id}`}
                     className="text-xs text-indigo-600 hover:text-indigo-800 font-medium px-1">
                     Ver
                   </Link>
                   {isAdmin && (
                   <button onClick={() => desvincular(m.id)}
+                    data-cy={`btnDesvincularMembro-${m.id}`}
                     className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors">
                     <Trash2 size={14} />
                   </button>

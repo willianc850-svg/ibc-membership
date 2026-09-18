@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useSyncExternalStore } from 'react'
+import { useSyncExternalStore } from 'react'
 
 const STORAGE_KEY = 'ibc-theme'
 
@@ -33,17 +33,11 @@ export function useTema() {
     lerTema,
     () => 'light' as const,
   )
-  const [pronto, setPronto] = useState(false)
-
-  useEffect(() => {
-    setPronto(true)
-  }, [])
-
   function alternar() {
     const proximo = lerTema() === 'dark' ? 'light' : 'dark'
     aplicarTema(proximo)
     emitir()
   }
 
-  return { tema, dark: tema === 'dark', pronto, alternar }
+  return { tema, dark: tema === 'dark', alternar }
 }

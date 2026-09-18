@@ -43,19 +43,35 @@ function ResumoAnual() {
   }, [ano])
 
   const linhas = useMemo(() => {
-    let acumulado = 0
-    return MESES.map((nome, idx) => {
+    return MESES.reduce<Array<{
+      mes: number
+      nome: string
+      entradas: number
+      saidas: number
+      saldoMes: number
+      saldoAnterior: number
+      saldoAtual: number
+      dizimos: number
+      ofertas: number
+      missoes: number
+      outros: number
+      fixas: number
+      variaveis: number
+      outrosGastos: number
+      ofertasSaida: number
+      temDados: boolean
+    }>>((acc, nome, idx) => {
       const mes = idx + 1
       const doMes = lista.filter((l) => Number(l.data.slice(5, 7)) === mes)
       const entradas = soma(doMes.filter((l) => l.tipo === 'entrada'))
       const saidas = soma(doMes.filter((l) => l.tipo === 'saida'))
       const saldoMes = entradas - saidas
-      const saldoAnterior = acumulado
-      acumulado += saldoMes
+      const saldoAnterior = acc.at(-1)?.saldoAtual ?? 0
+      const saldoAtual = saldoAnterior + saldoMes
       const porCat = (cat: CategoriaLancamento) =>
         soma(doMes.filter((l) => l.categoria === cat))
-      return {
-        mes, nome, entradas, saidas, saldoMes, saldoAnterior, saldoAtual: acumulado,
+      acc.push({
+        mes, nome, entradas, saidas, saldoMes, saldoAnterior, saldoAtual,
         dizimos: porCat('dizimos'),
         ofertas: porCat('ofertas'),
         missoes: porCat('missoes'),
@@ -65,8 +81,9 @@ function ResumoAnual() {
         outrosGastos: porCat('outros_gastos'),
         ofertasSaida: porCat('ofertas_saida'),
         temDados: doMes.length > 0,
-      }
-    })
+      })
+      return acc
+    }, [])
   }, [lista])
 
   const mesesComDados = linhas.filter((l) => l.temDados)
@@ -74,7 +91,7 @@ function ResumoAnual() {
     mesesComDados.length ? mesesComDados.reduce((a, l) => a + fn(l), 0) / mesesComDados.length : 0
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div data-cy="pageTesouraria" className="max-w-6xl mx-auto space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Wallet className="text-indigo-600" />
@@ -84,36 +101,36 @@ function ResumoAnual() {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <select className="border border-gray-300 rounded-lg px-3 py-2 text-sm" value={ano}
+          <select data-cy="selectAnoTesouraria" className="border border-gray-300 rounded-lg px-3 py-2 text-sm" value={ano}
             onChange={(e) => setAno(Number(e.target.value))}>
             {[anoAtual - 1, anoAtual, anoAtual + 1].map((a) => (
-              <option key={a} value={a}>{a}</option>
+              <option key={a} value={a} data-cy={`optAnoTesouraria-${a}`}>{a}</option>
             ))}
           </select>
-          <Link href="/tesouraria/relatorio" className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
+          <Link href="/tesouraria/relatorio" data-cy="btnRelatorioTrimestral" className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
             <FileText size={14} /> Relatório trimestral
           </Link>
         </div>
       </div>
 
-      {erro && <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3">{erro}</div>}
+      {erro && <div data-cy="msgErroTesouraria" className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3">{erro}</div>}
 
       {carregando ? (
-        <p className="text-sm text-gray-400 py-8 text-center">Carregando...</p>
+        <p data-cy="loadingTesouraria" className="text-sm text-gray-400 py-8 text-center">Carregando...</p>
       ) : (
         <>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <MiniCard rotulo="Média de entradas" valor={media((l) => l.entradas)} />
-            <MiniCard rotulo="Média de saídas" valor={media((l) => l.saidas)} />
-            <MiniCard rotulo="Média de dízimos" valor={media((l) => l.dizimos)} />
-            <MiniCard rotulo="Média de ofertas" valor={media((l) => l.ofertas)} />
+            <MiniCard rotulo="Média de entradas" valor={media((l) => l.entradas)} dataCy="totalMediaEntradas" />
+            <MiniCard rotulo="Média de saídas" valor={media((l) => l.saidas)} dataCy="totalMediaSaidas" />
+            <MiniCard rotulo="Média de dízimos" valor={media((l) => l.dizimos)} dataCy="totalMediaDizimos" />
+            <MiniCard rotulo="Média de ofertas" valor={media((l) => l.ofertas)} dataCy="totalMediaOfertas" />
           </div>
 
           <Tabela titulo="Movimento mensal" colunas={['Mês', 'Saldo anterior', 'Entradas', 'Saídas', 'Saldo do mês', 'Saldo atual']}>
             {linhas.map((l) => (
               <tr key={l.mes} className="border-b border-gray-50">
                 <td className="py-2 pr-3">
-                  <Link href={`/tesouraria/${ano}/${l.mes}`} className="text-indigo-600 hover:underline">{l.nome}</Link>
+                  <Link href={`/tesouraria/${ano}/${l.mes}`} data-cy={`linkMesTesouraria-${l.mes}`} className="text-indigo-600 hover:underline">{l.nome}</Link>
                 </td>
                 <td className="py-2 pr-3">{formatarMoeda(l.saldoAnterior)}</td>
                 <td className="py-2 pr-3 text-emerald-700">{formatarMoeda(l.entradas)}</td>
@@ -167,9 +184,9 @@ function ResumoAnual() {
   )
 }
 
-function MiniCard({ rotulo, valor }: { rotulo: string; valor: number }) {
+function MiniCard({ rotulo, valor, dataCy }: { rotulo: string; valor: number; dataCy: string }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-4">
+    <div data-cy={dataCy} className="bg-white border border-gray-200 rounded-2xl p-4">
       <p className="text-xs text-gray-500">{rotulo}</p>
       <p className="text-lg font-semibold text-gray-900 mt-1">{formatarMoeda(valor)}</p>
     </div>

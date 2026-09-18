@@ -138,19 +138,20 @@ export default function PgmsPage() {
   const inputClass = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
 
   return (
-    <div>
+    <div data-cy="pagePgm">
       {/* Cabeçalho */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <UsersRound size={24} className="text-indigo-600" />
           <div>
             <h1 className="text-2xl font-bold text-gray-900">PGMs</h1>
-            <p className="text-sm text-gray-500">Pequenos Grupos Multiplicadores — {pgms.length} cadastrados</p>
+            <p data-cy="totalPgms" className="text-sm text-gray-500">Pequenos Grupos Multiplicadores — {pgms.length} cadastrados</p>
           </div>
         </div>
         {isAdmin && !mostrarForm && (
           <button
             onClick={abrirNovo}
+            data-cy="btnNovoPgm"
             className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors"
           >
             <Plus size={16} /> Novo PGM
@@ -160,37 +161,37 @@ export default function PgmsPage() {
 
       {/* Formulário */}
       {isAdmin && mostrarForm && (
-        <div className="bg-white border border-gray-200 rounded-2xl p-5 mb-6">
+        <div data-cy="formPgm" className="bg-white border border-gray-200 rounded-2xl p-5 mb-6">
           <h2 className="font-semibold text-gray-900 mb-4">
             {editando ? 'Editar PGM' : 'Novo PGM'}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div className="sm:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Nome *</label>
-              <input className={inputClass} placeholder="Ex: PGM Bela Vista"
+              <input data-cy="inputNomePgm" className={inputClass} placeholder="Ex: PGM Bela Vista"
                 value={form.nome} onChange={e => setF('nome', e.target.value)} />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Bairro</label>
-              <input className={inputClass} placeholder="Bairro onde se reúne"
+              <input data-cy="inputBairroPgm" className={inputClass} placeholder="Bairro onde se reúne"
                 value={form.bairro} onChange={e => setF('bairro', e.target.value)} />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Líder</label>
-              <select className={inputClass} value={form.lider_id}
+              <select data-cy="selectLiderPgm" className={inputClass} value={form.lider_id}
                 onChange={e => setF('lider_id', e.target.value)}>
-                <option value="">Selecione o líder</option>
+                <option value="" data-cy="optLiderSelecione">Selecione o líder</option>
                 {membros.map(m => (
-                  <option key={m.id} value={m.id}>{m.nome_completo}</option>
+                  <option key={m.id} value={m.id} data-cy={`optLider-${m.id}`}>{m.nome_completo}</option>
                 ))}
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Dia da semana</label>
-              <select className={inputClass} value={form.dia_semana}
+              <select data-cy="selectDiaSemana" className={inputClass} value={form.dia_semana}
                 onChange={e => setF('dia_semana', e.target.value)}>
-                <option value="">Selecione</option>
-                {diasSemana.map(d => <option key={d}>{d}</option>)}
+                <option value="" data-cy="optDiaSemanaSelecione">Selecione</option>
+                {diasSemana.map(d => <option key={d} data-cy={`optDiaSemana-${d}`}>{d}</option>)}
               </select>
             </div>
             <div>
@@ -199,15 +200,16 @@ export default function PgmsPage() {
                 key={editando?.id ?? 'novo'}
                 value={form.horario}
                 onChange={(valor) => setF('horario', valor)}
+                dataCy="inputHorarioPgm"
               />
             </div>
           </div>
           <div className="flex gap-2">
-            <button onClick={salvar} disabled={salvando || !form.nome.trim()}
+            <button onClick={salvar} disabled={salvando || !form.nome.trim()} data-cy="btnSalvarPgm"
               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
               {salvando ? 'Salvando...' : editando ? 'Salvar alterações' : 'Criar PGM'}
             </button>
-            <button onClick={cancelar}
+            <button onClick={cancelar} data-cy="btnCancelarPgm"
               className="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
               Cancelar
             </button>
@@ -217,16 +219,16 @@ export default function PgmsPage() {
 
       {/* Lista */}
       {carregando ? (
-        <div className="flex items-center justify-center py-16 text-gray-400">Carregando...</div>
+        <div data-cy="loadingPgms" className="flex items-center justify-center py-16 text-gray-400">Carregando...</div>
       ) : pgms.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+        <div data-cy="vazioPgms" className="flex flex-col items-center justify-center py-16 text-gray-400">
           <UsersRound size={40} className="mb-3 opacity-30" />
           <p className="font-medium">Nenhum PGM cadastrado</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div data-cy="listaPgms" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {pgms.map(p => (
-            <div key={p.id} className="bg-white border border-gray-200 rounded-2xl p-5 flex flex-col gap-3">
+            <div key={p.id} data-cy={`pgmItem-${p.id}`} className="bg-white border border-gray-200 rounded-2xl p-5 flex flex-col gap-3">
               <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-gray-900">{p.nome}</h3>
@@ -236,11 +238,11 @@ export default function PgmsPage() {
                 </div>
                 {isAdmin && (
                 <div className="flex items-center gap-1 ml-2 flex-shrink-0">
-                  <button onClick={() => abrirEdicao(p)}
+                  <button onClick={() => abrirEdicao(p)} data-cy={`btnEditarPgm-${p.id}`}
                     className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors">
                     <Pencil size={14} />
                   </button>
-                  <button onClick={() => deletar(p.id)}
+                  <button onClick={() => deletar(p.id)} data-cy={`btnExcluirPgm-${p.id}`}
                     className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors">
                     <Trash2 size={14} />
                   </button>
@@ -266,7 +268,7 @@ export default function PgmsPage() {
                   <Users size={14} />
                   {p.total_membros} {p.total_membros === 1 ? 'membro' : 'membros'}
                 </span>
-                <Link href={`/pgm/${p.id}`}
+                <Link href={`/pgm/${p.id}`} data-cy={`linkVerMembrosPgm-${p.id}`}
                   className="text-xs text-indigo-600 hover:text-indigo-800 font-medium">
                   Ver membros →
                 </Link>

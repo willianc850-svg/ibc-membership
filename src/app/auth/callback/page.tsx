@@ -79,7 +79,7 @@ export default function AuthCallbackPage() {
   }, [router])
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+    <div data-cy="pageAuthCallback" className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
       <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md text-center">
         <div className="mb-4 inline-flex">
           <LogoIbc size={72} />
@@ -87,9 +87,10 @@ export default function AuthCallbackPage() {
         {erro ? (
           <>
             <h1 className="text-lg font-semibold text-gray-900 mb-2">Não foi possível entrar</h1>
-            <p className="text-sm text-red-600 mb-6">{erro}</p>
+            <p data-cy="msgErroAuthCallback" className="text-sm text-red-600 mb-6">{erro}</p>
             <a
               href="/esqueci-senha"
+              data-cy="btnPedirNovoEmail"
               className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg px-4 py-2.5"
             >
               Pedir novo e-mail
@@ -98,7 +99,7 @@ export default function AuthCallbackPage() {
         ) : (
           <>
             <Loader2 size={24} className="animate-spin text-indigo-600 mx-auto mb-3" />
-            <p className="text-sm text-gray-500">Validando seu acesso...</p>
+            <p data-cy="loadingAuthCallback" className="text-sm text-gray-500">Validando seu acesso...</p>
           </>
         )}
       </div>

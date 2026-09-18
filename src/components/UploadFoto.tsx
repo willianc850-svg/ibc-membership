@@ -96,6 +96,7 @@ export default function UploadFoto({ fotoAtual, nome, onUpload }: Props) {
           <button
             type="button"
             onClick={removerFoto}
+            data-cy="btnRemoverFoto"
             className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full min-h-11 min-w-11 inline-flex items-center justify-center hover:bg-red-600 transition-colors"
           >
             <X size={12} />
@@ -118,18 +119,20 @@ export default function UploadFoto({ fotoAtual, nome, onUpload }: Props) {
           onChange={handleArquivo}
           className="hidden"
           disabled={uploading}
+          data-cy="fileFotoMembro"
         />
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
+          data-cy="btnTrocarFoto"
           className={`flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 cursor-pointer hover:bg-gray-50 transition-colors ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           <Camera size={14} />
           {uploading ? 'Enviando...' : preview ? 'Trocar foto' : 'Adicionar foto'}
         </button>
         <p className="text-xs text-gray-400 text-center mt-1">JPG, PNG ou WebP · Máx. 5MB</p>
-        {erro && <p className="text-xs text-red-600 text-center mt-1">{erro}</p>}
+        {erro && <p data-cy="msgErroUploadFoto" className="text-xs text-red-600 text-center mt-1">{erro}</p>}
       </div>
     </div>
   )

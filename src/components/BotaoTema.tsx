@@ -3,13 +3,20 @@
 import { Moon, Sun } from 'lucide-react'
 import { useTema } from '@/lib/hooks/useTema'
 
-export default function BotaoTema({ compacto = false }: { compacto?: boolean }) {
+export default function BotaoTema({
+  compacto = false,
+  dataCy = 'btnTema',
+}: {
+  compacto?: boolean
+  dataCy?: string
+}) {
   const { alternar } = useTema()
 
   return (
     <button
       type="button"
       onClick={alternar}
+      data-cy={dataCy}
       className={
         compacto
           ? 'inline-flex items-center justify-center min-h-11 min-w-11 rounded-lg text-gray-600 hover:bg-gray-200 transition-colors'

@@ -212,12 +212,12 @@ Use linguagem formal e eclesiástica adequada.`
   }
 
   if (carregando) return (
-    <div className="flex items-center justify-center py-24 text-gray-400">Carregando...</div>
+    <div data-cy="loadingReuniao" className="flex items-center justify-center py-24 text-gray-400">Carregando...</div>
   )
   if (!reuniao) return (
-    <div className="flex flex-col items-center justify-center py-24 text-gray-400">
+    <div data-cy="vazioReuniao" className="flex flex-col items-center justify-center py-24 text-gray-400">
       <p>Reunião não encontrada.</p>
-      <Link href="/reunioes" className="text-indigo-600 text-sm mt-2">Voltar</Link>
+      <Link href="/reunioes" data-cy="btnVoltarReunioes" className="text-indigo-600 text-sm mt-2">Voltar</Link>
     </div>
   )
 
@@ -227,12 +227,12 @@ Use linguagem formal e eclesiástica adequada.`
   const confirmados = participantes.filter(p => p.confirmado).length
 
   return (
-    <div className="max-w-3xl mx-auto space-y-4">
+    <div data-cy="pageReuniao" className="max-w-3xl mx-auto space-y-4">
 
       {/* Cabeçalho */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Link href="/reunioes" className="p-2 rounded-lg hover:bg-gray-100 text-gray-600">
+          <Link href="/reunioes" data-cy="btnVoltarReunioes" className="p-2 rounded-lg hover:bg-gray-100 text-gray-600">
             <ChevronLeft size={20} />
           </Link>
           <div>
@@ -251,7 +251,7 @@ Use linguagem formal e eclesiástica adequada.`
             <h1 className="text-xl font-bold text-gray-900">{reuniao.titulo}</h1>
           </div>
         </div>
-        <button onClick={deletarReuniao} disabled={deletando}
+        <button onClick={deletarReuniao} disabled={deletando} data-cy="btnExcluirReuniao"
           className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors flex-shrink-0">
           <Trash2 size={18} />
         </button>
@@ -295,7 +295,7 @@ Use linguagem formal e eclesiástica adequada.`
       {reuniao.status === 'finalizada' && podeConfirmar && meuParticipante && (
         <div className={`rounded-2xl p-5 border ${jaConfirmou ? 'bg-green-50 border-green-200' : 'bg-indigo-50 border-indigo-200'}`}>
           {jaConfirmou ? (
-            <div className="flex items-center gap-3">
+            <div data-cy="msgPresencaConfirmada" className="flex items-center gap-3">
               <CheckCircle size={20} className="text-green-600" />
               <div>
                 <p className="font-medium text-green-800">Presença confirmada!</p>
@@ -312,7 +312,7 @@ Use linguagem formal e eclesiástica adequada.`
                   Ao confirmar, você atesta que esteve presente e concorda com o conteúdo da ATA.
                 </p>
               </div>
-              <button onClick={confirmarPresenca} disabled={confirmando}
+              <button onClick={confirmarPresenca} disabled={confirmando} data-cy="btnConfirmarPresenca"
                 className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-medium rounded-xl transition-colors whitespace-nowrap cursor-pointer">
                 {confirmando ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
                 Confirmar presença
@@ -328,13 +328,13 @@ Use linguagem formal e eclesiástica adequada.`
           <h2 className="font-semibold text-gray-900">ATA da Reunião</h2>
           <div className="flex items-center gap-2">
             {!editandoAta && (
-              <button onClick={() => setEditandoAta(true)}
+              <button onClick={() => setEditandoAta(true)} data-cy="btnEditarAta"
                 className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
                 <Pencil size={14} /> Editar
               </button>
             )}
             {reuniao.ata_texto && !editandoAta && (
-              <button onClick={gerarPDF} disabled={gerandoPdf}
+              <button onClick={gerarPDF} disabled={gerandoPdf} data-cy="btnBaixarPdfAta"
                 className="flex items-center gap-1.5 px-3 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer">
                 {gerandoPdf ? <Loader2 size={14} className="animate-spin" /> : <FileDown size={14} />}
                 Baixar PDF
@@ -352,36 +352,38 @@ Use linguagem formal e eclesiástica adequada.`
               value={ataTexto}
               onChange={e => setAtaTexto(e.target.value)}
               placeholder="Digite ou gere a ATA com IA..."
+              data-cy="textareaAta"
             />
             <div className="flex flex-wrap gap-2">
-              <button onClick={gerarAtaComIA} disabled={gerando}
+              <button onClick={gerarAtaComIA} disabled={gerando} data-cy="btnGerarAtaIa"
                 className="flex items-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-60 text-white text-sm font-medium rounded-xl transition-colors cursor-pointer">
                 {gerando ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
                 {gerando ? 'Gerando com IA...' : 'Gerar ATA com IA'}
               </button>
-              <button onClick={salvarAta} disabled={salvandoAta}
+              <button onClick={salvarAta} disabled={salvandoAta} data-cy="btnSalvarAta"
                 className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-medium rounded-xl transition-colors cursor-pointer">
                 {salvandoAta ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
                 Salvar ATA
               </button>
               <button onClick={() => { setEditandoAta(false); setAtaTexto(reuniao.ata_texto ?? '') }}
+                data-cy="btnCancelarAta"
                 className="px-4 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 transition-colors">
                 Cancelar
               </button>
             </div>
           </div>
         ) : reuniao.ata_texto ? (
-          <div className="bg-gray-50 rounded-xl p-4">
+          <div data-cy="textoAta" className="bg-gray-50 rounded-xl p-4">
             <pre className="text-sm text-gray-800 whitespace-pre-wrap font-sans leading-relaxed">
               {reuniao.ata_texto}
             </pre>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-10 text-gray-400">
+          <div data-cy="vazioAta" className="flex flex-col items-center justify-center py-10 text-gray-400">
             <Sparkles size={32} className="mb-3 opacity-30" />
             <p className="font-medium text-sm">ATA ainda não gerada</p>
             <p className="text-xs mt-1 mb-4">Clique em Editar e use a IA para gerar automaticamente</p>
-            <button onClick={() => setEditandoAta(true)}
+            <button onClick={() => setEditandoAta(true)} data-cy="btnCriarAta"
               className="flex items-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-xl transition-colors cursor-pointer">
               <Sparkles size={16} /> Criar ATA
             </button>
@@ -394,23 +396,23 @@ Use linguagem formal e eclesiástica adequada.`
         <div className="px-5 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Users size={16} className="text-gray-500" />
-            <span className="font-medium text-gray-900 text-sm">
+            <span data-cy="totalParticipantes" className="font-medium text-gray-900 text-sm">
               {participantes.length} participante(s)
             </span>
           </div>
-          <span className="text-sm text-gray-500">
+          <span data-cy="totalConfirmados" className="text-sm text-gray-500">
             {confirmados} confirmado(s)
           </span>
         </div>
 
         {participantes.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-8">Nenhum participante registrado</p>
+          <p data-cy="vazioParticipantes" className="text-sm text-gray-400 text-center py-8">Nenhum participante registrado</p>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div data-cy="listaParticipantes" className="divide-y divide-gray-100">
             {participantes.map(p => {
               const podeConf = statusPermitidos.includes(p.membros.status_membresia)
               return (
-                <div key={p.id} className="flex items-center gap-3 px-5 py-3">
+                <div key={p.id} data-cy={`participanteItem-${p.id}`} className="flex items-center gap-3 px-5 py-3">
                   <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
                     {p.membros.nome_completo.charAt(0).toUpperCase()}
                   </div>
@@ -441,7 +443,7 @@ Use linguagem formal e eclesiástica adequada.`
       {/* Finalizar */}
       {reuniao.status === 'rascunho' && (
         <div className="flex justify-end">
-          <button onClick={finalizarReuniao}
+          <button onClick={finalizarReuniao} data-cy="btnFinalizarReuniao"
             className="flex items-center gap-2 px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-xl transition-colors cursor-pointer">
             <CheckCircle size={16} /> Finalizar reunião
           </button>

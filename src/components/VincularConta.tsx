@@ -16,18 +16,20 @@ export function VincularContaMembro({
 }) {
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
   const [valor, setValor] = useState(userIdAtual ?? '')
+  const [userIdVisto, setUserIdVisto] = useState(userIdAtual)
   const [salvando, setSalvando] = useState(false)
   const [msg, setMsg] = useState('')
+
+  if (userIdAtual !== userIdVisto) {
+    setUserIdVisto(userIdAtual)
+    setValor(userIdAtual ?? '')
+  }
 
   useEffect(() => {
     fetch('/api/admin/usuarios')
       .then((r) => r.json())
       .then((d) => setUsuarios(d.usuarios ?? []))
   }, [])
-
-  useEffect(() => {
-    setValor(userIdAtual ?? '')
-  }, [userIdAtual])
 
   async function salvar(usuarioId: string) {
     setSalvando(true)
@@ -66,17 +68,18 @@ export function VincularContaMembro({
           value={valor}
           disabled={salvando}
           onChange={(e) => salvar(e.target.value)}
+          data-cy="selectContaLogin"
         >
-          <option value="">Nenhuma conta</option>
+          <option value="" data-cy="optSemConta">Nenhuma conta</option>
           {usuarios.map((u) => (
-            <option key={u.id} value={u.id}>
+            <option key={u.id} value={u.id} data-cy={`optContaLogin-${u.id}`}>
               {(u.nome || u.email) + (u.membro_id && u.membro_id !== membroId ? ' (já vinculada)' : '')}
             </option>
           ))}
         </select>
-        {salvando && <Loader2 size={18} className="animate-spin text-gray-400 self-center" />}
+        {salvando && <Loader2 data-cy="loadingVinculoConta" size={18} className="animate-spin text-gray-400 self-center" />}
       </div>
-      {msg && <p className="text-xs text-gray-500 mt-2">{msg}</p>}
+      {msg && <p data-cy="msgVinculoConta" className="text-xs text-gray-500 mt-2">{msg}</p>}
     </div>
   )
 }
@@ -92,17 +95,19 @@ export function VincularFichaUsuario({
 }) {
   const [membros, setMembros] = useState<MembroOpt[]>([])
   const [valor, setValor] = useState(membroIdAtual ?? '')
+  const [membroVisto, setMembroVisto] = useState(membroIdAtual)
   const [salvando, setSalvando] = useState(false)
+
+  if (membroIdAtual !== membroVisto) {
+    setMembroVisto(membroIdAtual)
+    setValor(membroIdAtual ?? '')
+  }
 
   useEffect(() => {
     const supabase = createClient()
     supabase.from('membros').select('id, nome_completo, user_id').order('nome_completo')
       .then(({ data }) => setMembros(data ?? []))
   }, [])
-
-  useEffect(() => {
-    setValor(membroIdAtual ?? '')
-  }, [membroIdAtual])
 
   async function salvar(membroId: string) {
     setSalvando(true)
@@ -123,10 +128,11 @@ export function VincularFichaUsuario({
       disabled={salvando}
       title="Ficha de membro vinculada"
       onChange={(e) => salvar(e.target.value)}
+      data-cy={`selectFichaUsuario-${usuarioId}`}
     >
-      <option value="">Sem ficha</option>
+      <option value="" data-cy={`optSemFicha-${usuarioId}`}>Sem ficha</option>
       {membros.map((m) => (
-        <option key={m.id} value={m.id}>{m.nome_completo}</option>
+        <option key={m.id} value={m.id} data-cy={`optFichaUsuario-${usuarioId}-${m.id}`}>{m.nome_completo}</option>
       ))}
     </select>
   )

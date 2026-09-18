@@ -78,10 +78,7 @@ function RelatoriosConteudo() {
   const [mostrarFiltros, setMostrarFiltros] = useState(false)
   const supabase = createClient()
 
-  useEffect(() => { carregar() }, [])
-
   async function carregar() {
-    setCarregando(true)
     const { data } = await supabase
       .from('membros')
       .select(`
@@ -94,6 +91,12 @@ function RelatoriosConteudo() {
     setMembros(data ?? [])
     setCarregando(false)
   }
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void carregar()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   function setF(campo: keyof Filtros, valor: string) {
     setFiltros(prev => ({ ...prev, [campo]: valor }))
@@ -201,14 +204,14 @@ function RelatoriosConteudo() {
   const selectClass = "border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
 
   return (
-    <div>
+    <div data-cy="pageRelatorios">
       {/* Cabeçalho */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <BarChart3 size={24} className="text-indigo-600" />
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Relatórios</h1>
-            <p className="text-sm text-gray-500">
+            <p data-cy="totalRelatorios" className="text-sm text-gray-500">
               {membrosFiltrados.length} de {membros.length} membros
               {filtersAtivos > 0 && ` — ${filtersAtivos} filtro(s) ativo(s)`}
             </p>
@@ -217,6 +220,7 @@ function RelatoriosConteudo() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setMostrarFiltros(!mostrarFiltros)}
+            data-cy="btnFiltrosRelatorio"
             className={`flex items-center gap-2 px-4 py-2.5 border rounded-xl text-sm font-medium transition-colors
               ${filtersAtivos > 0
                 ? 'border-indigo-300 bg-indigo-50 text-indigo-700'
@@ -229,6 +233,7 @@ function RelatoriosConteudo() {
           <button
   onClick={exportarExcel}
   disabled={membrosFiltrados.length === 0}
+  data-cy="btnExportarExcel"
   className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors"
 >
   <Download size={16} /> Exportar Excel
@@ -238,11 +243,12 @@ function RelatoriosConteudo() {
 
       {/* Painel de filtros */}
       {mostrarFiltros && (
-        <div className="bg-white border border-gray-200 rounded-2xl p-5 mb-6">
+        <div data-cy="painelFiltrosRelatorio" className="bg-white border border-gray-200 rounded-2xl p-5 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-gray-900">Filtrar membros</h2>
             {filtersAtivos > 0 && (
               <button onClick={limparFiltros}
+                data-cy="btnLimparFiltros"
                 className="text-sm text-red-500 hover:text-red-700 font-medium">
                 Limpar filtros
               </button>
@@ -251,74 +257,74 @@ function RelatoriosConteudo() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Status</label>
-              <select className={selectClass + ' w-full'} value={filtros.status} onChange={e => setF('status', e.target.value)}>
-                <option value="">Todos</option>
-                <option>Membro Ativo</option>
-                <option>Visitante</option>
-                <option>Congregado</option>
-                <option>Afastado</option>
-                <option>Transferido</option>
+              <select data-cy="selectFiltroStatus" className={selectClass + ' w-full'} value={filtros.status} onChange={e => setF('status', e.target.value)}>
+                <option value="" data-cy="optFiltroStatusTodos">Todos</option>
+                <option data-cy="optFiltroStatusMembroAtivo">Membro Ativo</option>
+                <option data-cy="optFiltroStatusVisitante">Visitante</option>
+                <option data-cy="optFiltroStatusCongregado">Congregado</option>
+                <option data-cy="optFiltroStatusAfastado">Afastado</option>
+                <option data-cy="optFiltroStatusTransferido">Transferido</option>
               </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Gênero</label>
-              <select className={selectClass + ' w-full'} value={filtros.genero} onChange={e => setF('genero', e.target.value)}>
-                <option value="">Todos</option>
-                <option>Masculino</option>
-                <option>Feminino</option>
-                <option>Outro</option>
+              <select data-cy="selectFiltroGenero" className={selectClass + ' w-full'} value={filtros.genero} onChange={e => setF('genero', e.target.value)}>
+                <option value="" data-cy="optFiltroGeneroTodos">Todos</option>
+                <option data-cy="optFiltroGeneroMasculino">Masculino</option>
+                <option data-cy="optFiltroGeneroFeminino">Feminino</option>
+                <option data-cy="optFiltroGeneroOutro">Outro</option>
               </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Escolaridade</label>
-              <select className={selectClass + ' w-full'} value={filtros.escolaridade} onChange={e => setF('escolaridade', e.target.value)}>
-                <option value="">Todas</option>
-                <option>Ensino Fundamental Incompleto</option>
-                <option>Ensino Fundamental Completo</option>
-                <option>Ensino Médio Incompleto</option>
-                <option>Ensino Médio Completo</option>
-                <option>Ensino Superior Incompleto</option>
-                <option>Ensino Superior Completo</option>
-                <option>Pós-graduação</option>
+              <select data-cy="selectFiltroEscolaridade" className={selectClass + ' w-full'} value={filtros.escolaridade} onChange={e => setF('escolaridade', e.target.value)}>
+                <option value="" data-cy="optFiltroEscolaridadeTodas">Todas</option>
+                <option data-cy="optFiltroEscolaridadeFundamentalIncompleto">Ensino Fundamental Incompleto</option>
+                <option data-cy="optFiltroEscolaridadeFundamentalCompleto">Ensino Fundamental Completo</option>
+                <option data-cy="optFiltroEscolaridadeMedioIncompleto">Ensino Médio Incompleto</option>
+                <option data-cy="optFiltroEscolaridadeMedioCompleto">Ensino Médio Completo</option>
+                <option data-cy="optFiltroEscolaridadeSuperiorIncompleto">Ensino Superior Incompleto</option>
+                <option data-cy="optFiltroEscolaridadeSuperiorCompleto">Ensino Superior Completo</option>
+                <option data-cy="optFiltroEscolaridadePosGraduacao">Pós-graduação</option>
               </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Cidade</label>
-              <select className={selectClass + ' w-full'} value={filtros.cidade} onChange={e => setF('cidade', e.target.value)}>
-                <option value="">Todas</option>
-                {cidades.map(c => <option key={c}>{c}</option>)}
+              <select data-cy="selectFiltroCidade" className={selectClass + ' w-full'} value={filtros.cidade} onChange={e => setF('cidade', e.target.value)}>
+                <option value="" data-cy="optFiltroCidadeTodas">Todas</option>
+                {cidades.map(c => <option key={c} data-cy={`optFiltroCidade-${c}`}>{c}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Tem filhos</label>
-              <select className={selectClass + ' w-full'} value={filtros.temFilhos} onChange={e => setF('temFilhos', e.target.value)}>
-                <option value="">Todos</option>
-                <option value="sim">Sim</option>
-                <option value="nao">Não</option>
+              <select data-cy="selectFiltroFilhos" className={selectClass + ' w-full'} value={filtros.temFilhos} onChange={e => setF('temFilhos', e.target.value)}>
+                <option value="" data-cy="optFiltroFilhosTodos">Todos</option>
+                <option value="sim" data-cy="optFiltroFilhosSim">Sim</option>
+                <option value="nao" data-cy="optFiltroFilhosNao">Não</option>
               </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Integração</label>
-              <select className={selectClass + ' w-full'} value={filtros.integrado} onChange={e => setF('integrado', e.target.value)}>
-                <option value="">Todos</option>
-                <option value="sim">Concluiu</option>
-                <option value="nao">Não concluiu</option>
+              <select data-cy="selectFiltroIntegracao" className={selectClass + ' w-full'} value={filtros.integrado} onChange={e => setF('integrado', e.target.value)}>
+                <option value="" data-cy="optFiltroIntegracaoTodos">Todos</option>
+                <option value="sim" data-cy="optFiltroIntegracaoSim">Concluiu</option>
+                <option value="nao" data-cy="optFiltroIntegracaoNao">Não concluiu</option>
               </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Autorização imagem</label>
-              <select className={selectClass + ' w-full'} value={filtros.autorizacaoImagem} onChange={e => setF('autorizacaoImagem', e.target.value)}>
-                <option value="">Todos</option>
-                <option value="sim">Autorizou</option>
-                <option value="nao">Não autorizou</option>
+              <select data-cy="selectFiltroAutorizacao" className={selectClass + ' w-full'} value={filtros.autorizacaoImagem} onChange={e => setF('autorizacaoImagem', e.target.value)}>
+                <option value="" data-cy="optFiltroAutorizacaoTodos">Todos</option>
+                <option value="sim" data-cy="optFiltroAutorizacaoSim">Autorizou</option>
+                <option value="nao" data-cy="optFiltroAutorizacaoNao">Não autorizou</option>
               </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Batismo nas águas</label>
-              <select className={selectClass + ' w-full'} value={filtros.batizado} onChange={e => setF('batizado', e.target.value)}>
-                <option value="">Todos</option>
-                <option value="sim">Batizados</option>
-                <option value="nao">Não batizados</option>
+              <select data-cy="selectFiltroBatismo" className={selectClass + ' w-full'} value={filtros.batizado} onChange={e => setF('batizado', e.target.value)}>
+                <option value="" data-cy="optFiltroBatismoTodos">Todos</option>
+                <option value="sim" data-cy="optFiltroBatismoSim">Batizados</option>
+                <option value="nao" data-cy="optFiltroBatismoNao">Não batizados</option>
               </select>
             </div>
           </div>
@@ -328,9 +334,9 @@ function RelatoriosConteudo() {
       {/* Tabela */}
       <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         {carregando ? (
-          <div className="flex items-center justify-center py-16 text-gray-400">Carregando...</div>
+          <div data-cy="loadingRelatorios" className="flex items-center justify-center py-16 text-gray-400">Carregando...</div>
         ) : membrosFiltrados.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+          <div data-cy="vazioRelatorios" className="flex flex-col items-center justify-center py-16 text-gray-400">
             <BarChart3 size={40} className="mb-3 opacity-30" />
             <p className="font-medium">Nenhum membro encontrado</p>
             <p className="text-sm mt-1">Tente ajustar os filtros</p>
@@ -360,7 +366,7 @@ function RelatoriosConteudo() {
                     'Transferido':  'bg-gray-100 text-gray-700',
                   }
                   return (
-                    <tr key={m.id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={m.id} data-cy={`relatorioMembroItem-${m.id}`} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3 font-medium text-gray-900">{m.nome_completo}</td>
                       <td className="px-4 py-3">
                         <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusCor[m.status_membresia] ?? 'bg-gray-100 text-gray-700'}`}>

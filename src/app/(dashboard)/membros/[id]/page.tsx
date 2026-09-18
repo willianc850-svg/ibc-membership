@@ -163,7 +163,7 @@ export default function PerfilMembroPage() {
 
   if (carregando) {
     return (
-      <div className="flex items-center justify-center py-24 text-gray-400">
+      <div data-cy="loadingPerfilMembro" className="flex items-center justify-center py-24 text-gray-400">
         Carregando...
       </div>
     )
@@ -171,9 +171,9 @@ export default function PerfilMembroPage() {
 
   if (!membro) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 text-gray-400">
+      <div data-cy="vazioPerfilMembro" className="flex flex-col items-center justify-center py-24 text-gray-400">
         <p className="font-medium">Membro não encontrado.</p>
-        <Link href="/membros" className="text-indigo-600 text-sm mt-2">Voltar para a lista</Link>
+        <Link href="/membros" data-cy="btnVoltarMembros" className="text-indigo-600 text-sm mt-2">Voltar para a lista</Link>
       </div>
     )
   }
@@ -182,12 +182,12 @@ export default function PerfilMembroPage() {
   .filter(Boolean).join(', ')
 
   return (
-    <div className="max-w-3xl mx-auto space-y-4">
+    <div data-cy="pagePerfilMembro" className="max-w-3xl mx-auto space-y-4">
 
       {/* Cabeçalho */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
         <div className="flex items-center gap-3">
-          <Link href="/membros" className="p-2 rounded-lg hover:bg-gray-100 text-gray-600">
+          <Link href="/membros" data-cy="btnVoltarMembros" className="p-2 rounded-lg hover:bg-gray-100 text-gray-600">
             <ChevronLeft size={20} />
           </Link>
           <h1 className="text-xl font-bold text-gray-900">Perfil do Membro</h1>
@@ -196,6 +196,7 @@ export default function PerfilMembroPage() {
   {podeEditar && (
     <Link
       href={`/membros/${id}/editar`}
+      data-cy="btnEditarPerfil"
       className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
     >
       <Pencil size={14} /> Editar
@@ -205,6 +206,7 @@ export default function PerfilMembroPage() {
     <button
       onClick={handleDeletar}
       disabled={deletando}
+      data-cy="btnExcluirMembro"
       className="flex items-center gap-2 px-3 py-2 border border-red-200 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
     >
       <Trash2 size={14} /> {deletando ? 'Excluindo...' : 'Excluir'}
@@ -252,12 +254,14 @@ export default function PerfilMembroPage() {
             {membro.telefone && (
               <a href={`https://wa.me/55${membro.telefone.replace(/\D/g, '')}`}
                 target="_blank" rel="noreferrer"
+                data-cy="btnWhatsappPerfil"
                 className="flex items-center gap-2 text-sm text-green-700 bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-lg transition-colors">
                 <Smartphone size={14} /> {membro.telefone}
               </a>
             )}
             {membro.email && (
               <a href={`mailto:${membro.email}`}
+                data-cy="btnEmailPerfil"
                 className="flex items-center gap-2 text-sm text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors">
                 <Mail size={14} /> {membro.email}
               </a>

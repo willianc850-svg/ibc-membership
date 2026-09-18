@@ -161,6 +161,7 @@ export default function CadastroPublicoPage() {
 
   return (
     <div
+      data-cy="pageCadastroPublico"
       className="min-h-dvh bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-8"
       style={{
         paddingTop: 'max(2rem, env(safe-area-inset-top))',
@@ -168,7 +169,7 @@ export default function CadastroPublicoPage() {
       }}
     >
       <div className="absolute top-4 right-4">
-        <BotaoTema compacto />
+        <BotaoTema compacto dataCy="btnTemaCadastro" />
       </div>
       <div className="mx-auto w-full max-w-3xl">
         <div className="flex flex-col items-center mb-6">
@@ -182,10 +183,10 @@ export default function CadastroPublicoPage() {
 
         {ok ? (
           <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 text-center space-y-4">
-            <p className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+            <p data-cy="msgSucessoCadastro" className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
               Cadastro enviado! Aguarde a diretoria aprovar. Se informou e-mail, você receberá o convite para acessar o sistema.
             </p>
-            <Link href="/login" className="inline-flex min-h-11 items-center text-sm font-medium text-indigo-600">
+            <Link href="/login" data-cy="linkIrParaLogin" className="inline-flex min-h-11 items-center text-sm font-medium text-indigo-600">
               Ir para o login
             </Link>
           </div>
@@ -202,6 +203,7 @@ export default function CadastroPublicoPage() {
                     key={aba.id}
                     type="button"
                     onClick={() => setAbaAtiva(i)}
+                    data-cy={`tabFicha-${aba.id}`}
                     className={`flex items-center gap-1.5 px-3 py-2.5 min-h-11 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0
                       ${abaAtiva === i ? 'bg-white text-indigo-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                   >
@@ -231,9 +233,10 @@ export default function CadastroPublicoPage() {
                         escolherFoto(arquivo)
                         if (arquivo && validarFoto(arquivo)) e.target.value = ''
                       }}
+                      data-cy="fileFotoCadastro"
                       className="w-full text-sm text-gray-600"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p data-cy="textoFotoCadastro" className="text-xs text-gray-500 mt-1">
                       JPEG, PNG ou WebP até 5 MB.{foto ? ` Selecionada: ${foto.name}` : ''}
                     </p>
                   </div>
@@ -242,7 +245,7 @@ export default function CadastroPublicoPage() {
             </div>
 
             {erro && (
-              <div className="mt-4 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3">{erro}</div>
+              <div data-cy="msgErroCadastro" className="mt-4 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3">{erro}</div>
             )}
 
             <div className="sticky bottom-0 z-10 mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] bg-transparent">
@@ -250,16 +253,18 @@ export default function CadastroPublicoPage() {
                 type="button"
                 onClick={() => setAbaAtiva((i) => Math.max(0, i - 1))}
                 disabled={abaAtiva === 0}
+                data-cy="btnAnterior"
                 className="flex items-center justify-center gap-2 min-h-11 px-4 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-40"
               >
                 <ChevronLeft size={16} /> Anterior
               </button>
-              <span className="text-xs text-gray-500 text-center">{abaAtiva + 1} de {total}</span>
+              <span data-cy="indicadorAba" className="text-xs text-gray-500 text-center">{abaAtiva + 1} de {total}</span>
               <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2">
                 {abaAtiva < total - 1 && (
                   <button
                     type="button"
                     onClick={() => setAbaAtiva((i) => Math.min(total - 1, i + 1))}
+                    data-cy="btnProximo"
                     className="flex items-center justify-center gap-2 min-h-11 px-4 bg-white border border-indigo-200 text-indigo-700 rounded-xl text-sm font-medium"
                   >
                     Próximo <ChevronRight size={16} />
@@ -269,6 +274,7 @@ export default function CadastroPublicoPage() {
                   type="button"
                   disabled={enviando}
                   onClick={enviar}
+                  data-cy="btnEnviarCadastro"
                   className="flex items-center justify-center gap-2 min-h-11 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white rounded-xl text-sm font-medium"
                 >
                   {enviando ? <><Loader2 size={16} className="animate-spin" /> Enviando...</> : 'Enviar cadastro'}

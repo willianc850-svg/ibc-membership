@@ -53,11 +53,7 @@ function ReunioesConteudo() {
   const [dataFim, setDataFim] = useState('')
   const supabase = createClient()
 
-  useEffect(() => { carregar() }, [])
-
   async function carregar() {
-    setCarregando(true)
-
     const { data } = await supabase
       .from('reunioes')
       .select('*, ministerios(nome)')
@@ -79,6 +75,12 @@ function ReunioesConteudo() {
     setCarregando(false)
   }
 
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void carregar()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const filtradas = reunioes.filter(r => {
   if (filtroTipo !== 'todos' && r.tipo !== filtroTipo) return false
   if (dataInicio && r.data_reuniao < dataInicio) return false
@@ -93,16 +95,16 @@ function ReunioesConteudo() {
   }
 
   return (
-    <div>
+    <div data-cy="pageReunioes">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <CalendarDays size={24} className="text-indigo-600" />
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Reuniões</h1>
-            <p className="text-sm text-gray-500">{reunioes.length} registradas</p>
+            <p data-cy="totalReunioes" className="text-sm text-gray-500">{reunioes.length} registradas</p>
           </div>
         </div>
-        <Link href="/reunioes/nova"
+        <Link href="/reunioes/nova" data-cy="btnNovaReuniao"
           className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors">
           <Plus size={16} /> Nova reunião
         </Link>
@@ -116,6 +118,7 @@ function ReunioesConteudo() {
             <button 
                 key={tipo} 
                 onClick={() => setFiltroTipo(tipo)}
+                data-cy={`btnFiltroTipo-${tipo}`}
                 className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
                 filtroTipo === tipo
                     ? 'bg-indigo-600 text-white'
@@ -135,6 +138,7 @@ function ReunioesConteudo() {
         type="date"
         value={dataInicio}
         onChange={e => setDataInicio(e.target.value)}
+        data-cy="inputDataInicio"
         className="border border-gray-300 rounded-xl px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
       />
     </div>
@@ -144,12 +148,14 @@ function ReunioesConteudo() {
         type="date"
         value={dataFim}
         onChange={e => setDataFim(e.target.value)}
+        data-cy="inputDataFim"
         className="border border-gray-300 rounded-xl px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
       />
     </div>
     {(dataInicio || dataFim) && (
       <button
         onClick={() => { setDataInicio(''); setDataFim('') }}
+        data-cy="btnLimparDatas"
         className="text-sm text-red-500 hover:text-red-700 font-medium"
       >
         Limpar datas
@@ -159,16 +165,16 @@ function ReunioesConteudo() {
 </div>
 
       {carregando ? (
-        <div className="flex items-center justify-center py-16 text-gray-400">Carregando...</div>
+        <div data-cy="loadingReunioes" className="flex items-center justify-center py-16 text-gray-400">Carregando...</div>
       ) : filtradas.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+        <div data-cy="vazioReunioes" className="flex flex-col items-center justify-center py-16 text-gray-400">
           <CalendarDays size={40} className="mb-3 opacity-30" />
           <p className="font-medium">Nenhuma reunião encontrada</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div data-cy="listaReunioes" className="space-y-3">
           {filtradas.map(r => (
-            <Link key={r.id} href={`/reunioes/${r.id}`}
+            <Link key={r.id} href={`/reunioes/${r.id}`} data-cy={`linkReuniao-${r.id}`}
               className="block bg-white border border-gray-200 rounded-2xl p-5 hover:border-indigo-200 hover:shadow-sm transition-all">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">

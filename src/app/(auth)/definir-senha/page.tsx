@@ -77,7 +77,7 @@ export default function DefinirSenhaPage() {
 
   if (!pronto) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div data-cy="loadingDefinirSenha" className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <Loader2 size={24} className="animate-spin text-indigo-600" />
       </div>
     )
@@ -85,17 +85,17 @@ export default function DefinirSenhaPage() {
 
   if (semSessao) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
-        <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md text-center">
+      <div data-cy="pageDefinirSenha" className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+        <div data-cy="msgLinkInvalido" className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md text-center">
           <h1 className="text-lg font-semibold text-gray-900 mb-2">Link inválido ou expirado</h1>
           <p className="text-sm text-gray-500 mb-6">
             Solicite um novo convite ou use “Esqueci minha senha”. O link vale por 24 horas.
           </p>
           <div className="flex flex-col gap-2">
-            <Link href="/login" className="text-sm font-medium text-indigo-600 hover:text-indigo-700">
+            <Link href="/login" data-cy="linkIrParaLogin" className="text-sm font-medium text-indigo-600 hover:text-indigo-700">
               Ir para o login
             </Link>
-            <Link href="/esqueci-senha" className="text-sm text-gray-500 hover:text-gray-700">
+            <Link href="/esqueci-senha" data-cy="linkEsqueciSenha" className="text-sm text-gray-500 hover:text-gray-700">
               Esqueci minha senha
             </Link>
           </div>
@@ -105,7 +105,7 @@ export default function DefinirSenhaPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+    <div data-cy="pageDefinirSenha" className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
       <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
         <div className="flex flex-col items-center mb-8">
           <LogoIbc size={72} className="mb-4" />
@@ -115,7 +115,7 @@ export default function DefinirSenhaPage() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" data-cy="formDefinirSenha">
           <CampoSenha
             id="definir-senha"
             label="Nova senha"
@@ -124,6 +124,7 @@ export default function DefinirSenhaPage() {
             placeholder="Mínimo 6 caracteres"
             autoComplete="new-password"
             required
+            dataCy="novaSenha"
           />
           <CampoSenha
             id="definir-senha-confirmar"
@@ -133,10 +134,11 @@ export default function DefinirSenhaPage() {
             placeholder="Repita a senha"
             autoComplete="new-password"
             required
+            dataCy="confirmarSenha"
           />
 
           {erro && (
-            <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-2.5">
+            <div data-cy="msgErroDefinirSenha" className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-2.5">
               {erro}
             </div>
           )}
@@ -144,6 +146,7 @@ export default function DefinirSenhaPage() {
           <button
             type="submit"
             disabled={salvando}
+            data-cy="btnSalvarSenha"
             className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white font-medium rounded-lg py-2.5 text-sm transition-colors flex items-center justify-center gap-2"
           >
             {salvando ? (

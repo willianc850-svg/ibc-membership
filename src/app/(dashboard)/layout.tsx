@@ -21,6 +21,26 @@ type MenuItem = {
   hideForUser?: boolean
 }
 
+function RodapeSair({ onSair, dataCy }: { onSair: () => void; dataCy: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onSair}
+      data-cy={dataCy}
+      className="flex items-center gap-3 px-3 min-h-11 w-full rounded-xl text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400"
+    >
+      <LogOut size={18} />
+      Sair
+    </button>
+  )
+}
+
+/** '/membros' -> 'Membros', para compor os data-cy do menu. */
+function nomeMenu(href: string) {
+  const base = href.replace('/', '')
+  return base.charAt(0).toUpperCase() + base.slice(1)
+}
+
 const menuBase: MenuItem[] = [
   { href: '/dashboard',     label: 'Dashboard',     icon: LayoutDashboard },
   { href: '/membros',       label: 'Membros',       icon: Users           },
@@ -87,17 +107,6 @@ export default function DashboardLayout({
     }
   }
 
-  function RodapeSair() {
-    return (
-      <button
-        onClick={handleLogout}
-        className="flex items-center gap-3 px-3 min-h-11 w-full rounded-xl text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400"
-      >
-        <LogOut size={18} />
-        Sair
-      </button>
-    )
-  }
 
   return (
     <div
@@ -127,9 +136,9 @@ export default function DashboardLayout({
           </div>
         </div>
 
-        <nav style={{ flex: 1, padding: '12px', overflowY: 'auto' }}>
+        <nav data-cy="navSidebar" style={{ flex: 1, padding: '12px', overflowY: 'auto' }}>
           {menuItems.map(({ href, label, icon: Icon }) => (
-            <Link key={href} href={href} style={estiloLink(href)}>
+            <Link key={href} href={href} data-cy={`linkMenu${nomeMenu(href)}Sidebar`} style={estiloLink(href)}>
               <Icon size={18} />
               {label}
             </Link>
@@ -137,8 +146,8 @@ export default function DashboardLayout({
         </nav>
 
         <div style={{ padding: '12px', borderTop: '1px solid var(--ibc-border-subtle)' }}>
-          <BotaoTema />
-          <RodapeSair />
+          <BotaoTema dataCy="btnTemaSidebar" />
+          <RodapeSair onSair={handleLogout} dataCy="btnSairSidebar" />
         </div>
       </aside>
 
@@ -148,6 +157,7 @@ export default function DashboardLayout({
           style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex' }}
         >
           <div
+            data-cy="overlayMenuMobile"
             style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)' }}
             onClick={() => setMenuAberto(false)}
           />
@@ -178,17 +188,19 @@ export default function DashboardLayout({
               <button
                 onClick={() => setMenuAberto(false)}
                 aria-label="Fechar menu"
+                data-cy="btnFecharMenu"
                 className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg text-gray-500"
               >
                 <X size={22} />
               </button>
             </div>
-            <nav style={{ flex: 1, padding: '12px', overflowY: 'auto' }}>
+            <nav data-cy="navDrawer" style={{ flex: 1, padding: '12px', overflowY: 'auto' }}>
               {menuItems.map(({ href, label, icon: Icon }) => (
                 <Link
                   key={href}
                   href={href}
                   onClick={() => setMenuAberto(false)}
+                  data-cy={`linkMenu${nomeMenu(href)}Drawer`}
                   style={estiloLink(href)}
                 >
                   <Icon size={18} />
@@ -197,8 +209,8 @@ export default function DashboardLayout({
               ))}
             </nav>
             <div style={{ padding: '12px', borderTop: '1px solid var(--ibc-border-subtle)' }}>
-              <BotaoTema />
-              <RodapeSair />
+              <BotaoTema dataCy="btnTemaDrawer" />
+              <RodapeSair onSair={handleLogout} dataCy="btnSairDrawer" />
             </div>
           </aside>
         </div>
@@ -219,7 +231,7 @@ export default function DashboardLayout({
               IBC Membership
             </span>
           </div>
-          <BotaoTema compacto />
+          <BotaoTema compacto dataCy="btnTemaHeader" />
         </header>
 
         <main className="flex-1 p-4 md:p-6 pb-24 lg:pb-6 print:p-4 print:pb-4">
@@ -227,6 +239,7 @@ export default function DashboardLayout({
         </main>
 
         <nav
+          data-cy="navBarra"
           className="fixed bottom-0 inset-x-0 z-30 grid grid-cols-3 lg:hidden border-t print:hidden"
           style={{
             backgroundColor: 'var(--ibc-card)',
@@ -236,6 +249,7 @@ export default function DashboardLayout({
         >
           <Link
             href="/dashboard"
+            data-cy="linkMenuDashboardBarra"
             className={`flex flex-col items-center justify-center gap-0.5 min-h-14 text-[11px] font-medium ${
               isAtivo('/dashboard') ? 'text-indigo-600' : 'text-gray-500'
             }`}
@@ -245,6 +259,7 @@ export default function DashboardLayout({
           </Link>
           <Link
             href="/membros"
+            data-cy="linkMenuMembrosBarra"
             className={`flex flex-col items-center justify-center gap-0.5 min-h-14 text-[11px] font-medium ${
               isAtivo('/membros') ? 'text-indigo-600' : 'text-gray-500'
             }`}
@@ -255,6 +270,7 @@ export default function DashboardLayout({
           <button
             type="button"
             onClick={() => setMenuAberto(true)}
+            data-cy="btnAbrirMenu"
             className="flex flex-col items-center justify-center gap-0.5 min-h-14 text-[11px] font-medium text-gray-500"
           >
             <MoreHorizontal size={22} />

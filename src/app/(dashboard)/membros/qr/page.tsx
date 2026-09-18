@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import AcessoGuard from '@/components/AcessoGuard'
 import { usePermissao } from '@/lib/hooks/usePermissao'
@@ -20,21 +20,25 @@ export default function QrCadastroPage() {
   )
 }
 
-function QrConteudo() {
-  const [url, setUrl] = useState('')
+function urlCadastro() {
+  return `${window.location.origin}/cadastro`
+}
 
-  useEffect(() => {
-    setUrl(`${window.location.origin}/cadastro`)
-  }, [])
+function QrConteudo() {
+  const url = useSyncExternalStore(
+    () => () => {},
+    urlCadastro,
+    () => '',
+  )
 
   const qr = url
     ? `https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=12&data=${encodeURIComponent(url)}`
     : ''
 
   return (
-    <div className="max-w-lg mx-auto">
+    <div data-cy="pageQrCadastro" className="max-w-lg mx-auto">
       <div className="flex items-center gap-3 mb-6 print:hidden">
-        <Link href="/membros" className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-600">
+        <Link href="/membros" data-cy="btnVoltarMembros" className="min-h-11 min-w-11 inline-flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-600">
           <ChevronLeft size={20} />
         </Link>
         <div>
@@ -50,16 +54,17 @@ function QrConteudo() {
         <p className="font-bold text-gray-900 text-lg">Igreja Batista Central</p>
         <p className="text-sm text-gray-500 mb-5">Cadastre-se na lista de membros</p>
         {qr ? (
-          <img src={qr} alt="QR code para cadastro" className="mx-auto w-56 h-56" />
+          <img src={qr} alt="QR code para cadastro" data-cy="imagemQrCadastro" className="mx-auto w-56 h-56" />
         ) : (
-          <div className="w-56 h-56 mx-auto bg-gray-100 rounded-xl flex items-center justify-center text-gray-400">
+          <div data-cy="loadingQrCadastro" className="w-56 h-56 mx-auto bg-gray-100 rounded-xl flex items-center justify-center text-gray-400">
             <QrCode size={40} />
           </div>
         )}
-        <p className="text-xs text-gray-500 mt-4 break-all">{url}</p>
+        <p data-cy="textoUrlCadastro" className="text-xs text-gray-500 mt-4 break-all">{url}</p>
         <button
           type="button"
           onClick={() => window.print()}
+          data-cy="btnImprimirQr"
           className="print:hidden mt-5 inline-flex items-center justify-center gap-2 min-h-11 px-4 bg-indigo-600 text-white text-sm font-medium rounded-xl"
         >
           <Printer size={16} /> Imprimir

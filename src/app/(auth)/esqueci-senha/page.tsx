@@ -32,7 +32,7 @@ export default function EsqueciSenhaPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+    <div data-cy="pageEsqueciSenha" className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
       <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
         <div className="flex flex-col items-center mb-8">
           <LogoIbc size={72} className="mb-4" />
@@ -44,18 +44,19 @@ export default function EsqueciSenhaPage() {
 
         {enviado ? (
           <div className="space-y-4">
-            <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3">
+            <div data-cy="msgSucessoEsqueciSenha" className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3">
               Se o e-mail estiver cadastrado, você receberá o link para definir uma nova senha.
             </div>
             <Link
               href="/login"
+              data-cy="linkVoltarLogin"
               className="block text-center text-sm text-indigo-600 hover:text-indigo-700 font-medium"
             >
               Voltar ao login
             </Link>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" data-cy="formEsqueciSenha">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
               <input
@@ -64,12 +65,13 @@ export default function EsqueciSenhaPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="seu@email.com"
                 required
+                data-cy="inputEmailEsqueciSenha"
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>
 
             {erro && (
-              <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-2.5">
+              <div data-cy="msgErroEsqueciSenha" className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-2.5">
                 {erro}
               </div>
             )}
@@ -77,6 +79,7 @@ export default function EsqueciSenhaPage() {
             <button
               type="submit"
               disabled={enviando}
+              data-cy="btnEnviarLink"
               className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white font-medium rounded-lg py-2.5 text-sm transition-colors flex items-center justify-center gap-2"
             >
               {enviando ? (
@@ -88,6 +91,7 @@ export default function EsqueciSenhaPage() {
 
             <Link
               href="/login"
+              data-cy="linkVoltarLogin"
               className="block text-center text-sm text-gray-500 hover:text-gray-700"
             >
               Voltar ao login

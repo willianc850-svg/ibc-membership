@@ -117,7 +117,7 @@ async function handleDeletar(id: string, nome: string) {
       nome,
       lideracas, // Passa as lideranças
     })
-  } catch (err) {
+  } catch {
     setErro('Erro ao verificar se o membro é líder')
   }
 }
@@ -154,7 +154,7 @@ async function confirmarDeletar() {
       // Remove da lista
       setMembros(membros.filter(m => m.id !== membroDeletando.id))
       setMembroDeletando(null)
-    } catch (err) {
+    } catch {
       setErro('Erro inesperado ao deletar')
       setMembroDeletando(null)
     }
@@ -181,14 +181,15 @@ async function confirmarDeletar() {
     const btn = compacto
       ? 'inline-flex items-center justify-center min-h-11 min-w-11 rounded-xl text-sm font-medium'
       : 'inline-flex items-center gap-1 min-h-9 px-2 text-xs font-medium'
+    const ctx = compacto ? 'Mobile' : 'Desktop'
     return (
       <div className={`flex items-center ${compacto ? 'gap-1' : 'justify-end gap-2'}`}>
-        <Link href={`/membros/${membro.id}`} className={`${btn} text-indigo-600 hover:bg-indigo-50`}>
+        <Link href={`/membros/${membro.id}`} data-cy={`btnVerMembro${ctx}-${membro.id}`} className={`${btn} text-indigo-600 hover:bg-indigo-50`}>
           <Eye size={compacto ? 18 : 14} />
           {!compacto && 'Ver'}
         </Link>
         {(isAdmin || membro.user_id === userId) && (
-          <Link href={`/membros/${membro.id}/editar`} className={`${btn} text-amber-600 hover:bg-amber-50`}>
+          <Link href={`/membros/${membro.id}/editar`} data-cy={`btnEditarMembro${ctx}-${membro.id}`} className={`${btn} text-amber-600 hover:bg-amber-50`}>
             <Pencil size={compacto ? 18 : 14} />
             {!compacto && 'Editar'}
           </Link>
@@ -197,6 +198,7 @@ async function confirmarDeletar() {
           <button
             type="button"
             onClick={() => handleDeletar(membro.id, membro.nome_completo)}
+            data-cy={`btnDeletarMembro${ctx}-${membro.id}`}
             className={`${btn} text-red-600 hover:bg-red-50`}
           >
             <Trash2 size={compacto ? 18 : 14} />
@@ -208,31 +210,34 @@ async function confirmarDeletar() {
   }
 
   return (
-    <div>
+    <div data-cy="pageMembros">
       <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
         <div className="flex items-center gap-3">
           <Users size={24} className="text-indigo-600" />
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Membros</h1>
-            <p className="text-sm text-gray-500">{membros.length} cadastrados</p>
+            <p data-cy="totalMembros" className="text-sm text-gray-500">{membros.length} cadastrados</p>
           </div>
         </div>
         {isAdmin && (
           <div className="flex flex-wrap gap-2">
             <Link
               href="/membros/pendentes"
+              data-cy="btnCadastrosPendentes"
               className="inline-flex items-center justify-center min-h-11 px-4 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-xl"
             >
               Cadastros pendentes
             </Link>
             <Link
               href="/membros/qr"
+              data-cy="btnQrCadastro"
               className="inline-flex items-center justify-center min-h-11 px-4 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-xl"
             >
               QR de cadastro
             </Link>
             <Link
               href="/membros/novo"
+              data-cy="btnNovoMembro"
               className="inline-flex items-center justify-center gap-2 min-h-11 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 rounded-xl transition-colors"
             >
               <Plus size={16} />
@@ -242,6 +247,10 @@ async function confirmarDeletar() {
         )}
       </div>
 
+      {erro && (
+        <div data-cy="msgErroMembros" className="mb-4 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3">{erro}</div>
+      )}
+
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -250,6 +259,7 @@ async function confirmarDeletar() {
             placeholder="Buscar por nome, e-mail ou telefone..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
+            data-cy="inputBuscaMembro"
             className="w-full min-h-11 pl-9 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-gray-900"
           />
         </div>
@@ -258,16 +268,17 @@ async function confirmarDeletar() {
           <select
             value={filtroStatus}
             onChange={(e) => setFiltroStatus(e.target.value)}
+            data-cy="selectFiltroStatus"
             className="w-full min-h-11 pl-9 pr-8 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-gray-900 appearance-none"
           >
-            <option value="todos">Todos os status</option>
-            <option value="Pastor">Pastor</option>
-            <option value="Diretoria">Diretoria</option>
-            <option value="Líder de Ministério">Líder de Ministério</option>
-            <option value="Membro Ativo">Membro Ativo</option>
-            <option value="Congregado">Congregado</option>
-            <option value="Afastado">Afastado</option>
-            <option value="Transferido">Transferido</option>
+            <option value="todos" data-cy="optFiltroStatusTodos">Todos os status</option>
+            <option value="Pastor" data-cy="optFiltroStatusPastor">Pastor</option>
+            <option value="Diretoria" data-cy="optFiltroStatusDiretoria">Diretoria</option>
+            <option value="Líder de Ministério" data-cy="optFiltroStatusLider">Líder de Ministério</option>
+            <option value="Membro Ativo" data-cy="optFiltroStatusMembroAtivo">Membro Ativo</option>
+            <option value="Congregado" data-cy="optFiltroStatusCongregado">Congregado</option>
+            <option value="Afastado" data-cy="optFiltroStatusAfastado">Afastado</option>
+            <option value="Transferido" data-cy="optFiltroStatusTransferido">Transferido</option>
           </select>
         </div>
       </div>
@@ -275,11 +286,11 @@ async function confirmarDeletar() {
       {/* Tabela */}
       <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         {carregando ? (
-          <div className="flex items-center justify-center py-16 text-gray-400">
+          <div data-cy="loadingMembros" className="flex items-center justify-center py-16 text-gray-400">
             Carregando...
           </div>
         ) : membrosFiltrados.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+          <div data-cy="vazioMembros" className="flex flex-col items-center justify-center py-16 text-gray-400">
             <Users size={40} className="mb-3 opacity-30" />
             <p className="font-medium">Nenhum membro encontrado</p>
             <p className="text-sm mt-1">
@@ -290,12 +301,12 @@ async function confirmarDeletar() {
           </div>
         ) : (
           <>
-            <div className="md:hidden divide-y divide-gray-100">
+            <div data-cy="listaMembrosMobile" className="md:hidden divide-y divide-gray-100">
               {membrosFiltrados.map((membro) => {
                 const status = statusConfig[membro.status_membresia] ?? statusConfig['']
                 const tel = membro.telefone?.replace(/\D/g, '') ?? ''
                 return (
-                  <div key={membro.id} className="p-4 flex gap-3">
+                  <div key={membro.id} data-cy={`membroItemMobile-${membro.id}`} className="p-4 flex gap-3">
                     <Avatar membro={membro} />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-gray-900 text-sm leading-snug">{membro.nome_completo}</p>
@@ -308,6 +319,7 @@ async function confirmarDeletar() {
                           href={`https://wa.me/55${tel}`}
                           target="_blank"
                           rel="noreferrer"
+                          data-cy={`btnWhatsappMembroMobile-${membro.id}`}
                           className="mt-2 inline-flex items-center gap-1.5 min-h-11 text-sm text-green-700"
                         >
                           <Smartphone size={16} /> {membro.telefone}
@@ -319,7 +331,7 @@ async function confirmarDeletar() {
                 )
               })}
             </div>
-            <div className="hidden md:block overflow-x-auto">
+            <div data-cy="listaMembrosDesktop" className="hidden md:block overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50">
@@ -334,7 +346,7 @@ async function confirmarDeletar() {
                   {membrosFiltrados.map((membro) => {
                     const status = statusConfig[membro.status_membresia] ?? statusConfig['']
                     return (
-                      <tr key={membro.id} className="hover:bg-gray-50 transition-colors">
+                      <tr key={membro.id} data-cy={`membroItemDesktop-${membro.id}`} className="hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
                             <Avatar membro={membro} tamanho="w-9 h-9 text-xs" />

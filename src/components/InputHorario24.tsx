@@ -15,9 +15,12 @@ function emitir(hora: string, minuto: string, onChange: (valor: string) => void)
 export default function InputHorario24({
   value,
   onChange,
+  dataCy = 'inputHorario',
 }: {
   value: string
   onChange: (valor: string) => void
+  /** Nome base do data-cy: gera <base>Hora e <base>Minuto. */
+  dataCy?: string
 }) {
   const inicial = paraInputTime(value)
   const [hora, setHora] = useState(inicial.slice(0, 2))
@@ -59,6 +62,7 @@ export default function InputHorario24({
         placeholder="19"
         aria-label="Hora"
         className={campo}
+        data-cy={`${dataCy}Hora`}
         value={hora}
         onChange={(e) => mudarHora(e.target.value)}
       />
@@ -71,6 +75,7 @@ export default function InputHorario24({
         placeholder="00"
         aria-label="Minutos"
         className={campo}
+        data-cy={`${dataCy}Minuto`}
         value={minuto}
         onChange={(e) => mudarMinuto(e.target.value)}
         onKeyDown={(e) => {

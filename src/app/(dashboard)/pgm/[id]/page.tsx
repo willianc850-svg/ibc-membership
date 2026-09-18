@@ -41,11 +41,7 @@ export default function PgmDetalhesPage() {
   const [mostrarBusca, setMostrarBusca] = useState(false)
   const supabase = createClient()
 
-  useEffect(() => { carregar() }, [id])
-
   async function carregar() {
-    setCarregando(true)
-
     const { data: p } = await supabase
       .from('pgm').select('*').eq('id', id).single()
     setPgm(p)
@@ -55,10 +51,19 @@ export default function PgmDetalhesPage() {
       .select('membros(id, nome_completo, telefone, foto_url, status_membresia)')
       .eq('pgm_id', id)
 
-    const lista: Membro[] = (vinculos ?? []).map((v: any) => v.membros)
+    type Vinculo = { membros: Membro | null }
+    const lista: Membro[] = ((vinculos ?? []) as unknown as Vinculo[])
+      .map((v) => v.membros)
+      .filter((m): m is Membro => m != null)
     setMembros(lista)
     setCarregando(false)
   }
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void carregar()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id])
 
   async function buscarMembros(termo: string) {
     setBusca(termo)
@@ -108,14 +113,14 @@ export default function PgmDetalhesPage() {
   }
 
   if (carregando) return (
-    <div className="flex items-center justify-center py-24 text-gray-400">Carregando...</div>
+    <div data-cy="loadingPgm" className="flex items-center justify-center py-24 text-gray-400">Carregando...</div>
   )
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div data-cy="pagePgmDetalhe" className="max-w-3xl mx-auto">
       {/* Cabeçalho */}
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/pgm" className="p-2 rounded-lg hover:bg-gray-100 text-gray-600">
+        <Link href="/pgm" data-cy="btnVoltarPgm" className="p-2 rounded-lg hover:bg-gray-100 text-gray-600">
           <ChevronLeft size={20} />
         </Link>
         <div className="flex-1">
@@ -139,6 +144,7 @@ export default function PgmDetalhesPage() {
         {isAdmin && (
         <button
           onClick={() => setMostrarBusca(!mostrarBusca)}
+          data-cy="btnAdicionarMembroPgm"
           className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors"
         >
           <UserPlus size={16} /> Adicionar
@@ -158,12 +164,13 @@ export default function PgmDetalhesPage() {
               value={busca}
               onChange={e => buscarMembros(e.target.value)}
               autoFocus
+              data-cy="inputBuscaMembroPgm"
             />
           </div>
           {resultados.length > 0 && (
-            <div className="mt-2 border border-gray-200 rounded-lg overflow-hidden">
+            <div data-cy="listaResultadosBusca" className="mt-2 border border-gray-200 rounded-lg overflow-hidden">
               {resultados.map(m => (
-                <button key={m.id} onClick={() => vincular(m)}
+                <button key={m.id} onClick={() => vincular(m)} data-cy={`btnVincularMembro-${m.id}`}
                   className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-indigo-50 transition-colors text-left border-b border-gray-100 last:border-0">
                   <span className="text-sm text-gray-900">{m.nome_completo}</span>
                   <span className="text-xs text-gray-400">{m.status_membresia}</span>
@@ -172,7 +179,7 @@ export default function PgmDetalhesPage() {
             </div>
           )}
           {busca.length >= 2 && resultados.length === 0 && (
-            <p className="text-sm text-gray-400 mt-2 text-center">Nenhum membro encontrado</p>
+            <p data-cy="vazioResultadosBusca" className="text-sm text-gray-400 mt-2 text-center">Nenhum membro encontrado</p>
           )}
         </div>
       )}
@@ -180,23 +187,23 @@ export default function PgmDetalhesPage() {
       {/* Lista de membros */}
       <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
         <div className="px-5 py-3 border-b border-gray-100 bg-gray-50">
-          <span className="text-sm font-medium text-gray-700">
+          <span data-cy="totalMembrosPgm" className="text-sm font-medium text-gray-700">
             {membros.length} {membros.length === 1 ? 'membro' : 'membros'}
           </span>
         </div>
 
         {membros.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+          <div data-cy="vazioMembrosPgm" className="flex flex-col items-center justify-center py-16 text-gray-400">
             <UsersRound size={40} className="mb-3 opacity-30" />
             <p className="font-medium">Nenhum membro neste PGM</p>
             {isAdmin && (
-            <p className="text-sm mt-1">Clique em "Adicionar" para vincular membros</p>
+            <p className="text-sm mt-1">Clique em Adicionar para vincular membros</p>
             )}
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div data-cy="listaMembrosPgm" className="divide-y divide-gray-100">
             {membros.map(m => (
-              <div key={m.id} className="flex items-center gap-3 px-5 py-3">
+              <div key={m.id} data-cy={`membroPgmItem-${m.id}`} className="flex items-center gap-3 px-5 py-3">
                 {m.foto_url ? (
                   <img src={m.foto_url} alt={m.nome_completo}
                     className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
@@ -212,12 +219,12 @@ export default function PgmDetalhesPage() {
                   </span>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <Link href={`/membros/${m.id}`}
+                  <Link href={`/membros/${m.id}`} data-cy={`linkVerPerfilMembro-${m.id}`}
                     className="text-xs text-indigo-600 hover:text-indigo-800 font-medium">
                     Ver perfil
                   </Link>
                   {isAdmin && (
-                  <button onClick={() => desvincular(m.id)}
+                  <button onClick={() => desvincular(m.id)} data-cy={`btnDesvincularMembro-${m.id}`}
                     className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors">
                     <Trash2 size={14} />
                   </button>

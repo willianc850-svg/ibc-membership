@@ -26,15 +26,16 @@ export default function ModalConfirmacao({
   if (!aberto) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div data-cy="modalConfirmacao" className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl p-6 max-w-sm mx-4 shadow-xl">
-        <h2 className="text-lg font-bold text-gray-900 mb-2">{titulo}</h2>
-            <p className="text-sm text-gray-600 mb-6 whitespace-pre-wrap">{mensagem}</p>
+        <h2 data-cy="tituloModalConfirmacao" className="text-lg font-bold text-gray-900 mb-2">{titulo}</h2>
+            <p data-cy="msgModalConfirmacao" className="text-sm text-gray-600 mb-6 whitespace-pre-wrap">{mensagem}</p>
 
         <div className="flex gap-3">
           <button
             onClick={onCancelar}
             disabled={carregando}
+            data-cy="btnCancelarModal"
             className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
           >
             {textoBotaoSecundario}
@@ -42,6 +43,7 @@ export default function ModalConfirmacao({
           <button
             onClick={onConfirmar}
             disabled={carregando}
+            data-cy="btnConfirmarModal"
             className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium text-white transition-colors disabled:opacity-50 ${
               perigo
                 ? 'bg-red-600 hover:bg-red-700'
