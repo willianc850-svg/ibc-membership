@@ -1,0 +1,12 @@
+{
+  "id": "ibc-homolog-example",
+  "name": "IBC Homolog (example)",
+  "values": [
+    { "key": "baseUrl", "value": "https://SEU-HOMOLOG", "type": "default", "enabled": true },
+    { "key": "supabaseUrl", "value": "https://SEU-PROJETO.supabase.co", "type": "default", "enabled": true },
+    { "key": "anonKey", "value": "", "type": "secret", "enabled": true },
+    { "key": "email", "value": "superadmin@teste.com", "type": "default", "enabled": true },
+    { "key": "password", "value": "", "type": "secret", "enabled": true },
+    { "key": "access_token", "value": "", "type": "secret", "enabled": true }
+  ]
+}

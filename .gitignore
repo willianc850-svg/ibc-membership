@@ -12,6 +12,15 @@
 
 # testing
 /coverage
+cypress.env.json
+cypress/videos
+cypress/screenshots
+cypress/downloads
+cypress/e2e/1-getting-started
+cypress/e2e/2-advanced-examples
+TESTING/api-performance/postman/environments/*.local.json
+TESTING/api-performance/results/newman/*
+!TESTING/api-performance/results/newman/.gitkeep
 
 # next.js
 /.next/
