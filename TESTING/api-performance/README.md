@@ -1,6 +1,6 @@
 # API e performance — IBC Membership
 
-Esqueleto de testes HTTP contra **homologação**. Collections, scripts e relatórios ainda não estão preenchidos.
+Testes HTTP contra **homologação**. Você monta as collections no Postman Desktop; o roteiro está em [POSTMAN-DESKTOP.md](POSTMAN-DESKTOP.md). Categorias, matriz de authz e o que fica de fora: [STRATEGY.md](STRATEGY.md).
 
 Produção não é alvo. Não versionar senhas, JWT, cookies nem `service_role`.
 
@@ -17,7 +17,9 @@ Visitante é `membros.status_membresia`, não um endpoint.
 
 | Caminho | Uso |
 |---|---|
-| `postman/collections/` | Collections (smoke, funcional, authz, CRUD, integração, regressão) |
+| [POSTMAN-DESKTOP.md](POSTMAN-DESKTOP.md) | Roteiro no Postman Desktop App |
+| [STRATEGY.md](STRATEGY.md) | Categorias, superfícies, authz, fora de escopo |
+| `postman/collections/` | Collections exportadas (ainda vazias; criar no app) |
 | `postman/environments/` | Copiar `*.example.json` para `*.local.json` (gitignored) |
 | `scripts/` | Newman e k6, quando existirem |
 | `results/` | Saída de runner e métricas |

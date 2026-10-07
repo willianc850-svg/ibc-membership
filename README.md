@@ -78,7 +78,7 @@ Alvo oficial das suítes automatizadas: **homologação**, não produção.
 |---|---|
 | Plano e casos manuais | [TESTING/plano-de-testes-ibc/TESTING.md](TESTING/plano-de-testes-ibc/TESTING.md) |
 | E2E (Cypress) | [cypress/README.md](cypress/README.md) — `npm run test:e2e` / `npm run test:e2e:open` |
-| API e performance | [TESTING/api-performance/](TESTING/api-performance/) (esqueleto; collections ainda vazias) |
+| API e performance | [TESTING/api-performance/POSTMAN-DESKTOP.md](TESTING/api-performance/POSTMAN-DESKTOP.md) — collections ainda vazias; você cria no Desktop App |
 
 Antes do Cypress em homolog, rode `docs/homolog-reset-testes.sql` e use as contas de `cypress.env.example.json` (copie para `cypress.env.json`, gitignored).
 
