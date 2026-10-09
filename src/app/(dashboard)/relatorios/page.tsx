@@ -58,6 +58,9 @@ const filtrosIniciais: Filtros = {
   temFilhos: '', integrado: '', autorizacaoImagem: '', batizado: '',
 }
 
+const OPCOES_POR_PAGINA = [25, 50, 100] as const
+type PorPagina = (typeof OPCOES_POR_PAGINA)[number]
+
 export default function RelatoriosPage() {
   const { podeReunioesRelatorios, carregando } = usePermissao()
   return (
@@ -76,6 +79,8 @@ function RelatoriosConteudo() {
   const [carregando, setCarregando] = useState(true)
   const [filtros, setFiltros] = useState<Filtros>(filtrosIniciais)
   const [mostrarFiltros, setMostrarFiltros] = useState(false)
+  const [porPagina, setPorPagina] = useState<PorPagina>(25)
+  const [pagina, setPagina] = useState(1)
   const supabase = createClient()
 
   async function carregar() {
@@ -100,6 +105,7 @@ function RelatoriosConteudo() {
 
   function setF(campo: keyof Filtros, valor: string) {
     setFiltros(prev => ({ ...prev, [campo]: valor }))
+    setPagina(1)
   }
 
   const cidades = [...new Set(membros.map(m => m.cidade).filter(Boolean))] as string[]
@@ -120,8 +126,15 @@ function RelatoriosConteudo() {
     return true
   })
 
+  const totalPaginas = Math.max(1, Math.ceil(membrosFiltrados.length / porPagina))
+  const paginaAtual = Math.min(pagina, totalPaginas)
+  const inicio = (paginaAtual - 1) * porPagina
+  const membrosPagina = membrosFiltrados.slice(inicio, inicio + porPagina)
+  const fim = inicio + membrosPagina.length
+
   function limparFiltros() {
     setFiltros(filtrosIniciais)
+    setPagina(1)
   }
 
   function exportarExcel() {
@@ -342,22 +355,22 @@ function RelatoriosConteudo() {
             <p className="text-sm mt-1">Tente ajustar os filtros</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="overflow-auto max-h-[calc(100dvh-16rem)]">
+            <table className="w-full text-sm border-separate border-spacing-0">
               <thead>
-                <tr className="border-b border-gray-100 bg-gray-50">
-                  <th className="text-left text-xs font-medium text-gray-500 px-4 py-3">Nome</th>
-                  <th className="text-left text-xs font-medium text-gray-500 px-4 py-3">Status</th>
-                  <th className="text-left text-xs font-medium text-gray-500 px-4 py-3 hidden md:table-cell">Gênero</th>
-                  <th className="text-left text-xs font-medium text-gray-500 px-4 py-3 hidden md:table-cell">Idade</th>
-                  <th className="text-left text-xs font-medium text-gray-500 px-4 py-3 hidden lg:table-cell">Cidade</th>
-                  <th className="text-left text-xs font-medium text-gray-500 px-4 py-3 hidden lg:table-cell">Admissão</th>
-                  <th className="text-left text-xs font-medium text-gray-500 px-4 py-3 hidden xl:table-cell">Integração</th>
-                  <th className="text-left text-xs font-medium text-gray-500 px-4 py-3 hidden xl:table-cell">Img.</th>
+                <tr className="border-b border-gray-100">
+                  <th className="sticky top-0 z-10 bg-gray-50 text-left text-xs font-medium text-gray-500 px-4 py-3 border-b border-gray-100 shadow-[0_1px_0_0_rgb(243_244_246)]">Nome</th>
+                  <th className="sticky top-0 z-10 bg-gray-50 text-left text-xs font-medium text-gray-500 px-4 py-3 border-b border-gray-100 shadow-[0_1px_0_0_rgb(243_244_246)]">Status</th>
+                  <th className="sticky top-0 z-10 bg-gray-50 text-left text-xs font-medium text-gray-500 px-4 py-3 border-b border-gray-100 shadow-[0_1px_0_0_rgb(243_244_246)] hidden md:table-cell">Gênero</th>
+                  <th className="sticky top-0 z-10 bg-gray-50 text-left text-xs font-medium text-gray-500 px-4 py-3 border-b border-gray-100 shadow-[0_1px_0_0_rgb(243_244_246)] hidden md:table-cell">Idade</th>
+                  <th className="sticky top-0 z-10 bg-gray-50 text-left text-xs font-medium text-gray-500 px-4 py-3 border-b border-gray-100 shadow-[0_1px_0_0_rgb(243_244_246)] hidden lg:table-cell">Cidade</th>
+                  <th className="sticky top-0 z-10 bg-gray-50 text-left text-xs font-medium text-gray-500 px-4 py-3 border-b border-gray-100 shadow-[0_1px_0_0_rgb(243_244_246)] hidden lg:table-cell">Admissão</th>
+                  <th className="sticky top-0 z-10 bg-gray-50 text-left text-xs font-medium text-gray-500 px-4 py-3 border-b border-gray-100 shadow-[0_1px_0_0_rgb(243_244_246)] hidden xl:table-cell">Integração</th>
+                  <th className="sticky top-0 z-10 bg-gray-50 text-left text-xs font-medium text-gray-500 px-4 py-3 border-b border-gray-100 shadow-[0_1px_0_0_rgb(243_244_246)] hidden xl:table-cell">Img.</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {membrosFiltrados.map(m => {
+                {membrosPagina.map(m => {
                   const statusCor: Record<string, string> = {
                     'Membro Ativo': 'bg-green-100 text-green-700',
                     'Visitante':    'bg-blue-100 text-blue-700',
@@ -394,6 +407,49 @@ function RelatoriosConteudo() {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+        {!carregando && membrosFiltrados.length > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-gray-100">
+            <label className="flex items-center gap-2 text-sm text-gray-600">
+              Exibir
+              <select
+                data-cy="selectQuantidadeRelatorio"
+                className={selectClass}
+                value={porPagina}
+                onChange={(e) => {
+                  setPorPagina(Number(e.target.value) as PorPagina)
+                  setPagina(1)
+                }}
+              >
+                {OPCOES_POR_PAGINA.map((n) => (
+                  <option key={n} value={n} data-cy={`optQuantidadeRelatorio-${n}`}>{n}</option>
+                ))}
+              </select>
+            </label>
+            <p data-cy="infoPaginacaoRelatorio" className="text-sm text-gray-500">
+              Mostrando {inicio + 1}–{fim} de {membrosFiltrados.length}
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                data-cy="btnPaginaAnteriorRelatorio"
+                disabled={paginaAtual <= 1}
+                onClick={() => setPagina(paginaAtual - 1)}
+                className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg text-gray-700 disabled:opacity-40"
+              >
+                Anterior
+              </button>
+              <button
+                type="button"
+                data-cy="btnProximaPaginaRelatorio"
+                disabled={paginaAtual >= totalPaginas}
+                onClick={() => setPagina(paginaAtual + 1)}
+                className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg text-gray-700 disabled:opacity-40"
+              >
+                Próxima
+              </button>
+            </div>
           </div>
         )}
       </div>
