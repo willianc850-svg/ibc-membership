@@ -10,6 +10,14 @@ import {
 } from '@/lib/tesouraria'
 import { FileDown } from 'lucide-react'
 
+const selectClaro = {
+  colorScheme: 'light' as const,
+  backgroundColor: '#ffffff',
+  color: '#111827',
+}
+
+const opcaoClara = { backgroundColor: '#ffffff', color: '#111827' }
+
 export default function RelatorioTesourariaPage() {
   return (
     <TesourariaGuard>
@@ -125,13 +133,17 @@ function RelatorioTrimestral() {
           <p className="text-sm text-gray-500">{titulo}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <select data-cy="selectAnoRelatorio" className="border border-gray-300 rounded-lg px-3 py-2 text-sm" value={ano}
+          <select data-cy="selectAnoRelatorio" className="border border-gray-300 rounded-lg px-3 py-2 text-sm" style={selectClaro} value={ano}
             onChange={(e) => setAno(Number(e.target.value))}>
-            {[anoAtual - 1, anoAtual, anoAtual + 1].map((a) => <option key={a} value={a} data-cy={`optAnoRelatorio-${a}`}>{a}</option>)}
+            {[anoAtual - 1, anoAtual, anoAtual + 1].map((a) => (
+              <option key={a} value={a} style={opcaoClara} data-cy={`optAnoRelatorio-${a}`}>{a}</option>
+            ))}
           </select>
-          <select data-cy="selectTrimestre" className="border border-gray-300 rounded-lg px-3 py-2 text-sm" value={trimestre}
+          <select data-cy="selectTrimestre" className="border border-gray-300 rounded-lg px-3 py-2 text-sm" style={selectClaro} value={trimestre}
             onChange={(e) => setTrimestre(Number(e.target.value))}>
-            {TRIMESTRES.map((t) => <option key={t.id} value={t.id} data-cy={`optTrimestre-${t.id}`}>{t.label}</option>)}
+            {TRIMESTRES.map((t) => (
+              <option key={t.id} value={t.id} style={opcaoClara} data-cy={`optTrimestre-${t.id}`}>{t.label}</option>
+            ))}
           </select>
           <button onClick={exportarPdf} data-cy="btnExportarPdfTesouraria" className="flex items-center gap-2 px-3 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700">
             <FileDown size={14} /> Exportar PDF

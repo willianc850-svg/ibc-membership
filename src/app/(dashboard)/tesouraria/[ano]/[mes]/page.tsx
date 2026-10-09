@@ -20,6 +20,7 @@ type FormLancamento = {
   id?: string
   descricao: string
   data: string
+  dataTexto: string
   valor: string
   comentario: string
   tag: string
@@ -27,9 +28,21 @@ type FormLancamento = {
   comprovante_path: string | null
 }
 
+function dataBrParaIso(texto: string) {
+  const match = texto.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+  if (!match) return null
+  const dia = Number(match[1])
+  const mes = Number(match[2])
+  const ano = Number(match[3])
+  const data = new Date(ano, mes - 1, dia)
+  if (data.getFullYear() !== ano || data.getMonth() !== mes - 1 || data.getDate() !== dia) return null
+  return `${match[3]}-${match[2]}-${match[1]}`
+}
+
 const formVazio = (dataPadrao: string): FormLancamento => ({
   descricao: '',
   data: dataPadrao,
+  dataTexto: dataPadrao ? formatarDataISO(dataPadrao) : '',
   valor: '',
   comentario: '',
   tag: '',
@@ -71,8 +84,8 @@ function FichaMes() {
     carregar()
   }, [ano, mes])
 
-  async function carregar() {
-    setCarregando(true)
+  async function carregar(silencioso = false) {
+    if (!silencioso) setCarregando(true)
     setErro('')
     const inicio = `${ano}-${String(mes).padStart(2, '0')}-01`
     const fim = `${ano}-${String(mes).padStart(2, '0')}-${String(new Date(ano, mes, 0).getDate()).padStart(2, '0')}`
@@ -99,6 +112,7 @@ function FichaMes() {
       id: item.id,
       descricao: item.descricao,
       data: item.data.slice(0, 10),
+      dataTexto: formatarDataISO(item.data),
       valor: String(item.valor),
       comentario: item.comentario ?? '',
       tag: item.tag ?? '',
@@ -111,7 +125,8 @@ function FichaMes() {
     e.preventDefault()
     if (!formCategoria) return
     const valor = Number(String(form.valor).replace(',', '.'))
-    if (!form.descricao.trim() || !form.data || Number.isNaN(valor) || valor < 0) {
+    const dataIso = dataBrParaIso(form.dataTexto)
+    if (!form.descricao.trim() || !dataIso || Number.isNaN(valor) || valor < 0) {
       setErro('Preencha descrição, data e um valor válido.')
       return
     }
@@ -147,7 +162,7 @@ function FichaMes() {
 
     const payload = {
       descricao: form.descricao.trim(),
-      data: form.data,
+      data: dataIso,
       valor,
       comentario: form.comentario.trim() || null,
       tag: form.tag || null,
@@ -163,7 +178,7 @@ function FichaMes() {
     setSalvando(false)
     if (error) { setErro(error.message); return }
     setFormCategoria(null)
-    carregar()
+    carregar(true)
   }
 
   async function confirmarExclusao() {
@@ -174,7 +189,7 @@ function FichaMes() {
     const { error } = await supabase.from('lancamentos_financeiros').delete().eq('id', excluindo.id)
     setExcluindo(null)
     if (error) { setErro(error.message); return }
-    carregar()
+    carregar(true)
   }
 
   async function abrirComprovante(path: string) {
@@ -342,9 +357,30 @@ function Bloco({
           <input className={inputClass} placeholder="Descrição" required
             data-cy="inputDescricaoLancamento"
             value={form.descricao} onChange={(e) => onChange({ ...form, descricao: e.target.value })} />
-          <input className={inputClass} type="date" required
+          <input className={inputClass} type="text" inputMode="numeric" required
+            placeholder="dd/mm/aaaa"
+            autoComplete="off"
+            maxLength={10}
             data-cy="inputDataLancamento"
-            value={form.data} onChange={(e) => onChange({ ...form, data: e.target.value })} />
+            value={form.dataTexto}
+            onKeyDown={(e) => {
+              if (e.code !== 'NumpadDivide') return
+              e.preventDefault()
+              e.stopPropagation()
+              const el = e.currentTarget
+              const inicio = el.selectionStart ?? form.dataTexto.length
+              const fim = el.selectionEnd ?? inicio
+              const proximo = (form.dataTexto.slice(0, inicio) + '/' + form.dataTexto.slice(fim))
+                .replace(/[^\d/]/g, '')
+                .slice(0, 10)
+              onChange({ ...form, dataTexto: proximo, data: dataBrParaIso(proximo) ?? '' })
+              const pos = Math.min(inicio + 1, proximo.length)
+              requestAnimationFrame(() => el.setSelectionRange(pos, pos))
+            }}
+            onChange={(e) => {
+              const proximo = e.target.value.replace(/[^\d/]/g, '').slice(0, 10)
+              onChange({ ...form, dataTexto: proximo, data: dataBrParaIso(proximo) ?? '' })
+            }} />
           <input className={inputClass} placeholder="Valor" required
             data-cy="inputValorLancamento"
             value={form.valor} onChange={(e) => onChange({ ...form, valor: e.target.value })} />
