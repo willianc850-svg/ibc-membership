@@ -76,53 +76,27 @@ function RelatorioTrimestral() {
   }), [lista, meses])
 
   async function exportarPdf() {
-    const { default: jsPDF } = await import('jspdf')
-    const doc = new jsPDF()
-    let y = 18
-    doc.setFontSize(14)
-    doc.text('IBC Membership — Tesouraria', 14, y)
-    y += 8
-    doc.setFontSize(11)
-    doc.text(titulo, 14, y)
-    y += 10
-    doc.setFontSize(10)
-    doc.text(`Entradas: ${formatarMoeda(totalEntradas)}`, 14, y)
-    y += 6
-    doc.text(`Saídas: ${formatarMoeda(totalSaidas)}`, 14, y)
-    y += 6
-    doc.text(`Saldo: ${formatarMoeda(totalEntradas - totalSaidas)}`, 14, y)
-    y += 10
-    doc.text('Entradas por categoria', 14, y)
-    y += 6
-    for (const b of BLOCOS_RECEITA) {
-      doc.text(`${b.titulo}: ${formatarMoeda(porCat(b.categoria))}`, 18, y)
-      y += 5
+    try {
+      const { baixarRelatorioTesourariaPdf } = await import('@/lib/pdf-relatorio-tesouraria')
+      await baixarRelatorioTesourariaPdf({
+        titulo,
+        arquivo: `relatorio-tesouraria-${ano}-t${trimestre}.pdf`,
+        totalEntradas,
+        totalSaidas,
+        receitas: BLOCOS_RECEITA.map((b) => ({ titulo: b.titulo, valor: porCat(b.categoria) })),
+        gastos: BLOCOS_GASTO.map((b) => ({ titulo: b.titulo, valor: porCat(b.categoria) })),
+        meses: porMes.map((m) => ({ nome: m.nome, entradas: m.entradas, saidas: m.saidas })),
+        lancamentos: lista.map((item) => ({
+          data: formatarDataISO(item.data),
+          descricao: item.descricao,
+          categoria: labelCategoria(item.categoria),
+          tipo: item.tipo,
+          valor: Number(item.valor),
+        })),
+      })
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : 'Não foi possível gerar o PDF.')
     }
-    y += 4
-    doc.text('Saídas por categoria', 14, y)
-    y += 6
-    for (const b of BLOCOS_GASTO) {
-      doc.text(`${b.titulo}: ${formatarMoeda(porCat(b.categoria))}`, 18, y)
-      y += 5
-    }
-    y += 6
-    doc.text('Por mês', 14, y)
-    y += 6
-    for (const m of porMes) {
-      doc.text(`${m.nome}: +${formatarMoeda(m.entradas)} / -${formatarMoeda(m.saidas)}`, 18, y)
-      y += 5
-    }
-    y += 8
-    doc.text('Lançamentos', 14, y)
-    y += 6
-    doc.setFontSize(8)
-    for (const item of lista) {
-      if (y > 280) { doc.addPage(); y = 16 }
-      const linha = `${formatarDataISO(item.data)}  ${item.tipo === 'entrada' ? '+' : '-'} ${formatarMoeda(Number(item.valor))}  ${item.descricao}`
-      doc.text(linha.slice(0, 110), 14, y)
-      y += 4
-    }
-    doc.save(`relatorio-tesouraria-${ano}-t${trimestre}.pdf`)
   }
 
   return (
