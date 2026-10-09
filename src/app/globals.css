@@ -68,3 +68,14 @@ body {
   color: var(--ibc-text);
   min-height: 100dvh;
 }
+
+/* A lista nativa do select abre com fundo claro. No tema escuro o texto herdado
+   fica quase branco e some. Força fundo branco e texto escuro em todas as opções. */
+select {
+  color-scheme: light;
+}
+
+select option {
+  background-color: #ffffff;
+  color: #111827;
+}

@@ -10,6 +10,14 @@ import {
 } from '@/lib/tesouraria'
 import { FileText, Wallet } from 'lucide-react'
 
+const selectClaro = {
+  colorScheme: 'light' as const,
+  backgroundColor: '#ffffff',
+  color: '#111827',
+}
+
+const opcaoClara = { backgroundColor: '#ffffff', color: '#111827' }
+
 export default function TesourariaPage() {
   return (
     <TesourariaGuard>
@@ -101,10 +109,10 @@ function ResumoAnual() {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <select data-cy="selectAnoTesouraria" className="border border-gray-300 rounded-lg px-3 py-2 text-sm" value={ano}
+          <select data-cy="selectAnoTesouraria" className="border border-gray-300 rounded-lg px-3 py-2 text-sm" style={selectClaro} value={ano}
             onChange={(e) => setAno(Number(e.target.value))}>
             {[anoAtual - 1, anoAtual, anoAtual + 1].map((a) => (
-              <option key={a} value={a} data-cy={`optAnoTesouraria-${a}`}>{a}</option>
+              <option key={a} value={a} style={opcaoClara} data-cy={`optAnoTesouraria-${a}`}>{a}</option>
             ))}
           </select>
           <Link href="/tesouraria/relatorio" data-cy="btnRelatorioTrimestral" className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
