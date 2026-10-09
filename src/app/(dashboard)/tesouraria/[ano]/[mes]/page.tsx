@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, Fragment } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -323,6 +323,88 @@ function CardResumo({ rotulo, valor, cor, dataCy }: { rotulo: string; valor: num
   )
 }
 
+function FormularioLancamento({
+  form, salvando, ehGasto, onChange, onSalvar, onFechar,
+}: {
+  form: FormLancamento
+  salvando: boolean
+  ehGasto: boolean
+  onChange: (form: FormLancamento) => void
+  onSalvar: (e: React.FormEvent) => void
+  onFechar: () => void
+}) {
+  return (
+    <form onSubmit={onSalvar} data-cy="formLancamento" className="bg-gray-50 rounded-xl p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <input className={inputClass} placeholder="Descrição" required
+        data-cy="inputDescricaoLancamento"
+        value={form.descricao} onChange={(e) => onChange({ ...form, descricao: e.target.value })} />
+      <input className={inputClass} type="text" inputMode="numeric" required
+        placeholder="dd/mm/aaaa"
+        autoComplete="off"
+        maxLength={10}
+        data-cy="inputDataLancamento"
+        value={form.dataTexto}
+        onKeyDown={(e) => {
+          if (e.code !== 'NumpadDivide') return
+          e.preventDefault()
+          e.stopPropagation()
+          const el = e.currentTarget
+          const inicio = el.selectionStart ?? form.dataTexto.length
+          const fim = el.selectionEnd ?? inicio
+          const proximo = (form.dataTexto.slice(0, inicio) + '/' + form.dataTexto.slice(fim))
+            .replace(/[^\d/]/g, '')
+            .slice(0, 10)
+          onChange({ ...form, dataTexto: proximo, data: dataBrParaIso(proximo) ?? '' })
+          const pos = Math.min(inicio + 1, proximo.length)
+          requestAnimationFrame(() => el.setSelectionRange(pos, pos))
+        }}
+        onChange={(e) => {
+          const proximo = e.target.value.replace(/[^\d/]/g, '').slice(0, 10)
+          onChange({ ...form, dataTexto: proximo, data: dataBrParaIso(proximo) ?? '' })
+        }} />
+      <input className={inputClass} placeholder="Valor" required
+        data-cy="inputValorLancamento"
+        value={form.valor} onChange={(e) => onChange({ ...form, valor: e.target.value })} />
+      <input className={inputClass} placeholder="Comentário (opcional)"
+        data-cy="inputComentarioLancamento"
+        value={form.comentario} onChange={(e) => onChange({ ...form, comentario: e.target.value })} />
+      {ehGasto && (
+        <>
+          <select className={inputClass} value={form.tag}
+            data-cy="selectTagLancamento"
+            onChange={(e) => onChange({ ...form, tag: e.target.value })}>
+            <option value="" data-cy="optTagSelecione">Tag (opcional)</option>
+            {TAGS_GASTO.map((tag) => <option key={tag} value={tag} data-cy={`optTag-${tag}`}>{tag}</option>)}
+          </select>
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">Comprovante (PDF, JPG ou PNG)</label>
+            <input
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+              className="block w-full text-sm text-gray-600"
+              data-cy="fileComprovanteLancamento"
+              onChange={(e) => onChange({ ...form, arquivo: e.target.files?.[0] ?? null })}
+            />
+            {form.comprovante_path && !form.arquivo && (
+              <p data-cy="msgComprovanteAnexado" className="text-xs text-gray-400 mt-1">Já existe um comprovante anexado.</p>
+            )}
+          </div>
+        </>
+      )}
+      <div className="flex gap-2 sm:col-span-2">
+        <button type="submit" disabled={salvando}
+          data-cy="btnSalvarLancamento"
+          className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg disabled:opacity-60">
+          {salvando ? <Loader2 size={14} className="animate-spin" /> : form.id ? 'Salvar' : 'Adicionar'}
+        </button>
+        <button type="button" onClick={onFechar} data-cy="btnCancelarLancamento" className="px-4 py-2 border border-gray-300 text-sm rounded-lg">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  )
+}
+
 function Bloco({
   categoria, titulo, itens, ehGasto, formAberto, form, salvando,
   onNovo, onEditar, onExcluir, onFechar, onChange, onSalvar, onAbrirComprovante,
@@ -343,6 +425,8 @@ function Bloco({
   onAbrirComprovante?: (path: string) => void
 }) {
   const total = soma(itens)
+  const colunas = ehGasto ? 7 : 5
+  const editandoId = formAberto && form.id ? form.id : null
   return (
     <div data-cy={`blocoLancamento-${categoria}`} className="bg-white border border-gray-200 rounded-2xl p-5">
       <div className="flex items-center justify-between mb-4">
@@ -352,75 +436,17 @@ function Bloco({
         </button>
       </div>
 
-      {formAberto && (
-        <form onSubmit={onSalvar} data-cy="formLancamento" className="bg-gray-50 rounded-xl p-4 mb-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <input className={inputClass} placeholder="Descrição" required
-            data-cy="inputDescricaoLancamento"
-            value={form.descricao} onChange={(e) => onChange({ ...form, descricao: e.target.value })} />
-          <input className={inputClass} type="text" inputMode="numeric" required
-            placeholder="dd/mm/aaaa"
-            autoComplete="off"
-            maxLength={10}
-            data-cy="inputDataLancamento"
-            value={form.dataTexto}
-            onKeyDown={(e) => {
-              if (e.code !== 'NumpadDivide') return
-              e.preventDefault()
-              e.stopPropagation()
-              const el = e.currentTarget
-              const inicio = el.selectionStart ?? form.dataTexto.length
-              const fim = el.selectionEnd ?? inicio
-              const proximo = (form.dataTexto.slice(0, inicio) + '/' + form.dataTexto.slice(fim))
-                .replace(/[^\d/]/g, '')
-                .slice(0, 10)
-              onChange({ ...form, dataTexto: proximo, data: dataBrParaIso(proximo) ?? '' })
-              const pos = Math.min(inicio + 1, proximo.length)
-              requestAnimationFrame(() => el.setSelectionRange(pos, pos))
-            }}
-            onChange={(e) => {
-              const proximo = e.target.value.replace(/[^\d/]/g, '').slice(0, 10)
-              onChange({ ...form, dataTexto: proximo, data: dataBrParaIso(proximo) ?? '' })
-            }} />
-          <input className={inputClass} placeholder="Valor" required
-            data-cy="inputValorLancamento"
-            value={form.valor} onChange={(e) => onChange({ ...form, valor: e.target.value })} />
-          <input className={inputClass} placeholder="Comentário (opcional)"
-            data-cy="inputComentarioLancamento"
-            value={form.comentario} onChange={(e) => onChange({ ...form, comentario: e.target.value })} />
-          {ehGasto && (
-            <>
-              <select className={inputClass} value={form.tag}
-                data-cy="selectTagLancamento"
-                onChange={(e) => onChange({ ...form, tag: e.target.value })}>
-                <option value="" data-cy="optTagSelecione">Tag (opcional)</option>
-                {TAGS_GASTO.map((tag) => <option key={tag} value={tag} data-cy={`optTag-${tag}`}>{tag}</option>)}
-              </select>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Comprovante (PDF, JPG ou PNG)</label>
-                <input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
-                  className="block w-full text-sm text-gray-600"
-                  data-cy="fileComprovanteLancamento"
-                  onChange={(e) => onChange({ ...form, arquivo: e.target.files?.[0] ?? null })}
-                />
-                {form.comprovante_path && !form.arquivo && (
-                  <p data-cy="msgComprovanteAnexado" className="text-xs text-gray-400 mt-1">Já existe um comprovante anexado.</p>
-                )}
-              </div>
-            </>
-          )}
-          <div className="flex gap-2 sm:col-span-2">
-            <button type="submit" disabled={salvando}
-              data-cy="btnSalvarLancamento"
-              className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg disabled:opacity-60">
-              {salvando ? <Loader2 size={14} className="animate-spin" /> : form.id ? 'Salvar' : 'Adicionar'}
-            </button>
-            <button type="button" onClick={onFechar} data-cy="btnCancelarLancamento" className="px-4 py-2 border border-gray-300 text-sm rounded-lg">
-              Cancelar
-            </button>
-          </div>
-        </form>
+      {formAberto && !form.id && (
+        <div className="mb-4">
+          <FormularioLancamento
+            form={form}
+            salvando={salvando}
+            ehGasto={ehGasto}
+            onChange={onChange}
+            onSalvar={onSalvar}
+            onFechar={onFechar}
+          />
+        </div>
       )}
 
       {itens.length === 0 ? (
@@ -441,31 +467,47 @@ function Bloco({
             </thead>
             <tbody>
               {itens.map((item) => (
-                <tr key={item.id} data-cy={`lancamentoItem-${item.id}`} className="border-b border-gray-50">
-                  <td className="py-2 pr-3">
-                    <p className="text-gray-900">{item.descricao}</p>
-                    {item.comentario && <p className="text-xs text-gray-400">{item.comentario}</p>}
-                  </td>
-                  <td className="py-2 pr-3 text-gray-600 whitespace-nowrap">{formatarDataISO(item.data)}</td>
-                  <td className="py-2 pr-3 text-gray-900 whitespace-nowrap">{formatarMoeda(Number(item.valor))}</td>
-                  <td className="py-2 pr-3 text-gray-500">{percentual(Number(item.valor), total).toFixed(0)}%</td>
-                  {ehGasto && <td className="py-2 pr-3 text-gray-500">{item.tag || '—'}</td>}
-                  {ehGasto && (
+                <Fragment key={item.id}>
+                  <tr data-cy={`lancamentoItem-${item.id}`} className="border-b border-gray-50">
                     <td className="py-2 pr-3">
-                      {item.comprovante_path ? (
-                        <button type="button" onClick={() => onAbrirComprovante?.(item.comprovante_path!)}
-                          data-cy={`btnVerComprovante-${item.id}`}
-                          className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700">
-                          <Paperclip size={14} /> Ver
-                        </button>
-                      ) : <span className="text-gray-300">—</span>}
+                      <p className="text-gray-900">{item.descricao}</p>
+                      {item.comentario && <p className="text-xs text-gray-400">{item.comentario}</p>}
                     </td>
+                    <td className="py-2 pr-3 text-gray-600 whitespace-nowrap">{formatarDataISO(item.data)}</td>
+                    <td className="py-2 pr-3 text-gray-900 whitespace-nowrap">{formatarMoeda(Number(item.valor))}</td>
+                    <td className="py-2 pr-3 text-gray-500">{percentual(Number(item.valor), total).toFixed(0)}%</td>
+                    {ehGasto && <td className="py-2 pr-3 text-gray-500">{item.tag || '—'}</td>}
+                    {ehGasto && (
+                      <td className="py-2 pr-3">
+                        {item.comprovante_path ? (
+                          <button type="button" onClick={() => onAbrirComprovante?.(item.comprovante_path!)}
+                            data-cy={`btnVerComprovante-${item.id}`}
+                            className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700">
+                            <Paperclip size={14} /> Ver
+                          </button>
+                        ) : <span className="text-gray-300">—</span>}
+                      </td>
+                    )}
+                    <td className="py-2 text-right whitespace-nowrap">
+                      <button onClick={() => onEditar(item)} data-cy={`btnEditarLancamento-${item.id}`} className="p-1.5 text-gray-400 hover:text-green-600"><Pencil size={14} /></button>
+                      <button onClick={() => onExcluir(item)} data-cy={`btnExcluirLancamento-${item.id}`} className="p-1.5 text-gray-400 hover:text-red-600"><Trash2 size={14} /></button>
+                    </td>
+                  </tr>
+                  {editandoId === item.id && (
+                    <tr>
+                      <td colSpan={colunas} className="pb-3">
+                        <FormularioLancamento
+                          form={form}
+                          salvando={salvando}
+                          ehGasto={ehGasto}
+                          onChange={onChange}
+                          onSalvar={onSalvar}
+                          onFechar={onFechar}
+                        />
+                      </td>
+                    </tr>
                   )}
-                  <td className="py-2 text-right whitespace-nowrap">
-                    <button onClick={() => onEditar(item)} data-cy={`btnEditarLancamento-${item.id}`} className="p-1.5 text-gray-400 hover:text-green-600"><Pencil size={14} /></button>
-                    <button onClick={() => onExcluir(item)} data-cy={`btnExcluirLancamento-${item.id}`} className="p-1.5 text-gray-400 hover:text-red-600"><Trash2 size={14} /></button>
-                  </td>
-                </tr>
+                </Fragment>
               ))}
               <tr>
                 <td className="pt-3 font-medium text-gray-900">Total</td>
