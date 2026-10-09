@@ -204,7 +204,7 @@ export default function MinisteriosPage() {
                   <button
                     onClick={() => abrirEdicao(m)}
                     data-cy={`btnEditarMinisterio-${m.id}`}
-                    className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                    className="p-1.5 rounded-lg text-gray-400 hover:text-green-600 hover:bg-green-50 transition-colors"
                   >
                     <Pencil size={14} />
                   </button>

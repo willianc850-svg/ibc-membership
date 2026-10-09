@@ -239,7 +239,7 @@ export default function PgmsPage() {
                 {isAdmin && (
                 <div className="flex items-center gap-1 ml-2 flex-shrink-0">
                   <button onClick={() => abrirEdicao(p)} data-cy={`btnEditarPgm-${p.id}`}
-                    className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors">
+                    className="p-1.5 rounded-lg text-gray-400 hover:text-green-600 hover:bg-green-50 transition-colors">
                     <Pencil size={14} />
                   </button>
                   <button onClick={() => deletar(p.id)} data-cy={`btnExcluirPgm-${p.id}`}

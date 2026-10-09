@@ -462,7 +462,7 @@ function Bloco({
                     </td>
                   )}
                   <td className="py-2 text-right whitespace-nowrap">
-                    <button onClick={() => onEditar(item)} data-cy={`btnEditarLancamento-${item.id}`} className="p-1.5 text-gray-400 hover:text-indigo-600"><Pencil size={14} /></button>
+                    <button onClick={() => onEditar(item)} data-cy={`btnEditarLancamento-${item.id}`} className="p-1.5 text-gray-400 hover:text-green-600"><Pencil size={14} /></button>
                     <button onClick={() => onExcluir(item)} data-cy={`btnExcluirLancamento-${item.id}`} className="p-1.5 text-gray-400 hover:text-red-600"><Trash2 size={14} /></button>
                   </td>
                 </tr>
