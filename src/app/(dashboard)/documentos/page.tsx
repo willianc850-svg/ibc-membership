@@ -12,7 +12,7 @@ import {
   type Documento,
   type TipoDocumento,
 } from '@/lib/documentos'
-import { FileText, Plus, Trash2, ExternalLink, Loader2 } from 'lucide-react'
+import { FileText, Plus, Trash2, Eye, Download, Loader2, Search } from 'lucide-react'
 
 export default function DocumentosPage() {
   const { podeDocumentos, carregando } = usePermissao()
@@ -37,11 +37,17 @@ function DocumentosConteudo() {
   const [erro, setErro] = useState('')
   const [excluindo, setExcluindo] = useState<Documento | null>(null)
   const [excluindoLoading, setExcluindoLoading] = useState(false)
+  const [busca, setBusca] = useState('')
   const [form, setForm] = useState({
     titulo: '',
     tipo: 'ata' as TipoDocumento,
     arquivo: null as File | null,
   })
+
+  const termo = busca.trim().toLowerCase()
+  const listaFiltrada = termo
+    ? lista.filter((doc) => doc.titulo.toLowerCase().includes(termo))
+    : lista
 
   async function carregar() {
     const { data, error } = await supabase
@@ -111,6 +117,24 @@ function DocumentosConteudo() {
       return
     }
     window.open(data.signedUrl, '_blank', 'noopener,noreferrer')
+  }
+
+  async function baixar(doc: Documento) {
+    const ext = doc.storage_path.includes('.') ? doc.storage_path.split('.').pop() : ''
+    const nome = ext ? `${doc.titulo}.${ext}` : doc.titulo
+    const { data, error } = await supabase.storage
+      .from(BUCKET_DOCUMENTOS)
+      .createSignedUrl(doc.storage_path, 3600, { download: nome })
+    if (error || !data?.signedUrl) {
+      setErro(error?.message ?? 'Não foi possível baixar o documento.')
+      return
+    }
+    const link = document.createElement('a')
+    link.href = data.signedUrl
+    link.rel = 'noopener'
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
   }
 
   async function confirmarExclusao() {
@@ -217,6 +241,18 @@ function DocumentosConteudo() {
         </div>
       )}
 
+      <div className="relative">
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input
+          type="search"
+          placeholder="Buscar por nome do arquivo..."
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          data-cy="inputBuscaDocumento"
+          className="w-full min-h-11 pl-9 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-gray-900"
+        />
+      </div>
+
       <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
         {carregando ? (
           <div data-cy="loadingDocumentos" className="py-16 text-center text-gray-400 text-sm">Carregando...</div>
@@ -224,6 +260,12 @@ function DocumentosConteudo() {
           <div data-cy="vazioDocumentos" className="flex flex-col items-center justify-center py-16 text-gray-400">
             <FileText size={40} className="mb-3 opacity-30" />
             <p className="font-medium">Nenhum documento anexado</p>
+          </div>
+        ) : listaFiltrada.length === 0 ? (
+          <div data-cy="vazioBuscaDocumentos" className="flex flex-col items-center justify-center py-16 text-gray-400">
+            <Search size={40} className="mb-3 opacity-30" />
+            <p className="font-medium">Nenhum documento encontrado</p>
+            <p className="text-sm mt-1">Tente outro nome de arquivo</p>
           </div>
         ) : (
           <table data-cy="listaDocumentos" className="w-full">
@@ -236,7 +278,7 @@ function DocumentosConteudo() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {lista.map((doc) => (
+              {listaFiltrada.map((doc) => (
                 <tr key={doc.id} data-cy={`documentoItem-${doc.id}`} className="hover:bg-gray-50">
                   <td className="px-4 py-3 text-sm font-medium text-gray-900">{doc.titulo}</td>
                   <td className="px-4 py-3 hidden sm:table-cell">
@@ -248,20 +290,36 @@ function DocumentosConteudo() {
                     {formatarData(doc.created_at)}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-2">
+                    <div className="flex items-center justify-end gap-1">
                       <button
-                        onClick={() => abrir(doc.storage_path)}
-                        data-cy={`btnAbrirDocumento-${doc.id}`}
-                        className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                        type="button"
+                        onClick={() => baixar(doc)}
+                        data-cy={`btnBaixarDocumento-${doc.id}`}
+                        title="Baixar"
+                        aria-label="Baixar"
+                        className="inline-flex items-center justify-center size-8 rounded-lg text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-100 dark:hover:text-indigo-700 transition-colors"
                       >
-                        <ExternalLink size={14} /> Abrir
+                        <Download size={16} />
                       </button>
                       <button
+                        type="button"
+                        onClick={() => abrir(doc.storage_path)}
+                        data-cy={`btnAbrirDocumento-${doc.id}`}
+                        title="Abrir"
+                        aria-label="Abrir"
+                        className="inline-flex items-center justify-center size-8 rounded-lg text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-100 dark:hover:text-indigo-700 transition-colors"
+                      >
+                        <Eye size={16} />
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => setExcluindo(doc)}
                         data-cy={`btnExcluirDocumento-${doc.id}`}
-                        className="inline-flex items-center gap-1 text-xs text-red-600 hover:text-red-800 font-medium"
+                        title="Excluir"
+                        aria-label="Excluir"
+                        className="inline-flex items-center justify-center size-8 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-950 dark:hover:text-red-400 transition-colors"
                       >
-                        <Trash2 size={14} /> Excluir
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   </td>
