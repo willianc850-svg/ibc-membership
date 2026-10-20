@@ -226,7 +226,7 @@ export default function MinisteriosPage() {
                 <Link
                   href={`/ministerios/${m.id}`}
                   data-cy={`linkVerMembrosMinisterio-${m.id}`}
-                  className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                  className="text-xs text-indigo-600 hover:text-indigo-700 font-medium"
                 >
                   Ver membros →
                 </Link>

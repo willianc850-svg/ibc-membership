@@ -189,7 +189,7 @@ async function confirmarDeletar() {
           {!compacto && 'Ver'}
         </Link>
         {(isAdmin || membro.user_id === userId) && (
-          <Link href={`/membros/${membro.id}/editar`} data-cy={`btnEditarMembro${ctx}-${membro.id}`} className={`${btn} text-amber-600 hover:bg-amber-50`}>
+          <Link href={`/membros/${membro.id}/editar`} data-cy={`btnEditarMembro${ctx}-${membro.id}`} className={`${btn} text-amber-600`}>
             <Pencil size={compacto ? 18 : 14} />
             {!compacto && 'Editar'}
           </Link>
@@ -199,7 +199,7 @@ async function confirmarDeletar() {
             type="button"
             onClick={() => handleDeletar(membro.id, membro.nome_completo)}
             data-cy={`btnDeletarMembro${ctx}-${membro.id}`}
-            className={`${btn} text-red-600 hover:bg-red-50`}
+            className={`${btn} text-red-600`}
           >
             <Trash2 size={compacto ? 18 : 14} />
             {!compacto && 'Deletar'}

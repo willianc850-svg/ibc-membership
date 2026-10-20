@@ -69,8 +69,7 @@ body {
   min-height: 100dvh;
 }
 
-/* A lista nativa do select abre com fundo claro. No tema escuro o texto herdado
-   fica quase branco e some. Força fundo branco e texto escuro em todas as opções. */
+/* No claro, a lista nativa abre com fundo branco e texto escuro. */
 select {
   color-scheme: light;
 }
@@ -78,6 +77,23 @@ select {
 select option {
   background-color: #ffffff;
   color: #111827;
+}
+
+/* No escuro, a lista segue o tema. A seta nativa fica branca (e inverte no hover
+   no Windows), então ela sai e entra um chevron na cor do texto secundário. */
+html.dark select {
+  color-scheme: dark;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239aa3b5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+  padding-right: 2.25rem;
+}
+
+html.dark select option {
+  background-color: #151b2c;
+  color: #e8ecf4;
 }
 
 button:not(:disabled),
