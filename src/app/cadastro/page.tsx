@@ -165,7 +165,9 @@ export default function CadastroPublicoPage() {
       className="min-h-dvh bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-8"
       style={{
         paddingTop: 'max(2rem, env(safe-area-inset-top))',
-        paddingBottom: 'max(6rem, env(safe-area-inset-bottom))',
+        paddingBottom: ok
+          ? 'max(2rem, env(safe-area-inset-bottom))'
+          : 'calc(10.5rem + env(safe-area-inset-bottom))',
       }}
     >
       <div className="absolute top-4 right-4">
@@ -248,37 +250,39 @@ export default function CadastroPublicoPage() {
               <div data-cy="msgErroCadastro" className="mt-4 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3">{erro}</div>
             )}
 
-            <div className="sticky bottom-0 z-10 mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] bg-transparent">
-              <button
-                type="button"
-                onClick={() => setAbaAtiva((i) => Math.max(0, i - 1))}
-                disabled={abaAtiva === 0}
-                data-cy="btnAnterior"
-                className="flex items-center justify-center gap-2 min-h-11 px-4 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-40"
-              >
-                <ChevronLeft size={16} /> Anterior
-              </button>
-              <span data-cy="indicadorAba" className="text-xs text-gray-500 text-center">{abaAtiva + 1} de {total}</span>
-              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2">
-                {abaAtiva < total - 1 && (
-                  <button
-                    type="button"
-                    onClick={() => setAbaAtiva((i) => Math.min(total - 1, i + 1))}
-                    data-cy="btnProximo"
-                    className="flex items-center justify-center gap-2 min-h-11 px-4 bg-white border border-indigo-200 text-indigo-700 rounded-xl text-sm font-medium"
-                  >
-                    Próximo <ChevronRight size={16} />
-                  </button>
-                )}
+            <div className="fixed inset-x-0 bottom-0 z-10 border-t border-indigo-100 bg-blue-50 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+              <div className="mx-auto grid w-full max-w-3xl grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:flex sm:items-center sm:justify-between">
                 <button
                   type="button"
-                  disabled={enviando}
-                  onClick={enviar}
-                  data-cy="btnEnviarCadastro"
-                  className="flex items-center justify-center gap-2 min-h-11 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white rounded-xl text-sm font-medium"
+                  onClick={() => setAbaAtiva((i) => Math.max(0, i - 1))}
+                  disabled={abaAtiva === 0}
+                  data-cy="btnAnterior"
+                  className="flex w-full items-center justify-center gap-2 min-h-11 px-4 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-40 sm:w-auto"
                 >
-                  {enviando ? <><Loader2 size={16} className="animate-spin" /> Enviando...</> : 'Enviar cadastro'}
+                  <ChevronLeft size={16} /> Anterior
                 </button>
+                <span data-cy="indicadorAba" className="px-1 text-xs text-gray-500 text-center whitespace-nowrap">{abaAtiva + 1} de {total}</span>
+                <div className="contents sm:flex sm:items-center sm:gap-2">
+                  {abaAtiva < total - 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setAbaAtiva((i) => Math.min(total - 1, i + 1))}
+                      data-cy="btnProximo"
+                      className="flex w-full items-center justify-center gap-2 min-h-11 px-4 bg-white border border-indigo-200 text-indigo-700 rounded-xl text-sm font-medium sm:w-auto"
+                    >
+                      Próximo <ChevronRight size={16} />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    disabled={enviando}
+                    onClick={enviar}
+                    data-cy="btnEnviarCadastro"
+                    className="col-span-3 flex w-full items-center justify-center gap-2 min-h-11 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white rounded-xl text-sm font-medium sm:w-auto"
+                  >
+                    {enviando ? <><Loader2 size={16} className="animate-spin" /> Enviando...</> : 'Enviar cadastro'}
+                  </button>
+                </div>
               </div>
             </div>
           </>
