@@ -1,16 +1,17 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   ChevronLeft, CalendarDays, Clock, MapPin, Users,
-  Sparkles, FileDown, CheckCircle, Loader2, Pencil, Trash2, Save
+  FileDown, CheckCircle, Loader2, Pencil, Trash2, Save
 } from 'lucide-react'
 
 import AcessoGuard from '@/components/AcessoGuard'
 import { usePermissao } from '@/lib/hooks/usePermissao'
+import { baixarAtaPdf } from '@/lib/pdf-ata'
 
 type Reuniao = {
   id: string
@@ -71,12 +72,10 @@ function ReuniaoDetalhesConteudo() {
   const [meuMembro, setMeuMembro] = useState<{ id: string; status_membresia: string } | null>(null)
   const [editandoAta, setEditandoAta] = useState(false)
   const [ataTexto, setAtaTexto] = useState('')
-  const [gerando, setGerando] = useState(false)
   const [salvandoAta, setSalvandoAta] = useState(false)
   const [gerandoPdf, setGerandoPdf] = useState(false)
   const [confirmando, setConfirmando] = useState(false)
   const [deletando, setDeletando] = useState(false)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => { carregar() }, [id])
 
@@ -113,44 +112,6 @@ function ReuniaoDetalhesConteudo() {
     })
   }
 
-async function gerarAtaComIA() {
-  if (!reuniao) return
-  setGerando(true)
-
-  const nomes = participantes.map(p => p.membros.nome_completo).join(', ')
-  const prompt = `Você é um secretário eclesiástico profissional. Gere uma ATA formal de reunião com base nas seguintes informações:
-
-Título: ${reuniao.titulo}
-Tipo: ${reuniao.tipo}
-Data: ${formatarData(reuniao.data_reuniao)}
-Horário: ${reuniao.horario ?? 'Não informado'}
-Local: ${reuniao.local ?? 'Não informado'}
-Participantes: ${nomes || 'Não informado'}
-Pauta/Tópicos discutidos: ${reuniao.pauta ?? 'Não informado'}
-
-Gere uma ATA formal, completa e bem estruturada em português brasileiro, com:
-- Cabeçalho com nome da reunião, data, local e horário
-- Lista de presentes
-- Desenvolvimento dos tópicos discutidos
-- Encerramento formal
-- Espaço para assinaturas
-
-Use linguagem formal e eclesiástica adequada.`
-
-  try {
-    const res = await fetch('/api/gerar-ata', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt }),
-    })
-    const data = await res.json()
-    setAtaTexto(data.texto)
-    setEditandoAta(true)
-  } catch {
-    alert('Erro ao gerar ATA. Tente novamente.')
-  }
-  setGerando(false)
-}
   async function salvarAta() {
     setSalvandoAta(true)
     await supabase.from('reunioes').update({ ata_texto: ataTexto }).eq('id', id)
@@ -181,27 +142,19 @@ Use linguagem formal e eclesiástica adequada.`
   async function gerarPDF() {
     if (!reuniao || !ataTexto) return
     setGerandoPdf(true)
-
-    const { default: jsPDF } = await import('jspdf')
-    const doc = new jsPDF()
-
-    const linhas = doc.splitTextToSize(ataTexto, 170)
-    let y = 20
-    doc.setFontSize(14)
-    doc.setFont('helvetica', 'bold')
-    doc.text(reuniao.titulo, 20, y)
-    y += 10
-    doc.setFontSize(11)
-    doc.setFont('helvetica', 'normal')
-    linhas.forEach((linha: string) => {
-      if (y > 270) { doc.addPage(); y = 20 }
-      doc.text(linha, 20, y)
-      y += 6
-    })
-
-    const nomeArquivo = `ata-${reuniao.titulo.toLowerCase().replace(/\s+/g, '-')}.pdf`
-    doc.save(nomeArquivo)
-    setGerandoPdf(false)
+    try {
+      const nomeArquivo = `ata-${reuniao.titulo.toLowerCase().replace(/\s+/g, '-')}.pdf`
+      await baixarAtaPdf({
+        titulo: reuniao.titulo,
+        data: formatarData(reuniao.data_reuniao),
+        horario: reuniao.horario,
+        local: reuniao.local,
+        texto: ataTexto,
+        arquivo: nomeArquivo,
+      })
+    } finally {
+      setGerandoPdf(false)
+    }
   }
 
   async function deletarReuniao() {
@@ -346,20 +299,14 @@ Use linguagem formal e eclesiástica adequada.`
         {editandoAta ? (
           <div className="space-y-3">
             <textarea
-              ref={textareaRef}
               className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none font-mono"
               rows={16}
               value={ataTexto}
               onChange={e => setAtaTexto(e.target.value)}
-              placeholder="Digite ou gere a ATA com IA..."
+              placeholder="Cole aqui o texto da ATA..."
               data-cy="textareaAta"
             />
             <div className="flex flex-wrap gap-2">
-              <button onClick={gerarAtaComIA} disabled={gerando} data-cy="btnGerarAtaIa"
-                className="flex items-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-60 text-white text-sm font-medium rounded-xl transition-colors cursor-pointer">
-                {gerando ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-                {gerando ? 'Gerando com IA...' : 'Gerar ATA com IA'}
-              </button>
               <button onClick={salvarAta} disabled={salvandoAta} data-cy="btnSalvarAta"
                 className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-medium rounded-xl transition-colors cursor-pointer">
                 {salvandoAta ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
@@ -380,12 +327,11 @@ Use linguagem formal e eclesiástica adequada.`
           </div>
         ) : (
           <div data-cy="vazioAta" className="flex flex-col items-center justify-center py-10 text-gray-400">
-            <Sparkles size={32} className="mb-3 opacity-30" />
-            <p className="font-medium text-sm">ATA ainda não gerada</p>
-            <p className="text-xs mt-1 mb-4">Clique em Editar e use a IA para gerar automaticamente</p>
+            <p className="font-medium text-sm">ATA ainda não registrada</p>
+            <p className="text-xs mt-1 mb-4">Cole o texto da ATA para salvar e gerar o PDF</p>
             <button onClick={() => setEditandoAta(true)} data-cy="btnCriarAta"
-              className="flex items-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-xl transition-colors cursor-pointer">
-              <Sparkles size={16} /> Criar ATA
+              className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-xl transition-colors cursor-pointer">
+              Adicionar texto
             </button>
           </div>
         )}

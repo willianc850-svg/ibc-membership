@@ -6,7 +6,6 @@ export function interceptarApis() {
   cy.intercept('POST', '/api/admin/vincular').as('vincularUsuario')
   cy.intercept('GET', '/api/cadastro/pendentes').as('listarPendentes')
   cy.intercept('POST', '/api/cadastro').as('enviarCadastro')
-  cy.intercept('POST', '/api/gerar-ata').as('gerarAta')
 
   cy.intercept({ method: 'GET', url: '**/rest/v1/membros*' }).as('getMembros')
   cy.intercept({ method: 'POST', url: '**/rest/v1/membros*' }).as('insertMembros')
