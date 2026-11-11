@@ -133,52 +133,56 @@ function FichaMes() {
     setSalvando(true)
     setErro('')
 
-    let comprovante_path = form.comprovante_path
-    if (form.arquivo) {
-      const tiposOk = ['application/pdf', 'image/jpeg', 'image/png']
-      if (!tiposOk.includes(form.arquivo.type) && !/\.(pdf|jpe?g|png)$/i.test(form.arquivo.name)) {
-        setErro('O comprovante deve ser PDF, JPG ou PNG.')
-        return
+    try {
+      let comprovante_path = form.comprovante_path
+      if (form.arquivo) {
+        const tiposOk = ['application/pdf', 'image/jpeg', 'image/png']
+        if (!tiposOk.includes(form.arquivo.type) && !/\.(pdf|jpe?g|png)$/i.test(form.arquivo.name)) {
+          setErro('O comprovante deve ser PDF, JPG ou PNG.')
+          return
+        }
+        if (form.arquivo.size > 10 * 1024 * 1024) {
+          setErro('O comprovante deve ter no máximo 10MB.')
+          return
+        }
+        const ext = form.arquivo.name.split('.').pop() || 'bin'
+        const path = `${userId}/${crypto.randomUUID()}.${ext}`
+        const { error: upError } = await supabase.storage
+          .from(BUCKET_COMPROVANTES)
+          .upload(path, form.arquivo, { upsert: true })
+        if (upError) {
+          setErro(upError.message)
+          return
+        }
+        if (form.comprovante_path) {
+          await supabase.storage.from(BUCKET_COMPROVANTES).remove([form.comprovante_path])
+        }
+        comprovante_path = path
       }
-      if (form.arquivo.size > 10 * 1024 * 1024) {
-        setErro('O comprovante deve ter no máximo 10MB.')
-        return
-      }
-      const ext = form.arquivo.name.split('.').pop() || 'bin'
-      const path = `${userId}/${crypto.randomUUID()}.${ext}`
-      const { error: upError } = await supabase.storage
-        .from(BUCKET_COMPROVANTES)
-        .upload(path, form.arquivo, { upsert: true })
-      if (upError) {
-        setSalvando(false)
-        setErro(upError.message)
-        return
-      }
-      if (form.comprovante_path) {
-        await supabase.storage.from(BUCKET_COMPROVANTES).remove([form.comprovante_path])
-      }
-      comprovante_path = path
-    }
 
-    const payload = {
-      descricao: form.descricao.trim(),
-      data: dataIso,
-      valor,
-      comentario: form.comentario.trim() || null,
-      tag: form.tag || null,
-      comprovante_path,
-      tipo: tipoDaCategoria(formCategoria),
-      categoria: formCategoria,
-      criado_por: userId,
+      const payload = {
+        descricao: form.descricao.trim(),
+        data: dataIso,
+        valor,
+        comentario: form.comentario.trim() || null,
+        tag: form.tag || null,
+        comprovante_path,
+        tipo: tipoDaCategoria(formCategoria),
+        categoria: formCategoria,
+        criado_por: userId,
+      }
+      const query = form.id
+        ? supabase.from('lancamentos_financeiros').update(payload).eq('id', form.id)
+        : supabase.from('lancamentos_financeiros').insert(payload)
+      const { error } = await query
+      if (error) { setErro(error.message); return }
+      setFormCategoria(null)
+      carregar(true)
+    } catch (err) {
+      setErro(err instanceof Error ? err.message : 'Não foi possível salvar o lançamento.')
+    } finally {
+      setSalvando(false)
     }
-    const query = form.id
-      ? supabase.from('lancamentos_financeiros').update(payload).eq('id', form.id)
-      : supabase.from('lancamentos_financeiros').insert(payload)
-    const { error } = await query
-    setSalvando(false)
-    if (error) { setErro(error.message); return }
-    setFormCategoria(null)
-    carregar(true)
   }
 
   async function confirmarExclusao() {
