@@ -486,7 +486,17 @@ function Bloco({
         <p data-cy={`vazioBloco-${categoria}`} className="text-sm text-gray-400">Nenhum lançamento neste bloco.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className={`w-full table-fixed text-sm ${ehGasto ? 'min-w-[52rem]' : 'min-w-[36rem]'}`}>
+            <colgroup>
+              <col />
+              <col style={{ width: '6rem' }} />
+              <col style={{ width: '6.75rem' }} />
+              <col style={{ width: '2.75rem' }} />
+              <col style={{ width: '3.5rem' }} />
+              {ehGasto && <col style={{ width: '8rem' }} />}
+              {ehGasto && <col style={{ width: '5.5rem' }} />}
+              <col style={{ width: '4rem' }} />
+            </colgroup>
             <thead>
               <tr className="text-left text-xs text-gray-500 border-b border-gray-100">
                 <th className="py-2 pr-3 font-medium">Descrição</th>
@@ -503,16 +513,16 @@ function Bloco({
               {itens.map((item) => (
                 <Fragment key={item.id}>
                   <tr data-cy={`lancamentoItem-${item.id}`} className={`border-b border-gray-50 ${entraNaConta(item) ? '' : 'opacity-60'}`}>
-                    <td className="py-2 pr-3">
-                      <p className="text-gray-900">{item.descricao}</p>
-                      {item.comentario && <p className="text-xs text-gray-400">{item.comentario}</p>}
+                    <td className="py-2 pr-3 align-top">
+                      <p className="text-gray-900 break-words">{item.descricao}</p>
+                      {item.comentario && <p className="text-xs text-gray-400 break-words">{item.comentario}</p>}
                     </td>
-                    <td className="py-2 pr-3 text-gray-600 whitespace-nowrap">{formatarDataISO(item.data)}</td>
-                    <td className="py-2 pr-3 text-gray-900 whitespace-nowrap">{formatarMoeda(Number(item.valor))}</td>
-                    <td className="py-2 pr-3 text-gray-500">
+                    <td className="py-2 pr-3 text-gray-600 whitespace-nowrap align-top">{formatarDataISO(item.data)}</td>
+                    <td className="py-2 pr-3 text-gray-900 whitespace-nowrap align-top">{formatarMoeda(Number(item.valor))}</td>
+                    <td className="py-2 pr-3 text-gray-500 whitespace-nowrap align-top">
                       {entraNaConta(item) ? `${percentual(Number(item.valor), total).toFixed(0)}%` : '—'}
                     </td>
-                    <td className="py-2 pr-3">
+                    <td className="py-2 pr-3 align-top">
                       <button
                         type="button"
                         role="switch"
@@ -525,9 +535,9 @@ function Bloco({
                         <span className={`inline-block h-4 w-4 translate-y-0.5 rounded-full bg-white transition-transform ${entraNaConta(item) ? 'translate-x-4' : 'translate-x-0.5'}`} />
                       </button>
                     </td>
-                    {ehGasto && <td className="py-2 pr-3 text-gray-500">{item.tag || '—'}</td>}
+                    {ehGasto && <td className="py-2 pr-3 text-gray-500 break-words align-top">{item.tag || '—'}</td>}
                     {ehGasto && (
-                      <td className="py-2 pr-3">
+                      <td className="py-2 pr-3 align-top whitespace-nowrap">
                         {item.comprovante_path ? (
                           <button type="button" onClick={() => onAbrirComprovante?.(item.comprovante_path!)}
                             data-cy={`btnVerComprovante-${item.id}`}
@@ -537,7 +547,7 @@ function Bloco({
                         ) : <span className="text-gray-300">—</span>}
                       </td>
                     )}
-                    <td className="py-2 text-right whitespace-nowrap">
+                    <td className="py-2 text-right whitespace-nowrap align-top">
                       <button onClick={() => onEditar(item)} data-cy={`btnEditarLancamento-${item.id}`} className="p-1.5 text-gray-400 hover:text-green-600"><Pencil size={14} /></button>
                       <button onClick={() => onExcluir(item)} data-cy={`btnExcluirLancamento-${item.id}`} className="p-1.5 text-gray-400 hover:text-red-600"><Trash2 size={14} /></button>
                     </td>
