@@ -299,7 +299,7 @@ function ligarMeses(
 }
 
 function paginaAtual(doc: import('jspdf').jsPDF) {
-  return doc.internal.getCurrentPageInfo().pageNumber
+  return doc.getCurrentPageInfo().pageNumber
 }
 
 function tituloSecao(doc: import('jspdf').jsPDF, y: number, texto: string) {
