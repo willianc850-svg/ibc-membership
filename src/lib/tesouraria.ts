@@ -20,6 +20,7 @@ export type Lancamento = {
   categoria: CategoriaLancamento
   tag: string | null
   comprovante_path: string | null
+  conta_no_total: boolean
   criado_por: string | null
   created_at: string
 }
@@ -97,6 +98,10 @@ export function percentual(valor: number, total: number) {
 
 export function soma(lista: { valor: number }[]) {
   return lista.reduce((acc, item) => acc + Number(item.valor || 0), 0)
+}
+
+export function entraNaConta(item: { conta_no_total?: boolean | null }) {
+  return item.conta_no_total !== false
 }
 
 export function labelCategoria(categoria: CategoriaLancamento) {

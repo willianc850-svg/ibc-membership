@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import TesourariaGuard from '@/components/TesourariaGuard'
 import {
-  BLOCOS_GASTO, BLOCOS_RECEITA, MESES, formatarMoeda, soma,
+  BLOCOS_GASTO, BLOCOS_RECEITA, MESES, entraNaConta, formatarMoeda, soma,
   type CategoriaLancamento, type Lancamento,
 } from '@/lib/tesouraria'
 import { FileText, Wallet } from 'lucide-react'
@@ -71,13 +71,14 @@ function ResumoAnual() {
     }>>((acc, nome, idx) => {
       const mes = idx + 1
       const doMes = lista.filter((l) => Number(l.data.slice(5, 7)) === mes)
-      const entradas = soma(doMes.filter((l) => l.tipo === 'entrada'))
-      const saidas = soma(doMes.filter((l) => l.tipo === 'saida'))
+      const naConta = doMes.filter(entraNaConta)
+      const entradas = soma(naConta.filter((l) => l.tipo === 'entrada'))
+      const saidas = soma(naConta.filter((l) => l.tipo === 'saida'))
       const saldoMes = entradas - saidas
       const saldoAnterior = acc.at(-1)?.saldoAtual ?? 0
       const saldoAtual = saldoAnterior + saldoMes
       const porCat = (cat: CategoriaLancamento) =>
-        soma(doMes.filter((l) => l.categoria === cat))
+        soma(naConta.filter((l) => l.categoria === cat))
       acc.push({
         mes, nome, entradas, saidas, saldoMes, saldoAnterior, saldoAtual,
         dizimos: porCat('dizimos'),
@@ -88,7 +89,7 @@ function ResumoAnual() {
         variaveis: porCat('gastos_variaveis'),
         outrosGastos: porCat('outros_gastos'),
         ofertasSaida: porCat('ofertas_saida'),
-        temDados: doMes.length > 0,
+        temDados: naConta.length > 0,
       })
       return acc
     }, [])

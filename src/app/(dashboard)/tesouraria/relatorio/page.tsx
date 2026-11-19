@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import TesourariaGuard from '@/components/TesourariaGuard'
 import {
   BLOCOS_GASTO, BLOCOS_RECEITA, MESES, TRIMESTRES,
-  formatarDataISO, formatarMoeda, labelCategoria, soma, type Lancamento,
+  entraNaConta, formatarDataISO, formatarMoeda, labelCategoria, soma, type Lancamento,
 } from '@/lib/tesouraria'
 import { FileDown } from 'lucide-react'
 
@@ -58,15 +58,16 @@ function RelatorioTrimestral() {
     carregar()
   }, [ano, trimestre])
 
-  const entradas = lista.filter((l) => l.tipo === 'entrada')
-  const saidas = lista.filter((l) => l.tipo === 'saida')
+  const naConta = lista.filter(entraNaConta)
+  const entradas = naConta.filter((l) => l.tipo === 'entrada')
+  const saidas = naConta.filter((l) => l.tipo === 'saida')
   const totalEntradas = soma(entradas)
   const totalSaidas = soma(saidas)
-  const porCat = (cat: string) => soma(lista.filter((l) => l.categoria === cat))
+  const porCat = (cat: string) => soma(naConta.filter((l) => l.categoria === cat))
   const titulo = `Relatório ${TRIMESTRES.find((t) => t.id === trimestre)?.label} / ${ano}`
 
   const porMes = useMemo(() => meses.map((mes) => {
-    const doMes = lista.filter((l) => Number(l.data.slice(5, 7)) === mes)
+    const doMes = lista.filter((l) => Number(l.data.slice(5, 7)) === mes && entraNaConta(l))
     return {
       mes,
       nome: MESES[mes - 1],
@@ -88,7 +89,7 @@ function RelatorioTrimestral() {
         meses: porMes.map((m) => ({ nome: m.nome, entradas: m.entradas, saidas: m.saidas })),
         lancamentos: lista.map((item) => ({
           data: formatarDataISO(item.data),
-          descricao: item.descricao,
+          descricao: entraNaConta(item) ? item.descricao : `${item.descricao} (não conta)`,
           categoria: labelCategoria(item.categoria),
           tipo: item.tipo,
           valor: Number(item.valor),
@@ -179,9 +180,12 @@ function RelatorioTrimestral() {
                 </thead>
                 <tbody>
                   {lista.map((item) => (
-                    <tr key={item.id} data-cy={`lancamentoRelatorioItem-${item.id}`} className="border-b border-gray-50">
+                    <tr key={item.id} data-cy={`lancamentoRelatorioItem-${item.id}`} className={`border-b border-gray-50 ${entraNaConta(item) ? '' : 'opacity-60'}`}>
                       <td className="py-2 pr-3 whitespace-nowrap">{formatarDataISO(item.data)}</td>
-                      <td className="py-2 pr-3">{item.descricao}</td>
+                      <td className="py-2 pr-3">
+                        {item.descricao}
+                        {!entraNaConta(item) && <span className="ml-2 text-xs text-gray-400">não conta</span>}
+                      </td>
                       <td className="py-2 pr-3 text-gray-500">{labelCategoria(item.categoria)}</td>
                       <td className={`py-2 ${item.tipo === 'entrada' ? 'text-emerald-700' : 'text-red-700'}`}>
                         {item.tipo === 'entrada' ? '+' : '−'} {formatarMoeda(Number(item.valor))}

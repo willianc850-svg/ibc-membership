@@ -9,7 +9,7 @@ import TesourariaGuard from '@/components/TesourariaGuard'
 import ModalConfirmacao from '@/components/ModalConfirmacao'
 import {
   BLOCOS_GASTO, BLOCOS_RECEITA, BUCKET_COMPROVANTES, MESES, TAGS_GASTO,
-  formatarDataISO, formatarMoeda, percentual, soma, tipoDaCategoria,
+  entraNaConta, formatarDataISO, formatarMoeda, percentual, soma, tipoDaCategoria,
   type CategoriaLancamento, type Lancamento,
 } from '@/lib/tesouraria'
 import { Loader2, Paperclip, Pencil, Plus, Trash2 } from 'lucide-react'
@@ -26,6 +26,7 @@ type FormLancamento = {
   tag: string
   arquivo: File | null
   comprovante_path: string | null
+  conta_no_total: boolean
 }
 
 function dataBrParaIso(texto: string) {
@@ -48,6 +49,7 @@ const formVazio = (dataPadrao: string): FormLancamento => ({
   tag: '',
   arquivo: null,
   comprovante_path: null,
+  conta_no_total: true,
 })
 
 export default function TesourariaMesPage() {
@@ -118,6 +120,7 @@ function FichaMes() {
       tag: item.tag ?? '',
       arquivo: null,
       comprovante_path: item.comprovante_path,
+      conta_no_total: entraNaConta(item),
     })
   }
 
@@ -167,6 +170,7 @@ function FichaMes() {
         comentario: form.comentario.trim() || null,
         tag: form.tag || null,
         comprovante_path,
+        conta_no_total: form.conta_no_total,
         tipo: tipoDaCategoria(formCategoria),
         categoria: formCategoria,
         criado_por: userId,
@@ -182,6 +186,19 @@ function FichaMes() {
       setErro(err instanceof Error ? err.message : 'Não foi possível salvar o lançamento.')
     } finally {
       setSalvando(false)
+    }
+  }
+
+  async function alternarConta(item: Lancamento) {
+    const proximo = !entraNaConta(item)
+    setLista((atual) => atual.map((l) => l.id === item.id ? { ...l, conta_no_total: proximo } : l))
+    const { error } = await supabase
+      .from('lancamentos_financeiros')
+      .update({ conta_no_total: proximo })
+      .eq('id', item.id)
+    if (error) {
+      setLista((atual) => atual.map((l) => l.id === item.id ? { ...l, conta_no_total: entraNaConta(item) } : l))
+      setErro(error.message)
     }
   }
 
@@ -212,8 +229,8 @@ function FichaMes() {
     router.push(`/tesouraria/${d.getFullYear()}/${d.getMonth() + 1}`)
   }
 
-  const entradas = lista.filter((l) => l.tipo === 'entrada')
-  const saidas = lista.filter((l) => l.tipo === 'saida')
+  const entradas = lista.filter((l) => l.tipo === 'entrada' && entraNaConta(l))
+  const saidas = lista.filter((l) => l.tipo === 'saida' && entraNaConta(l))
   const totalEntradas = soma(entradas)
   const totalSaidas = soma(saidas)
 
@@ -259,6 +276,7 @@ function FichaMes() {
                 onFechar={() => setFormCategoria(null)}
                 onChange={setForm}
                 onSalvar={salvar}
+                onAlternarConta={alternarConta}
               />
             ))}
           </Secao>
@@ -281,6 +299,7 @@ function FichaMes() {
                 onChange={setForm}
                 onSalvar={salvar}
                 onAbrirComprovante={abrirComprovante}
+                onAlternarConta={alternarConta}
               />
             ))}
           </Secao>
@@ -395,6 +414,15 @@ function FormularioLancamento({
           </div>
         </>
       )}
+      <label className="flex items-center gap-2 text-sm text-gray-700 sm:col-span-2">
+        <input
+          type="checkbox"
+          checked={form.conta_no_total}
+          data-cy="checkEntraNoTotal"
+          onChange={(e) => onChange({ ...form, conta_no_total: e.target.checked })}
+        />
+        Entra no total
+      </label>
       <div className="flex gap-2 sm:col-span-2">
         <button type="submit" disabled={salvando}
           data-cy="btnSalvarLancamento"
@@ -411,7 +439,7 @@ function FormularioLancamento({
 
 function Bloco({
   categoria, titulo, itens, ehGasto, formAberto, form, salvando,
-  onNovo, onEditar, onExcluir, onFechar, onChange, onSalvar, onAbrirComprovante,
+  onNovo, onEditar, onExcluir, onFechar, onChange, onSalvar, onAbrirComprovante, onAlternarConta,
 }: {
   categoria: CategoriaLancamento
   titulo: string
@@ -427,9 +455,10 @@ function Bloco({
   onChange: (form: FormLancamento) => void
   onSalvar: (e: React.FormEvent) => void
   onAbrirComprovante?: (path: string) => void
+  onAlternarConta: (item: Lancamento) => void
 }) {
-  const total = soma(itens)
-  const colunas = ehGasto ? 7 : 5
+  const total = soma(itens.filter(entraNaConta))
+  const colunas = ehGasto ? 8 : 6
   const editandoId = formAberto && form.id ? form.id : null
   return (
     <div data-cy={`blocoLancamento-${categoria}`} className="bg-white border border-gray-200 rounded-2xl p-5">
@@ -464,6 +493,7 @@ function Bloco({
                 <th className="py-2 pr-3 font-medium">Data</th>
                 <th className="py-2 pr-3 font-medium">Valor</th>
                 <th className="py-2 pr-3 font-medium">%</th>
+                <th className="py-2 pr-3 font-medium">Conta</th>
                 {ehGasto && <th className="py-2 pr-3 font-medium">Tag</th>}
                 {ehGasto && <th className="py-2 pr-3 font-medium">Comprovante</th>}
                 <th className="py-2 font-medium"></th>
@@ -472,14 +502,29 @@ function Bloco({
             <tbody>
               {itens.map((item) => (
                 <Fragment key={item.id}>
-                  <tr data-cy={`lancamentoItem-${item.id}`} className="border-b border-gray-50">
+                  <tr data-cy={`lancamentoItem-${item.id}`} className={`border-b border-gray-50 ${entraNaConta(item) ? '' : 'opacity-60'}`}>
                     <td className="py-2 pr-3">
                       <p className="text-gray-900">{item.descricao}</p>
                       {item.comentario && <p className="text-xs text-gray-400">{item.comentario}</p>}
                     </td>
                     <td className="py-2 pr-3 text-gray-600 whitespace-nowrap">{formatarDataISO(item.data)}</td>
                     <td className="py-2 pr-3 text-gray-900 whitespace-nowrap">{formatarMoeda(Number(item.valor))}</td>
-                    <td className="py-2 pr-3 text-gray-500">{percentual(Number(item.valor), total).toFixed(0)}%</td>
+                    <td className="py-2 pr-3 text-gray-500">
+                      {entraNaConta(item) ? `${percentual(Number(item.valor), total).toFixed(0)}%` : '—'}
+                    </td>
+                    <td className="py-2 pr-3">
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={entraNaConta(item)}
+                        aria-label={entraNaConta(item) ? 'Entra no total' : 'Não entra no total'}
+                        data-cy={`toggleContaLancamento-${item.id}`}
+                        onClick={() => onAlternarConta(item)}
+                        className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors ${entraNaConta(item) ? 'bg-indigo-600' : 'bg-gray-300'}`}
+                      >
+                        <span className={`inline-block h-4 w-4 translate-y-0.5 rounded-full bg-white transition-transform ${entraNaConta(item) ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                      </button>
+                    </td>
                     {ehGasto && <td className="py-2 pr-3 text-gray-500">{item.tag || '—'}</td>}
                     {ehGasto && (
                       <td className="py-2 pr-3">
@@ -517,7 +562,8 @@ function Bloco({
                 <td className="pt-3 font-medium text-gray-900">Total</td>
                 <td></td>
                 <td data-cy={`totalBloco-${categoria}`} className="pt-3 font-medium text-gray-900">{formatarMoeda(total)}</td>
-                <td className="pt-3 text-gray-500">100%</td>
+                <td className="pt-3 text-gray-500">{total > 0 ? '100%' : '—'}</td>
+                <td></td>
                 {ehGasto && <td></td>}
                 {ehGasto && <td></td>}
                 <td></td>
