@@ -88,6 +88,7 @@ function RelatorioTrimestral() {
         gastos: BLOCOS_GASTO.map((b) => ({ titulo: b.titulo, valor: porCat(b.categoria) })),
         meses: porMes.map((m) => ({ nome: m.nome, entradas: m.entradas, saidas: m.saidas })),
         lancamentos: lista.map((item) => ({
+          mes: Number(item.data.slice(5, 7)),
           data: formatarDataISO(item.data),
           descricao: entraNaConta(item) ? item.descricao : `${item.descricao} (não conta)`,
           categoria: labelCategoria(item.categoria),

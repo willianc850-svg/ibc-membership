@@ -1,4 +1,4 @@
-import { formatarMoeda } from '@/lib/tesouraria'
+import { MESES, formatarMoeda } from '@/lib/tesouraria'
 
 type RGB = [number, number, number]
 
@@ -17,12 +17,16 @@ const WHITE: RGB = [255, 255, 255]
 export type LinhaValor = { titulo: string; valor: number }
 export type LinhaMes = { nome: string; entradas: number; saidas: number }
 export type LinhaLancamento = {
+  mes: number
   data: string
   descricao: string
   categoria: string
   tipo: 'entrada' | 'saida'
   valor: number
 }
+
+type RetanguloLink = { page: number; x: number; y: number; w: number; h: number; nome: string }
+type DestinoMes = { page: number; y: number }
 
 export type RelatorioTesourariaPdf = {
   titulo: string
@@ -58,10 +62,13 @@ export async function baixarRelatorioTesourariaPdf(dados: RelatorioTesourariaPdf
   const saldo = dados.totalEntradas - dados.totalSaidas
   let y = desenharCapa(doc, dados.titulo, logo)
 
+  const links: RetanguloLink[] = []
+  const destinos = new Map<string, DestinoMes>()
   y = desenharCartoes(doc, y, dados.totalEntradas, dados.totalSaidas, saldo)
   y = desenharCategorias(doc, y, dados.receitas, dados.gastos)
-  y = desenharMeses(doc, y, dados.titulo, dados.meses)
-  desenharLancamentos(doc, y, dados.titulo, dados.lancamentos)
+  y = desenharMeses(doc, y, dados.titulo, dados.meses, links)
+  desenharMesesDetalhe(doc, y, dados.titulo, dados.meses, dados.lancamentos, destinos)
+  ligarMeses(doc, links, destinos)
   carimbarRodape(doc)
 
   doc.save(dados.arquivo)
@@ -159,6 +166,7 @@ function desenharMeses(
   y: number,
   titulo: string,
   meses: LinhaMes[],
+  links: RetanguloLink[],
 ) {
   y = garantirEspaco(doc, y, titulo, 28)
   y = tituloSecao(doc, y, 'Por mês')
@@ -173,8 +181,20 @@ function desenharMeses(
     const saldoMes = mes.entradas - mes.saidas
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(9)
-    doc.setTextColor(...INK)
+    doc.setTextColor(...NAVY)
     doc.text(mes.nome, colunas[0], y)
+    const largura = doc.getTextWidth(mes.nome)
+    doc.setDrawColor(...NAVY)
+    doc.setLineWidth(0.2)
+    doc.line(colunas[0], y + 0.7, colunas[0] + largura, y + 0.7)
+    links.push({
+      page: paginaAtual(doc),
+      x: colunas[0],
+      y: y - 3.2,
+      w: Math.max(largura, 20),
+      h: 4.6,
+      nome: mes.nome,
+    })
     doc.setTextColor(...GREEN)
     doc.text(formatarMoeda(mes.entradas), colunas[1], y)
     doc.setTextColor(...RED)
@@ -186,27 +206,57 @@ function desenharMeses(
   return y + 4
 }
 
-function desenharLancamentos(
+function desenharMesesDetalhe(
   doc: import('jspdf').jsPDF,
   y: number,
   titulo: string,
+  meses: LinhaMes[],
   lancamentos: LinhaLancamento[],
+  destinos: Map<string, DestinoMes>,
 ) {
-  y = garantirEspaco(doc, y, titulo, 20)
-  y = tituloSecao(doc, y, 'Lançamentos do trimestre')
-  if (lancamentos.length === 0) {
+  for (const mes of meses) {
+    const numero = MESES.indexOf(mes.nome) + 1
+    const doMes = lancamentos.filter((item) => item.mes === numero)
+    const entradas = ordenarPorData(doMes.filter((item) => item.tipo === 'entrada'))
+    const saidas = ordenarPorData(doMes.filter((item) => item.tipo === 'saida'))
+
+    y = garantirEspaco(doc, y, titulo, 28)
+    destinos.set(mes.nome, { page: paginaAtual(doc), y })
+    y = tituloSecao(doc, y, mes.nome)
+    y = desenharGrupo(doc, y, titulo, 'Entradas', entradas, 'Nenhuma entrada neste mês.')
+    y = desenharGrupo(doc, y, titulo, 'Saídas', saidas, 'Nenhuma saída neste mês.')
+    y += 4
+  }
+}
+
+function desenharGrupo(
+  doc: import('jspdf').jsPDF,
+  y: number,
+  titulo: string,
+  rotulo: string,
+  itens: LinhaLancamento[],
+  vazio: string,
+) {
+  y = garantirEspaco(doc, y, titulo, 16)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(10)
+  doc.setTextColor(...(rotulo === 'Entradas' ? GREEN : RED))
+  doc.text(rotulo, 14, y)
+  y += 5
+  if (itens.length === 0) {
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(9)
     doc.setTextColor(...GRAY)
-    doc.text('Nenhum lançamento neste trimestre.', 14, y)
-    return
+    doc.text(vazio, 14, y)
+    return y + 6
   }
+
   const colunas = [14, 36, 110, 158]
   const pintarCabecalho = () => {
     y = cabecalhoTabela(doc, y, colunas, ['Data', 'Descrição', 'Categoria', 'Valor'])
   }
   pintarCabecalho()
-  for (const item of lancamentos) {
+  for (const item of itens) {
     const descricao = doc.splitTextToSize(item.descricao, 70) as string[]
     const altura = Math.max(6, descricao.length * 4 + 2)
     const antes = y
@@ -224,6 +274,32 @@ function desenharLancamentos(
     doc.text(`${sinal} ${formatarMoeda(item.valor)}`, colunas[3], y)
     y += altura
   }
+  return y + 2
+}
+
+function ordenarPorData(itens: LinhaLancamento[]) {
+  return [...itens].sort((a, b) => {
+    const [diaA, mesA, anoA] = a.data.split('/').map(Number)
+    const [diaB, mesB, anoB] = b.data.split('/').map(Number)
+    return anoA - anoB || mesA - mesB || diaA - diaB
+  })
+}
+
+function ligarMeses(
+  doc: import('jspdf').jsPDF,
+  links: RetanguloLink[],
+  destinos: Map<string, DestinoMes>,
+) {
+  for (const link of links) {
+    const destino = destinos.get(link.nome)
+    if (!destino) continue
+    doc.setPage(link.page)
+    doc.link(link.x, link.y, link.w, link.h, { pageNumber: destino.page, top: destino.y })
+  }
+}
+
+function paginaAtual(doc: import('jspdf').jsPDF) {
+  return doc.internal.getCurrentPageInfo().pageNumber
 }
 
 function tituloSecao(doc: import('jspdf').jsPDF, y: number, texto: string) {
