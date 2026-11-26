@@ -119,7 +119,7 @@ Em `/membros/novo` existe um segundo date de admissão sempre visível: `inputDa
 
 **Resumo** (`pageTesouraria`) — `selectAnoTesouraria`, `optAnoTesouraria-<ano>`, `btnRelatorioTrimestral`, `linkMesTesouraria-<mes>`, `totalMediaEntradas`, `totalMediaSaidas`, `totalMediaDizimos`, `totalMediaOfertas`, `msgErroTesouraria`, `loadingTesouraria`.
 
-**Mês** (`pageTesourariaMes`) — `btnMesAnterior`, `btnProximoMes`, `btnResumoAnual`, `blocoLancamento-<categoria>`, `btnAdicionarLancamento-<categoria>`, `formLancamento`, `inputDescricaoLancamento`, `inputDataLancamento`, `inputValorLancamento`, `inputComentarioLancamento`, `selectTagLancamento`, `fileComprovanteLancamento`, `btnSalvarLancamento`, `btnCancelarLancamento`, `lancamentoItem-<id>`, `btnEditarLancamento-<id>`, `btnExcluirLancamento-<id>`, `btnVerComprovante-<id>`, `vazioBloco-<categoria>`, `totalEntradasMes`, `totalSaidasMes`, `totalSaldoMes`, `msgErroTesourariaMes`, `loadingLancamentos`.
+**Mês** (`pageTesourariaMes`) — `btnMesAnterior`, `btnProximoMes`, `btnResumoAnual`, `blocoLancamento-<categoria>`, `btnAdicionarLancamento-<categoria>`, `formLancamento`, `inputDescricaoLancamento`, `inputDataLancamento`, `inputValorLancamento`, `inputComentarioLancamento`, `selectTagLancamento`, `fileComprovanteLancamento`, `btnSalvarLancamento`, `btnCancelarLancamento`, `checkEntraNoTotal`, `lancamentoItem-<id>`, `toggleContaLancamento-<id>`, `btnEditarLancamento-<id>`, `btnExcluirLancamento-<id>`, `btnVerComprovante-<id>`, `vazioBloco-<categoria>`, `totalEntradasMes`, `totalSaidasMes`, `totalSaldoMes`, `msgErroTesourariaMes`, `loadingLancamentos`.
 
 Categorias: `dizimos`, `ofertas`, `missoes`, `outros`, `gastos_fixos`, `gastos_variaveis`, `outros_gastos`, `ofertas_saida`.
 
